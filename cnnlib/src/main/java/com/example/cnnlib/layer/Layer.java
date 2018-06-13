@@ -25,7 +25,6 @@ public abstract class Layer {
         return mOutputTexID;
     }
 
-    public abstract int forwardProc(int InputTexID, int attachID);
-
+    public abstract int forwardProc(int InputTexID);
 
 }

@@ -1,9 +1,3 @@
-/*
- *
- * ShaderUtils.java
- *
- * Created by Wuwang on 2016/10/8
- */
 package com.example.cnnlib.utils;
 
 import android.content.res.Resources;
@@ -11,9 +5,6 @@ import android.opengl.GLES31;
 
 import java.io.InputStream;
 
-/**
- * Description:
- */
 public class ShaderUtils {
 
     private static final String TAG = "ShaderUtils";

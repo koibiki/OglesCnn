@@ -1,14 +1,17 @@
 package com.example.cnnlib.layer;
 
 import android.content.Context;
-import android.util.Log;
-import android.util.StateSet;
+import android.opengl.GLES31;
 
 import com.example.cnnlib.model.Kennel;
 import com.example.cnnlib.model.LayerParams;
 import com.example.cnnlib.render.ComputeRender;
+import com.example.cnnlib.utils.AttachIDManager;
 
 import java.util.List;
+
+import static com.example.cnnlib.render.ComputeRender.getCompShaderLocalSizeY;
+import static com.example.cnnlib.render.ComputeRender.initGLSL;
 
 public class ConvolutionLayer extends Layer {
 
@@ -17,24 +20,49 @@ public class ConvolutionLayer extends Layer {
     private List<Kennel> mKennels;
     private int[] mStrides;
     private int mPadding;
-    private int mPaddingType;
+    private int mShaderComp;
+    private int mNumGroupsY;
+    private int[] mParams;
 
 
-    public ConvolutionLayer(Context context, LayerParams layerParams, List<Kennel> kennels, int padding, int paddingType, int[] strides) {
+    public ConvolutionLayer(Context context, LayerParams layerParams, List<Kennel> kennels, int padding, int[] strides) {
         super(context, layerParams);
         this.mKennels = kennels;
         this.mPadding = padding;
-        this.mPaddingType = paddingType;
         this.mStrides = strides;
+
+        initConv();
     }
 
-    @Override
-    public int forwardProc(int InputTexID, int attachID) {
+    private void initConv() {
+        int localSizeY = getCompShaderLocalSizeY(mLayerParams.outputShape);
+        mNumGroupsY = (int) Math.ceil(mLayerParams.outputShape[1] * 1.0d / localSizeY);
+        mShaderComp = initGLSL(mContext, "test.comp", mKennels.get(0), mLayerParams.outputShape[0], localSizeY);
+        int attachID = AttachIDManager.getInstance().getAttachID();
         mOutputTexID = ComputeRender.createTexture(attachID);
+        mParams = new int[13];
+
+        mParams[0] = mKennels.get(0).shape[0];
+        mParams[1] = mKennels.get(0).shape[1];
+        mParams[2] = mKennels.get(0).shape[2];
+        mParams[3] = mLayerParams.inputShape[0];
+        mParams[4] = mLayerParams.inputShape[1];
+        mParams[5] = mLayerParams.inputShape[2];
+        mParams[6] = mLayerParams.outputShape[0];
+        mParams[7] = mLayerParams.outputShape[1];
+        mParams[8] = mLayerParams.outputShape[2];
+        mParams[9] = mStrides[0];
+        mParams[10] = mStrides[1];
+        mParams[11] = mPadding;
+    }
+
+
+    @Override
+    public int forwardProc(int inputTexID) {
+        //ComputeRender.cleanTexture(mOutputTexID);
         for (int i = 0; i < mKennels.size(); i++) {
-            long begin = System.currentTimeMillis();
-            ComputeRender.performConvolute(mContext, "conv.comp", InputTexID, mOutputTexID, mKennels.get(i), i, mLayerParams, mPadding, mPaddingType, mStrides);
-            Log.w(TAG, "convolute:" + i + "spent:" + (System.currentTimeMillis() - begin));
+            mParams[12] = i;
+            ComputeRender.performConvolute(mShaderComp, mKennels.get(i), mParams, inputTexID, mOutputTexID, mNumGroupsY);
         }
         return mOutputTexID;
     }

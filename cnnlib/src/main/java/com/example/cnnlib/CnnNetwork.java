@@ -43,15 +43,12 @@ public class CnnNetwork {
         int currentTexID = 0;
         int attachID = 0;
 
-
-
+        long begin = System.currentTimeMillis();
         for (int i = 0; i < mLayers.size(); i++) {
-            long begin = System.currentTimeMillis();
             attachID = i;
-            currentTexID = mLayers.get(i).forwardProc(currentTexID, i);
-            Log.w(TAG, "spent:" + (System.currentTimeMillis() - begin));
+            currentTexID = mLayers.get(i).forwardProc(currentTexID);
         }
-
+        Log.w(TAG, "----- total spent:" + (System.currentTimeMillis() - begin));
 
         int count = SortUtils.getCount(mLayers.get(mLayers.size() - 1).getLayerParams());
         for (int i = 0; i < count; i++) {
@@ -69,7 +66,6 @@ public class CnnNetwork {
         LayerParams layerParams = mLayers.get(mLayers.size() - 1).getLayerParams();
         int width = layerParams.outputShape[0];
         int height = layerParams.outputShape[1];
-        int channel = layerParams.outputShape[2];
         int startX = indexes[0] * width;
         int startY = indexes[1] * height;
         FloatBuffer allocate = FloatBuffer.allocate(width * height * 4);

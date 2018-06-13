@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.example.cnnlib.model.LayerParams;
 import com.example.cnnlib.render.ComputeRender;
+import com.example.cnnlib.utils.AttachIDManager;
 import com.example.cnnlib.utils.SortUtils;
 
 import java.nio.FloatBuffer;
@@ -12,6 +13,7 @@ public class InputLayer extends Layer {
 
     public InputLayer(Context context, LayerParams layerParams) {
         super(context, layerParams);
+        this.mOutputTexID = ComputeRender.createTexture(AttachIDManager.getInstance().getAttachID());
     }
 
     private float[][] createInputBuffer() {
@@ -19,7 +21,6 @@ public class InputLayer extends Layer {
         int channel = inputShape[2];
         int areaCapacity = inputShape[0] * inputShape[1];
         float input[][] = new float[channel][areaCapacity];
-
         for (int j = 0; j < channel; j++) {
             for (int i = 0; i < areaCapacity; i++) {
                 input[j][i] = i % inputShape[0];
@@ -29,15 +30,14 @@ public class InputLayer extends Layer {
     }
 
     @Override
-    public int forwardProc(int InputTexID, int attachID) {
+    public int forwardProc(int InputTexID) {
         float[][] input = createInputBuffer();
-        int texture = ComputeRender.createTexture(attachID);
+
         int count = SortUtils.getCount(mLayerParams);
         for (int i = 0; i < count; i++) {
-            writeInput(input, texture, i);
+            writeInput(input, mOutputTexID, i);
         }
         //ComputeRender.transferToTexture(inputBuffer, texture, 0, 0, outputShape[0], outputShape[1]);
-        mOutputTexID = texture;
         return mOutputTexID;
     }
 
