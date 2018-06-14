@@ -13,7 +13,8 @@ public class InputLayer extends Layer {
 
     public InputLayer(Context context, LayerParams layerParams) {
         super(context, layerParams);
-        this.mOutputTexID = ComputeRender.createTexture(AttachIDManager.getInstance().getAttachID());
+        this.mAttachID = AttachIDManager.getInstance().getAttachID();
+        this.mOutputTexID = ComputeRender.createTexture(mAttachID);
     }
 
     private float[][] createInputBuffer() {
@@ -23,21 +24,21 @@ public class InputLayer extends Layer {
         float input[][] = new float[channel][areaCapacity];
         for (int j = 0; j < channel; j++) {
             for (int i = 0; i < areaCapacity; i++) {
-                input[j][i] = i % inputShape[0];
+                int s = i%2==0? -1:1;
+                input[j][i] = i % inputShape[0] * s;
             }
         }
         return input;
     }
 
     @Override
-    public int forwardProc(int InputTexID) {
+    public int forwardProc(int inputTexID) {
         float[][] input = createInputBuffer();
 
         int count = SortUtils.getCount(mLayerParams);
         for (int i = 0; i < count; i++) {
             writeInput(input, mOutputTexID, i);
         }
-        //ComputeRender.transferToTexture(inputBuffer, texture, 0, 0, outputShape[0], outputShape[1]);
         return mOutputTexID;
     }
 

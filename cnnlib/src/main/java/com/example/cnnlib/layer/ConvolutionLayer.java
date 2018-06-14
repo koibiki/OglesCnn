@@ -1,7 +1,6 @@
 package com.example.cnnlib.layer;
 
 import android.content.Context;
-import android.opengl.GLES31;
 
 import com.example.cnnlib.model.Kennel;
 import com.example.cnnlib.model.LayerParams;
@@ -11,7 +10,7 @@ import com.example.cnnlib.utils.AttachIDManager;
 import java.util.List;
 
 import static com.example.cnnlib.render.ComputeRender.getCompShaderLocalSizeY;
-import static com.example.cnnlib.render.ComputeRender.initGLSL;
+import static com.example.cnnlib.render.ComputeRender.initConvolutePro;
 
 public class ConvolutionLayer extends Layer {
 
@@ -20,7 +19,7 @@ public class ConvolutionLayer extends Layer {
     private List<Kennel> mKennels;
     private int[] mStrides;
     private int mPadding;
-    private int mShaderComp;
+    private int mShaderPro;
     private int mNumGroupsY;
     private int[] mParams;
 
@@ -37,9 +36,9 @@ public class ConvolutionLayer extends Layer {
     private void initConv() {
         int localSizeY = getCompShaderLocalSizeY(mLayerParams.outputShape);
         mNumGroupsY = (int) Math.ceil(mLayerParams.outputShape[1] * 1.0d / localSizeY);
-        mShaderComp = initGLSL(mContext, "test.comp", mKennels.get(0), mLayerParams.outputShape[0], localSizeY);
-        int attachID = AttachIDManager.getInstance().getAttachID();
-        mOutputTexID = ComputeRender.createTexture(attachID);
+        mShaderPro = initConvolutePro(mContext, "conv.comp", mKennels.get(0), mLayerParams.outputShape[0], localSizeY);
+        mAttachID = AttachIDManager.getInstance().getAttachID();
+        mOutputTexID = ComputeRender.createTexture(mAttachID);
         mParams = new int[13];
 
         mParams[0] = mKennels.get(0).shape[0];
@@ -62,7 +61,7 @@ public class ConvolutionLayer extends Layer {
         //ComputeRender.cleanTexture(mOutputTexID);
         for (int i = 0; i < mKennels.size(); i++) {
             mParams[12] = i;
-            ComputeRender.performConvolute(mShaderComp, mKennels.get(i), mParams, inputTexID, mOutputTexID, mNumGroupsY);
+            ComputeRender.performConvolute(mShaderPro, mKennels.get(i), mParams, inputTexID, mOutputTexID, mNumGroupsY);
         }
         return mOutputTexID;
     }

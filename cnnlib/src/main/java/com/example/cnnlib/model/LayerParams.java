@@ -10,6 +10,16 @@ public class LayerParams {
     public final int[] outputShape = new int[3];    // w,h,c
 
 
+    public LayerParams(int width, int height, int channel) {
+        this.inputShape[0] = width;
+        this.inputShape[1] = height;
+        this.inputShape[2] = channel;
+        this.outputShape[0] = width;
+        this.outputShape[1] = height;
+        this.outputShape[2] = channel;
+    }
+
+
     public LayerParams(int inputWidth, int inputHeight, int inputChannel, int outputWidth, int outputHeight, int outputChannel) {
         this.inputShape[0] = inputWidth;
         this.inputShape[1] = inputHeight;

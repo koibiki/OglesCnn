@@ -13,7 +13,6 @@ import java.util.Locale;
 
 import static android.opengl.GLES20.GL_FRAMEBUFFER;
 import static android.opengl.GLES20.glReadPixels;
-import static android.opengl.GLES20.glUniform1f;
 import static android.opengl.GLES20.glUniform1iv;
 import static android.opengl.GLES30.glReadBuffer;
 import static android.opengl.GLES31.GL_CLAMP_TO_EDGE;
@@ -44,17 +43,27 @@ import static android.opengl.GLES31.glTexStorage2D;
 import static android.opengl.GLES31.glTexSubImage2D;
 import static android.opengl.GLES31.glUniform1fv;
 import static android.opengl.GLES31.glUseProgram;
-import static com.example.cnnlib.utils.Constants.S_COMP_SHADER_HEADER;
+import static com.example.cnnlib.utils.Constants.S_CONV_SHADER_HEADER;
+import static com.example.cnnlib.utils.Constants.S_NONLIN_SHADER_HEADER;
 import static com.example.cnnlib.utils.Constants.S_TEXTURE_SIZE;
 
 public class ComputeRender {
 
     private static final String TAG = "ComputeRender";
 
-    public static int initGLSL(Context context, String csPath, Kennel kennel, int xSize, int ySize) {
+    public static int initConvolutePro(Context context, String csPath, Kennel kennel, int xSize, int ySize) {
         int compProg = GLES31.glCreateProgram();
         String source = ShaderUtils.loadFromAssetsFile(csPath, context.getResources());
-        source = String.format(Locale.getDefault(), S_COMP_SHADER_HEADER, kennel.area, kennel.size, xSize, ySize) + source;
+        source = String.format(Locale.getDefault(), S_CONV_SHADER_HEADER, kennel.area, kennel.size, xSize, ySize) + source;
+        ShaderUtils.vglAttachShaderSource(compProg, GL_COMPUTE_SHADER, source);
+        glLinkProgram(compProg);
+        return compProg;
+    }
+
+    public static int initReluPro(Context context, String csPath, int xSize, int ySize) {
+        int compProg = GLES31.glCreateProgram();
+        String source = ShaderUtils.loadFromAssetsFile(csPath, context.getResources());
+        source = String.format(Locale.getDefault(), S_NONLIN_SHADER_HEADER, xSize, ySize) + source;
         ShaderUtils.vglAttachShaderSource(compProg, GL_COMPUTE_SHADER, source);
         glLinkProgram(compProg);
         return compProg;
@@ -88,6 +97,16 @@ public class ComputeRender {
         glBindImageTexture(0, inputTexture, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
         glBindImageTexture(1, outputTexture, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
         glBindImageTexture(2, outputTexture, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
+        glDispatchCompute(1, numGroupsY, 1);
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    }
+
+    public static void performNonLinear(int compProg, int inputTexture, int outputTexture, int numGroupsY) {
+        glUseProgram(compProg);
+
+        glBindImageTexture(0, inputTexture, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+        glBindImageTexture(1, outputTexture, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
         glDispatchCompute(1, numGroupsY, 1);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);

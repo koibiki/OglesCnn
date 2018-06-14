@@ -9,6 +9,7 @@ import com.example.cnnlib.activate.ActivationFunc;
 import com.example.cnnlib.layer.ConvolutionLayer;
 import com.example.cnnlib.layer.InputLayer;
 import com.example.cnnlib.layer.Layer;
+import com.example.cnnlib.layer.NonLinearLayer;
 import com.example.cnnlib.model.Kennel;
 import com.example.cnnlib.model.LayerParams;
 import com.example.cnnlib.utils.Constants;
@@ -32,24 +33,28 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         mCnnNetwork = new CnnNetwork();
-        LayerParams inLayerParams = new LayerParams(64, 64, 4, 64, 64, 4);
+        LayerParams inLayerParams = new LayerParams(64, 64, 4);
         mCnnNetwork.addLayer(new InputLayer(this, inLayerParams));
 
 
-        LayerParams convParams1 = new LayerParams(64, 64, 4, 64, 64, 64);
-        List<Kennel> kennels = new ArrayList<>();
-        for (int i = 0; i < 64; i++) {
-            kennels.add(createKennel(i + 1, 3, 4, 1));
-        }
-        mCnnNetwork.addLayer(new ConvolutionLayer(this, convParams1, kennels, 1, new int[]{1, 1}));
-
-
-        LayerParams convParams2 = new LayerParams(64, 64, 64, 64, 64, 200);
-        List<Kennel> kennels2 = new ArrayList<>();
-        for (int i = 0; i < 200; i++) {
-            kennels2.add(createKennel(i + 1, 3, 64, 1));
-        }
-        mCnnNetwork.addLayer(new ConvolutionLayer(this, convParams2, kennels2, 1, new int[]{1, 1}));
+//        LayerParams convParams1 = new LayerParams(64, 64, 4, 64, 64, 64);
+//        List<Kennel> kennels = new ArrayList<>();
+//        for (int i = 0; i < 64; i++) {
+//            kennels.add(createKennel(i + 1, 3, 4, 1));
+//        }
+//        mCnnNetwork.addLayer(new ConvolutionLayer(this, convParams1, kennels, 1, new int[]{1, 1}));
+//
+//
+        LayerParams reluParams = new LayerParams(64, 64, 4);
+        mCnnNetwork.addLayer(new NonLinearLayer(this, reluParams, NonLinearLayer.NonLinearType.RELU));
+//
+//
+//        LayerParams convParams2 = new LayerParams(64, 64, 64, 64, 64, 200);
+//        List<Kennel> kennels2 = new ArrayList<>();
+//        for (int i = 0; i < 200; i++) {
+//            kennels2.add(createKennel(i + 1, 3, 64, 1));
+//        }
+//        mCnnNetwork.addLayer(new ConvolutionLayer(this, convParams2, kennels2, 1, new int[]{1, 1}));
 
     }
 
