@@ -7,6 +7,7 @@ import android.view.View;
 import com.example.cnnlib.CnnNetwork;
 import com.example.cnnlib.layer.InputLayer;
 import com.example.cnnlib.layer.NonLinearLayer;
+import com.example.cnnlib.layer.PoolingLayer;
 import com.example.cnnlib.model.Kennel;
 import com.example.cnnlib.model.LayerParams;
 
@@ -24,8 +25,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         mCnnNetwork = new CnnNetwork();
-        LayerParams inLayerParams = new LayerParams(64, 64, 4);
-        mCnnNetwork.addLayer(new InputLayer(this, inLayerParams));
+        try {
+            LayerParams inLayerParams = new LayerParams(64, 64, 64);
+            mCnnNetwork.addLayer(new InputLayer(this, inLayerParams));
 
 
 //        LayerParams convParams1 = new LayerParams(64, 64, 4, 64, 64, 64);
@@ -36,8 +38,11 @@ public class MainActivity extends AppCompatActivity {
 //        mCnnNetwork.addLayer(new ConvolutionLayer(this, convParams1, kennels, 1, new int[]{1, 1}));
 //
 //
-        LayerParams reluParams = new LayerParams(64, 64, 4);
-        mCnnNetwork.addLayer(new NonLinearLayer(this, reluParams, NonLinearLayer.NonLinearType.TANH));
+//        LayerParams reluParams = new LayerParams(64, 64, 4);
+//        mCnnNetwork.addLayer(new NonLinearLayer(this, reluParams, NonLinearLayer.NonLinearType.TANH));
+
+            LayerParams poolingParams1 = new LayerParams(64, 64, 64, 32, 32, 64);
+            mCnnNetwork.addLayer(new PoolingLayer(this, poolingParams1, new int[]{2, 2}, new int[]{2, 2}));
 //
 //
 //        LayerParams convParams2 = new LayerParams(64, 64, 64, 64, 64, 200);
@@ -46,6 +51,9 @@ public class MainActivity extends AppCompatActivity {
 //            kennels2.add(createKennel(i + 1, 3, 64, 1));
 //        }
 //        mCnnNetwork.addLayer(new ConvolutionLayer(this, convParams2, kennels2, 1, new int[]{1, 1}));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 

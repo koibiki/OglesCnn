@@ -31,7 +31,18 @@ public class CnnNetwork {
         gles31BackEnv.setThreadOwner(getMainLooper().getThread().getName());
     }
 
-    public void addLayer(Layer layer) {
+    public void addLayer(Layer layer) throws Exception {
+        int size = mLayers.size();
+        if (size > 0) {
+            Layer last = mLayers.get(size - 1);
+            int[] in = layer.getLayerParams().inputShape;
+            int[] out = last.getLayerParams().outputShape;
+            for (int i = 0; i < in.length; i++) {
+                if(in[i] != out[i]) {
+                    throw new Exception("层间维度不一致");
+                }
+            }
+        }
         mLayers.add(layer);
     }
 

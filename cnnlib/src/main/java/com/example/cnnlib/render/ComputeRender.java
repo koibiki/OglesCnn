@@ -45,6 +45,7 @@ import static android.opengl.GLES31.glUniform1fv;
 import static android.opengl.GLES31.glUseProgram;
 import static com.example.cnnlib.utils.Constants.S_CONV_SHADER_HEADER;
 import static com.example.cnnlib.utils.Constants.S_NONLIN_SHADER_HEADER;
+import static com.example.cnnlib.utils.Constants.S_POOLING_SHADER_HEADER;
 import static com.example.cnnlib.utils.Constants.S_TEXTURE_SIZE;
 
 public class ComputeRender {
@@ -55,6 +56,15 @@ public class ComputeRender {
         int compProg = GLES31.glCreateProgram();
         String source = ShaderUtils.loadFromAssetsFile(csPath, context.getResources());
         source = String.format(Locale.getDefault(), S_CONV_SHADER_HEADER, kennel.area, kennel.size, xSize, ySize) + source;
+        ShaderUtils.vglAttachShaderSource(compProg, GL_COMPUTE_SHADER, source);
+        glLinkProgram(compProg);
+        return compProg;
+    }
+
+    public static int initPoolingPro(Context context, String csPath, int pooling_area, int xSize, int ySize) {
+        int compProg = GLES31.glCreateProgram();
+        String source = ShaderUtils.loadFromAssetsFile(csPath, context.getResources());
+        source = String.format(Locale.getDefault(), S_POOLING_SHADER_HEADER, pooling_area, xSize, ySize) + source;
         ShaderUtils.vglAttachShaderSource(compProg, GL_COMPUTE_SHADER, source);
         glLinkProgram(compProg);
         return compProg;
@@ -104,6 +114,19 @@ public class ComputeRender {
 
     public static void performNonLinear(int compProg, int inputTexture, int outputTexture, int numGroupsY) {
         glUseProgram(compProg);
+
+        glBindImageTexture(0, inputTexture, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+        glBindImageTexture(1, outputTexture, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
+        glDispatchCompute(1, numGroupsY, 1);
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    }
+
+
+    public static void performPooling(int compProg, int[] params, int inputTexture, int outputTexture, int numGroupsY) {
+        glUseProgram(compProg);
+
+        glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
 
         glBindImageTexture(0, inputTexture, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
         glBindImageTexture(1, outputTexture, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);

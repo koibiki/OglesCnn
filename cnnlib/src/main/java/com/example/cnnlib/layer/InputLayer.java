@@ -24,8 +24,7 @@ public class InputLayer extends Layer {
         float input[][] = new float[channel][areaCapacity];
         for (int j = 0; j < channel; j++) {
             for (int i = 0; i < areaCapacity; i++) {
-                int s = i%2==0? -1:1;
-                input[j][i] = i % inputShape[0] * s;
+                input[j][i] = i % inputShape[0];
             }
         }
         return input;
