@@ -13,6 +13,7 @@ import java.util.Locale;
 
 import static android.opengl.GLES20.GL_FRAMEBUFFER;
 import static android.opengl.GLES20.glReadPixels;
+import static android.opengl.GLES20.glUniform1f;
 import static android.opengl.GLES20.glUniform1iv;
 import static android.opengl.GLES30.glReadBuffer;
 import static android.opengl.GLES31.GL_CLAMP_TO_EDGE;
@@ -55,6 +56,7 @@ public class ComputeRender {
         String source = ShaderUtils.loadFromAssetsFile(csPath, context.getResources());
         source = String.format(Locale.getDefault(), S_COMP_SHADER_HEADER, kennel.area, kennel.size, xSize, ySize) + source;
         ShaderUtils.vglAttachShaderSource(compProg, GL_COMPUTE_SHADER, source);
+        glLinkProgram(compProg);
         return compProg;
     }
 
@@ -79,7 +81,6 @@ public class ComputeRender {
     }
 
     public static void performConvolute(int compProg, Kennel kennel, int[] params, int inputTexture, int outputTexture, int numGroupsY) {
-        glLinkProgram(compProg);
         glUseProgram(compProg);
         glUniform1fv(glGetUniformLocation(compProg, "k"), kennel.data.length, kennel.data, 0);
         glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
@@ -102,7 +103,7 @@ public class ComputeRender {
     }
 
     public static Buffer transferFromTexture(Buffer data, int attachID, int x, int y, int width, int height) {
-        glReadBuffer(GL_COLOR_ATTACHMENT0 + 1);
+        glReadBuffer(GL_COLOR_ATTACHMENT0 + attachID);
         glReadPixels(x, y, width, height, GL_RGBA, GL_FLOAT, data);
         return data;
     }

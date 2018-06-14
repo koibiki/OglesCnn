@@ -1,12 +1,12 @@
 layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = 1) in;
 
-uniform float k[KENNEL_SIZE];
+uniform float k[KENNEL_SIZE + 1];
 uniform int params[13];  // kennel_shape[3] input_shape[3] output_shape[3] strides[2] padding kennel_index
 layout(binding = 0, rgba32f) readonly uniform image2D input_image1;
 layout(binding = 1, rgba32f) readonly uniform image2D input_image2; //input_image2 == output_image
 layout(binding = 2, rgba32f) writeonly uniform image2D output_image;
 
-bool isZero(ivec2 index);
+bool isZero(ivec2 index, int[3] input_shape);
 ivec2[KENNEL_AREA] getInIndexInFeatureMap(ivec2 pos, int[3] kennel_shape, int padding, int[2] strides);
 float performConvolute(int num, ivec2 [KENNEL_AREA] input_data_index, int[3] input_shape);
 ivec3 getRealStoreIndex(ivec2 pos, int[3] output_shape, int kennel_index);
@@ -16,33 +16,31 @@ int getComputeCount(int[3] kennel_shape);
 void main(void)
 {
     // 分解参数
-//    int kennel_shape[3] = int[3](params[0], params[1] , params[2]);
-//    int input_shape[3] = int[3](params[3], params[4] , params[5]);
-//    int output_shape[3] = int[3](params[6], params[7] , params[8]);
-//    int strides[2] = int[2](params[9], params[10]);
-//    int padding = params[11];
-//    int kennel_index = params[12];
+    int kennel_shape[3] = int[3](params[0], params[1] , params[2]);
+    int input_shape[3] = int[3](params[3], params[4] , params[5]);
+    int output_shape[3] = int[3](params[6], params[7] , params[8]);
+    int strides[2] = int[2](params[9], params[10]);
+    int padding = params[11];
+    int kennel_index = params[12];
 
     ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
 
-//    ivec3 real_pos = getRealStoreIndex(pos, output_shape, kennel_index);
-//
-//    vec4 data_origin = imageLoad(input_image2, real_pos.xy);
-//
-//    ivec2 input_data_index[KENNEL_AREA] = getInIndexInFeatureMap(pos, kennel_shape, padding, strides);
-//
-//    float output_value = 0.0;
-//
-//    int count = getComputeCount(kennel_shape);
-//
-//    for (int i=0; i < count; i++) {
-//        output_value += performConvolute(i, input_data_index, input_shape);
-//    }
+    ivec3 real_pos = getRealStoreIndex(pos, output_shape, kennel_index);
 
-//    data_origin[real_pos.z] = output_value;
-//    imageStore(output_image, real_pos.xy, data_origin);
+    vec4 data_origin = imageLoad(input_image2, real_pos.xy);
 
-    imageStore(output_image, pos.xy, vec4(1.0,1.0,1.0,1.0));
+    ivec2 input_data_index[KENNEL_AREA] = getInIndexInFeatureMap(pos, kennel_shape, padding, strides);
+
+    float output_value = 0.0;
+
+    int count = getComputeCount(kennel_shape);
+
+    for (int i=0; i < count; i++) {
+        output_value += performConvolute(i, input_data_index, input_shape);
+    }
+
+    data_origin[real_pos.z] = output_value + k[KENNEL_SIZE];
+    imageStore(output_image, real_pos.xy, data_origin);
 }
 
 ivec2 getFeatureMapIndexInTexture(int num, int width) {
@@ -97,7 +95,7 @@ float performConvolute(int num, ivec2[KENNEL_AREA] input_data_index, int[3] inpu
     float output_value = 0.0;
     for (int i = 0; i < KENNEL_AREA;i++){
         ivec2 index = input_data_index[i];
-        if (!isZero(index)) {
+        if (!isZero(index, input_shape)) {
             ivec2 index_in_texture = index + ivec2(feature_map_index_in_texture[0]*input_shape[0],feature_map_index_in_texture[1]*input_shape[1]);
             vec4 data = imageLoad(input_image1, index_in_texture);
             for (int ii = 0;ii < 4; ii++) {

@@ -45,8 +45,10 @@ public class CnnNetwork {
 
         long begin = System.currentTimeMillis();
         for (int i = 0; i < mLayers.size(); i++) {
+            long begin1 = System.currentTimeMillis();
             attachID = i;
             currentTexID = mLayers.get(i).forwardProc(currentTexID);
+            Log.d(TAG, " spent:" + (System.currentTimeMillis() - begin1));
         }
         Log.w(TAG, "----- total spent:" + (System.currentTimeMillis() - begin));
 
@@ -71,7 +73,7 @@ public class CnnNetwork {
         FloatBuffer allocate = FloatBuffer.allocate(width * height * 4);
         allocate = (FloatBuffer) ComputeRender.transferFromTexture(allocate, attachID, startX, startY, width, height);
         float[] array = allocate.array();
-        LogUtils.printf(array, width, "output" + indexes[0] + "_" + indexes[1] + ".txt");
+        // LogUtils.printf(array, width, "output" + indexes[0] + "_" + indexes[1] + ".txt");
     }
 
 }
