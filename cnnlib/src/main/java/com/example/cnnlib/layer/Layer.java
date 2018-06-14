@@ -3,7 +3,6 @@ package com.example.cnnlib.layer;
 import android.content.Context;
 
 import com.example.cnnlib.model.LayerParams;
-import com.example.cnnlib.utils.Constants;
 
 public abstract class Layer {
 

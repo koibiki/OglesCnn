@@ -16,7 +16,7 @@ public class NonLinearLayer extends Layer {
     private int mShaderPro;
 
     public enum NonLinearType {
-        RELU, SIGMOID
+        RELU, SIGMOID, TANH
     }
 
 
@@ -28,11 +28,13 @@ public class NonLinearLayer extends Layer {
     }
 
     private void initNonlinear() {
-        String csPath;
+        String csPath = null;
         if (mType == NonLinearType.RELU) {
             csPath = "relu.comp";
-        } else {
+        } else if (mType == NonLinearType.SIGMOID) {
             csPath = "sigmoid.comp";
+        } else if (mType == NonLinearType.TANH) {
+            csPath = "tanh.comp";
         }
         int localSizeY = getCompShaderLocalSizeY(mLayerParams.outputShape);
         mNumGroupsY = (int) Math.ceil(mLayerParams.outputShape[1] * 1.0d / localSizeY);

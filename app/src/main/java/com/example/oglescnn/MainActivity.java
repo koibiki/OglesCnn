@@ -1,23 +1,14 @@
 package com.example.oglescnn;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
 import com.example.cnnlib.CnnNetwork;
-import com.example.cnnlib.activate.ActivationFunc;
-import com.example.cnnlib.layer.ConvolutionLayer;
 import com.example.cnnlib.layer.InputLayer;
-import com.example.cnnlib.layer.Layer;
 import com.example.cnnlib.layer.NonLinearLayer;
 import com.example.cnnlib.model.Kennel;
 import com.example.cnnlib.model.LayerParams;
-import com.example.cnnlib.utils.Constants;
-import com.example.cnnlib.utils.MathUtils;
-
-import java.nio.FloatBuffer;
-import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -46,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
 //
 //
         LayerParams reluParams = new LayerParams(64, 64, 4);
-        mCnnNetwork.addLayer(new NonLinearLayer(this, reluParams, NonLinearLayer.NonLinearType.RELU));
+        mCnnNetwork.addLayer(new NonLinearLayer(this, reluParams, NonLinearLayer.NonLinearType.TANH));
 //
 //
 //        LayerParams convParams2 = new LayerParams(64, 64, 64, 64, 64, 200);

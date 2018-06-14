@@ -1,9 +1,5 @@
 package com.example.cnnlib.eglenv;
 
-import android.util.Log;
-
-import com.example.cnnlib.render.ComputeRender;
-
 import static android.opengl.GLES31.GL_FRAMEBUFFER;
 import static android.opengl.GLES31.glBindFramebuffer;
 import static android.opengl.GLES31.glGenFramebuffers;
