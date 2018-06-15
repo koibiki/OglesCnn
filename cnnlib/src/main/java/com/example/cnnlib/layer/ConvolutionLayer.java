@@ -38,7 +38,7 @@ public class ConvolutionLayer extends Layer {
         mNumGroupsY = (int) Math.ceil(mLayerParams.outputShape[1] * 1.0d / localSizeY);
         mShaderPro = initConvolutePro(mContext, "conv.comp", mKennels.get(0), mLayerParams.outputShape[0], localSizeY);
         mAttachID = AttachIDManager.getInstance().getAttachID();
-        mOutputTexID = ComputeRender.createTexture(mAttachID);
+        mOutTex = ComputeRender.createTexture(mAttachID);
         mParams = new int[13];
 
         mParams[0] = mKennels.get(0).shape[0];
@@ -57,13 +57,12 @@ public class ConvolutionLayer extends Layer {
 
 
     @Override
-    public int forwardProc(int inputTexID) {
-        //ComputeRender.cleanTexture(mOutputTexID);
+    public int forwardProc(int inTex) {
         for (int i = 0; i < mKennels.size(); i++) {
             mParams[12] = i;
-            ComputeRender.performConvolute(mShaderPro, mKennels.get(i), mParams, inputTexID, mOutputTexID, mNumGroupsY);
+            ComputeRender.performConvolute(mShaderPro, mKennels.get(i), mParams, inTex, mOutTex, mNumGroupsY);
         }
-        return mOutputTexID;
+        return mOutTex;
     }
 
     @Override

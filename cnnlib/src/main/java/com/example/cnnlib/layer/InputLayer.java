@@ -18,7 +18,7 @@ public class InputLayer extends Layer {
     public InputLayer(Context context, LayerParams layerParams) {
         super(context, layerParams);
         this.mAttachID = AttachIDManager.getInstance().getAttachID();
-        this.mOutputTexID = ComputeRender.createTexture(mAttachID);
+        this.mOutTex = ComputeRender.createTexture(mAttachID);
 
         initInput();
     }
@@ -29,13 +29,13 @@ public class InputLayer extends Layer {
 
 
     @Override
-    public int forwardProc(int inputTexID) {
+    public int forwardProc(int inTex) {
         int channel = mLayerParams.outputShape[2];
         int[] count = SortUtils.getCount(channel);
         for (int i = 0; i < count[0]; i++) {
-            writeInput(mInput, mOutputTexID, i);
+            writeInput(mInput, mOutTex, i);
         }
-        return mOutputTexID;
+        return mOutTex;
     }
 
     @Override

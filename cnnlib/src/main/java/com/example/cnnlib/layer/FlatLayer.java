@@ -9,7 +9,7 @@ import com.example.cnnlib.utils.AttachIDManager;
 import static com.example.cnnlib.render.ComputeRender.initCompPro;
 
 /**
- * 输入限制 尺寸 32 * 32 通道 1024
+ * 输入限制 尺寸 1024 X 1024 X 1
  */
 public class FlatLayer extends Layer {
 
@@ -24,7 +24,7 @@ public class FlatLayer extends Layer {
     private void initFlat() {
         mShaderPro = initCompPro(mContext, "flat.comp", mLayerParams.outputShape[0], 1);
         mAttachID = AttachIDManager.getInstance().getAttachID();
-        mOutputTexID = ComputeRender.createTexture(mAttachID);
+        mOutTex = ComputeRender.createTexture(mAttachID);
 
         mParams = new int[10];
         mParams[0] = mLayerParams.inputShape[0];
@@ -36,9 +36,9 @@ public class FlatLayer extends Layer {
     }
 
     @Override
-    public int forwardProc(int inputTexID) {
-        ComputeRender.performWithIntParams(mShaderPro, mParams, inputTexID, mOutputTexID, 1);
-        return mOutputTexID;
+    public int forwardProc(int inTex) {
+        ComputeRender.performWithIntParams(mShaderPro, mParams, inTex, mOutTex, 1);
+        return mOutTex;
     }
 
     @Override

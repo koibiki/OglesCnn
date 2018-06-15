@@ -26,7 +26,7 @@ public class PoolingLayer extends Layer {
         mNumGroupsY = (int) Math.ceil(mLayerParams.outputShape[1] * 1.0d / localSizeY);
         mShaderPro = initPoolingPro(mContext, "pooling.comp", ksize[0] * ksize[1], mLayerParams.outputShape[0], localSizeY);
         mAttachID = AttachIDManager.getInstance().getAttachID();
-        mOutputTexID = ComputeRender.createTexture(mAttachID);
+        mOutTex = ComputeRender.createTexture(mAttachID);
 
         mParams = new int[10];
         mParams[0] = mLayerParams.inputShape[0];
@@ -42,9 +42,9 @@ public class PoolingLayer extends Layer {
     }
 
     @Override
-    public int forwardProc(int inputTexID) {
-        ComputeRender.performWithIntParams(mShaderPro, mParams, inputTexID, mOutputTexID, mNumGroupsY);
-        return mOutputTexID;
+    public int forwardProc(int inTex) {
+        ComputeRender.performWithIntParams(mShaderPro, mParams, inTex, mOutTex, mNumGroupsY);
+        return mOutTex;
     }
 
     @Override

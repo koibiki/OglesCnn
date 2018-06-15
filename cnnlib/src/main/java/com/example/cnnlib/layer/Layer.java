@@ -15,7 +15,7 @@ public abstract class Layer {
         this.mLayerParams = layerParams;
     }
 
-    protected int mOutputTexID;
+    protected int mOutTex;
     protected int mAttachID;
 
     public LayerParams getLayerParams() {
@@ -26,11 +26,11 @@ public abstract class Layer {
         return mAttachID;
     }
 
-    public int getOutputTexID() {
-        return mOutputTexID;
+    public int getOutTex() {
+        return mOutTex;
     }
 
-    public abstract int forwardProc(int inputTexID);
+    public abstract int forwardProc(int inTex);
 
     public abstract void readOutput();
 

@@ -38,7 +38,7 @@ public class FullConnectLayer extends Layer {
         mNumGroupsY = (int) Math.ceil(mLayerParams.outputShape[1] * 1.0d / localSizeY);
         mShaderPro = initPoolingPro(mContext, "full_connect.comp", mKennelAmount, mLayerParams.outputShape[0], localSizeY);
         mAttachID = AttachIDManager.getInstance().getAttachID();
-        mOutputTexID = ComputeRender.createTexture(mAttachID);
+        mOutTex = ComputeRender.createTexture(mAttachID);
         int attachID = AttachIDManager.getInstance().getAttachID();
         mKennelTex = ComputeRender.createTexture(attachID);
 
@@ -88,9 +88,9 @@ public class FullConnectLayer extends Layer {
     }
 
     @Override
-    public int forwardProc(int inputTexID) {
-        ComputeRender.performFullConnect(mShaderPro, mParams, inputTexID, mOutputTexID, mKennelTex, mNumGroupsY);
-        return mOutputTexID;
+    public int forwardProc(int inTex) {
+        ComputeRender.performFullConnect(mShaderPro, mParams, inTex, mOutTex, mKennelTex, mNumGroupsY);
+        return mOutTex;
     }
 
     @Override

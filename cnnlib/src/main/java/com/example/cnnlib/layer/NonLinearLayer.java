@@ -40,13 +40,13 @@ public class NonLinearLayer extends Layer {
         mNumGroupsY = (int) Math.ceil(mLayerParams.outputShape[1] * 1.0d / localSizeY);
         mShaderPro = initCompPro(mContext, csPath, mLayerParams.outputShape[0], localSizeY);
         mAttachID = AttachIDManager.getInstance().getAttachID();
-        mOutputTexID = ComputeRender.createTexture(mAttachID);
+        mOutTex = ComputeRender.createTexture(mAttachID);
     }
 
     @Override
-    public int forwardProc(int inputTexID) {
-        ComputeRender.performWithoutParams(mShaderPro, inputTexID, mOutputTexID, mNumGroupsY);
-        return mOutputTexID;
+    public int forwardProc(int inTex) {
+        ComputeRender.performWithoutParams(mShaderPro, inTex, mOutTex, mNumGroupsY);
+        return mOutTex;
     }
 
     @Override
