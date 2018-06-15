@@ -34,4 +34,21 @@ public class LayerParams {
         this.outputShape[2] = outputChannel;
     }
 
+    public LayerParams(int[] inputShape, int[] outputShape) {
+        this.inputShape[0] = inputShape[0];
+        this.inputShape[1] = inputShape[1];
+        this.inputShape[2] = inputShape[2];
+        this.outputShape[0] = outputShape[0];
+        this.outputShape[1] = outputShape[1];
+        this.outputShape[2] = outputShape[2];
+    }
+
+    public LayerParams(int[] inputShape, int outputWidth, int outputHeight, int outputChannel) {
+        this.inputShape[0] = inputShape[0];
+        this.inputShape[1] = inputShape[1];
+        this.inputShape[2] = inputShape[2];
+        this.outputShape[0] = outputWidth;
+        this.outputShape[1] = outputHeight;
+        this.outputShape[2] = outputChannel;
+    }
 }

@@ -1,21 +1,19 @@
 package com.example.cnnlib.utils;
 
-import com.example.cnnlib.model.LayerParams;
-
 public class SortUtils {
 
-    public static int getCount(LayerParams layerParams) {
-        int channel = layerParams.outputShape[2];
+    // 获得该通道总数下数据需要的特征图 存储个数
+    public static int[] getCount(int channel) {
         int count = channel / 4;
         int remain = channel % 4;
         if (remain != 0) {
             count = count + 1;
         }
-        return count;
+        return new int[]{count, remain};
     }
 
-    public static int[] getXYIndex(LayerParams layerParams, int i) {
-        int width = layerParams.outputShape[0];
+    // 获得当前特征图在纹理上的坐标
+    public static int[] getXYIndex(int width, int i) {
         int xIndex = i < 1024 / width ? i : i % (1024 / width);
         int yIndex = i / (1024 / width);
         return new int[]{xIndex, yIndex};

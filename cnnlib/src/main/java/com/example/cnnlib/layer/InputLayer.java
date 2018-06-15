@@ -30,9 +30,9 @@ public class InputLayer extends Layer {
 
     @Override
     public int forwardProc(int inputTexID) {
-
-        int count = SortUtils.getCount(mLayerParams);
-        for (int i = 0; i < count; i++) {
+        int channel = mLayerParams.outputShape[2];
+        int[] count = SortUtils.getCount(channel);
+        for (int i = 0; i < count[0]; i++) {
             writeInput(mInput, mOutputTexID, i);
         }
         return mOutputTexID;
@@ -44,8 +44,8 @@ public class InputLayer extends Layer {
     }
 
     private void writeInput(float[][] input, int texID, int index) {
-        int[] indexes = SortUtils.getXYIndex(mLayerParams, index);
         int width = mLayerParams.outputShape[0];
+        int[] indexes = SortUtils.getXYIndex(width, index);
         int height = mLayerParams.outputShape[1];
         int channel = mLayerParams.outputShape[2];
         int startX = indexes[0] * width;

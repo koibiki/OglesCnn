@@ -1,0 +1,41 @@
+layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = 1) in;
+
+uniform int params[9];  // input_shape[3] output_shape[3] kennel_shape[3]
+layout(binding = 0, rgba32f) readonly uniform image2D input_image;
+layout(binding = 1, rgba32f) readonly uniform image2D kennel_image;
+layout(binding = 2, rgba32f) writeonly uniform image2D output_image;
+
+// 全连接上一层只能是已拉平的数据，即只在第一个通道有数据
+void main(void)
+{
+    ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
+
+    int input_shape[3] = int[3](params[0], params[1], params[2]);
+    int output_shape[3] = int[3](params[3], params[4], params[5]);
+    int kennel_shape[3] = int[3](params[6], params[7], params[8]);
+
+    // 获得当前计算器坐标
+    int index = pos.y * 1024 + pos.x;
+
+    float output_value = 0.0;
+    for (int x = 0; x < input_shape[0];x++) {
+        for (int y=0; y < input_shape[1]; y++) {
+            vec4 data = imageLoad(input_image, ivec2(x,y));
+            int kennel_index= y*input_shape[0] + x;
+            int kennel_x = index / 1024 * kennel_shape[0] + kennel_index/4;
+            int kennel_y = index % 1024;
+            int kennel_z = kennel_index % 4;
+            vec4 k = imageLoad(kennel_image, ivec2(kennel_x,kennel_y));
+            output_value += data[0] * k[kennel_z];
+        }
+    }
+
+    int bias_x = (index / 1024 + 1) * kennel_shape[0] - 1;
+    int bias_y = index % 1024;
+    vec4 bias = imageLoad(kennel_image, ivec2(bias_x, bias_y));
+
+    output_value += bias[kennel_shape[2]];
+
+    imageStore(output_image, pos.xy, vec4(output_value, 0.0, 0.0, 0.0));
+}
+

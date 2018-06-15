@@ -99,29 +99,41 @@ public class ComputeRender {
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 1024, 1024, GL_RGBA, GL_FLOAT, null);
     }
 
-    public static void performConvolute(int compProg, Kennel kennel, int[] params, int inputTexture, int outputTexture, int numGroupsY) {
+    public static void performConvolute(int compProg, Kennel kennel, int[] params, int inTex, int outTex, int numGroupsY) {
         glUseProgram(compProg);
         glUniform1fv(glGetUniformLocation(compProg, "k"), kennel.data.length, kennel.data, 0);
         glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
 
-        glBindImageTexture(0, inputTexture, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
-        glBindImageTexture(1, outputTexture, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
-        glBindImageTexture(2, outputTexture, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
+        glBindImageTexture(0, inTex, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+        glBindImageTexture(1, outTex, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+        glBindImageTexture(2, outTex, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
         glDispatchCompute(1, numGroupsY, 1);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }
 
-    public static void performWithoutParams(int compProg, int inputTexture, int outputTexture, int numGroupsY) {
+    public static void performWithoutParams(int compProg, int inTex, int outTex, int numGroupsY) {
         glUseProgram(compProg);
 
-        glBindImageTexture(0, inputTexture, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
-        glBindImageTexture(1, outputTexture, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
+        glBindImageTexture(0, inTex, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+        glBindImageTexture(1, outTex, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
         glDispatchCompute(1, numGroupsY, 1);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }
 
+    public static void performFullConnect(int compProg, int[] params, int inTex, int outTex, int kennelTex, int numGroupsY) {
+        glUseProgram(compProg);
+
+        glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
+
+        glBindImageTexture(0, inTex, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+        glBindImageTexture(1, kennelTex, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+        glBindImageTexture(2, outTex, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
+        glDispatchCompute(1, numGroupsY, 1);
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    }
 
     public static void performWithIntParams(int compProg, int[] params, int inputTexture, int outputTexture, int numGroupsY) {
         glUseProgram(compProg);
