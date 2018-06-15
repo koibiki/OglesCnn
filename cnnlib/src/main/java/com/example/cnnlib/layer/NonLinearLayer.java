@@ -7,7 +7,7 @@ import com.example.cnnlib.render.ComputeRender;
 import com.example.cnnlib.utils.AttachIDManager;
 
 import static com.example.cnnlib.render.ComputeRender.getCompShaderLocalSizeY;
-import static com.example.cnnlib.render.ComputeRender.initReluPro;
+import static com.example.cnnlib.render.ComputeRender.initCompPro;
 
 public class NonLinearLayer extends Layer {
 
@@ -38,14 +38,19 @@ public class NonLinearLayer extends Layer {
         }
         int localSizeY = getCompShaderLocalSizeY(mLayerParams.outputShape);
         mNumGroupsY = (int) Math.ceil(mLayerParams.outputShape[1] * 1.0d / localSizeY);
-        mShaderPro = initReluPro(mContext, csPath, mLayerParams.outputShape[0], localSizeY);
+        mShaderPro = initCompPro(mContext, csPath, mLayerParams.outputShape[0], localSizeY);
         mAttachID = AttachIDManager.getInstance().getAttachID();
         mOutputTexID = ComputeRender.createTexture(mAttachID);
     }
 
     @Override
     public int forwardProc(int inputTexID) {
-        ComputeRender.performNonLinear(mShaderPro, inputTexID, mOutputTexID, mNumGroupsY);
+        ComputeRender.performWithoutParams(mShaderPro, inputTexID, mOutputTexID, mNumGroupsY);
         return mOutputTexID;
+    }
+
+    @Override
+    public void readOutput() {
+
     }
 }

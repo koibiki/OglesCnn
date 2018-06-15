@@ -4,12 +4,8 @@ import android.util.Log;
 
 import com.example.cnnlib.eglenv.GLES31BackEnv;
 import com.example.cnnlib.layer.Layer;
-import com.example.cnnlib.model.LayerParams;
-import com.example.cnnlib.render.ComputeRender;
-import com.example.cnnlib.utils.LogUtils;
-import com.example.cnnlib.utils.SortUtils;
+import com.example.cnnlib.utils.DataUils;
 
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
 
 import static android.os.Looper.getMainLooper;
@@ -38,7 +34,7 @@ public class CnnNetwork {
             int[] in = layer.getLayerParams().inputShape;
             int[] out = last.getLayerParams().outputShape;
             for (int i = 0; i < in.length; i++) {
-                if(in[i] != out[i]) {
+                if (in[i] != out[i]) {
                     throw new Exception("层间维度不一致");
                 }
             }
@@ -52,39 +48,19 @@ public class CnnNetwork {
 
     public void run() {
         int currentTexID = 0;
-        int attachID = 0;
-
         long begin = System.currentTimeMillis();
         for (int i = 0; i < mLayers.size(); i++) {
             long begin1 = System.currentTimeMillis();
-            attachID = i;
             currentTexID = mLayers.get(i).forwardProc(currentTexID);
             Log.d(TAG, " spent:" + (System.currentTimeMillis() - begin1));
         }
         Log.w(TAG, "----- total spent:" + (System.currentTimeMillis() - begin));
-
-        int count = SortUtils.getCount(mLayers.get(mLayers.size() - 1).getLayerParams());
-        for (int i = 0; i < count; i++) {
-            readOutput(attachID, i);
-        }
-
-//        LayerParams layerParams = mLayers.get(mLayers.size() - 1).getLayerParams();
-//        FloatBuffer allocate = FloatBuffer.allocate(layerParams.getOutputSize());
-//        allocate = (FloatBuffer) ComputeRender.transferFromTexture(allocate, attachID, 0, 0, layerParams.outputShape[0], layerParams.outputShape[1]);
-//        float[] array = allocate.array();
     }
 
-    private void readOutput(int attachID, int index) {
-        int[] indexes = SortUtils.getXYIndex(mLayers.get(mLayers.size() - 1).getLayerParams(), index);
-        LayerParams layerParams = mLayers.get(mLayers.size() - 1).getLayerParams();
-        int width = layerParams.outputShape[0];
-        int height = layerParams.outputShape[1];
-        int startX = indexes[0] * width;
-        int startY = indexes[1] * height;
-        FloatBuffer allocate = FloatBuffer.allocate(width * height * 4);
-        allocate = (FloatBuffer) ComputeRender.transferFromTexture(allocate, attachID, startX, startY, width, height);
-        float[] array = allocate.array();
-        // LogUtils.printf(array, width, "output" + indexes[0] + "_" + indexes[1] + ".txt");
+    public void readOutput() {
+        Layer layer = mLayers.get(mLayers.size() - 1);
+        DataUils.readOutput(layer);
     }
+
 
 }

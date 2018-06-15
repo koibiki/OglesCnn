@@ -43,7 +43,12 @@ public class PoolingLayer extends Layer {
 
     @Override
     public int forwardProc(int inputTexID) {
-        ComputeRender.performPooling(mShaderPro, mParams, inputTexID, mOutputTexID, mNumGroupsY);
+        ComputeRender.performWithIntParams(mShaderPro, mParams, inputTexID, mOutputTexID, mNumGroupsY);
         return mOutputTexID;
+    }
+
+    @Override
+    public void readOutput() {
+
     }
 }

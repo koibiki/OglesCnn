@@ -32,4 +32,6 @@ public abstract class Layer {
 
     public abstract int forwardProc(int inputTexID);
 
+    public abstract void readOutput();
+
 }

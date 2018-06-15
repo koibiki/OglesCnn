@@ -66,5 +66,10 @@ public class ConvolutionLayer extends Layer {
         return mOutputTexID;
     }
 
+    @Override
+    public void readOutput() {
+
+    }
+
 
 }

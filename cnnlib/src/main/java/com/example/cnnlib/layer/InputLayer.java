@@ -9,36 +9,38 @@ import com.example.cnnlib.utils.SortUtils;
 
 import java.nio.FloatBuffer;
 
+import static com.example.cnnlib.utils.DataUils.createInputBuffer;
+
 public class InputLayer extends Layer {
+
+    private float[][] mInput;
 
     public InputLayer(Context context, LayerParams layerParams) {
         super(context, layerParams);
         this.mAttachID = AttachIDManager.getInstance().getAttachID();
         this.mOutputTexID = ComputeRender.createTexture(mAttachID);
+
+        initInput();
     }
 
-    private float[][] createInputBuffer() {
-        int[] inputShape = mLayerParams.inputShape;
-        int channel = inputShape[2];
-        int areaCapacity = inputShape[0] * inputShape[1];
-        float input[][] = new float[channel][areaCapacity];
-        for (int j = 0; j < channel; j++) {
-            for (int i = 0; i < areaCapacity; i++) {
-                input[j][i] = i % inputShape[0];
-            }
-        }
-        return input;
+    private void initInput() {
+        mInput = createInputBuffer(mLayerParams);
     }
+
 
     @Override
     public int forwardProc(int inputTexID) {
-        float[][] input = createInputBuffer();
 
         int count = SortUtils.getCount(mLayerParams);
         for (int i = 0; i < count; i++) {
-            writeInput(input, mOutputTexID, i);
+            writeInput(mInput, mOutputTexID, i);
         }
         return mOutputTexID;
+    }
+
+    @Override
+    public void readOutput() {
+
     }
 
     private void writeInput(float[][] input, int texID, int index) {
