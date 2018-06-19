@@ -3,8 +3,6 @@ layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = 1) in;
 layout(binding = 0, rgba32f) readonly uniform  image2D input_image;
 layout(binding = 1, rgba32f) writeonly uniform  image2D output_image;
 
-float tanh(float i);
-
 void main(void)
 {
     ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
@@ -14,10 +12,4 @@ void main(void)
     data.b = tanh(data.b);
     data.a = tanh(data.a);
     imageStore(output_image, pos.xy, data);
-}
-
-float tanh(float i){
-    float ef = exp(i);
-    float efx = exp(-i);
-    return (ef - efx) / (ef + efx);
 }
