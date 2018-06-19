@@ -15,7 +15,7 @@ public class DataUils {
         float input[][] = new float[channel][areaCapacity];
         for (int j = 0; j < channel; j++) {
             for (int i = 0; i < areaCapacity; i++) {
-                input[j][i] = i % inputShape[0];
+                input[j][i] = i;
             }
         }
         return input;

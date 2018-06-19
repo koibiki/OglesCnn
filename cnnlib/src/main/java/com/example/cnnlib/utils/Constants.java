@@ -11,8 +11,6 @@ public class Constants {
     public static final int S_MAX_COMPUTE_SIZE = 1024;
     public static final int S_TEXTURE_SIZE = S_MAX_COMPUTE_SIZE;
 
-    public static final int S_PADDING_SAME = 0;
-    public static final int S_PADDING_VALID = 1;
 
 
 }
