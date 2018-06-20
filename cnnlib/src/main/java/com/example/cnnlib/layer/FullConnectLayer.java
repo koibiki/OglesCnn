@@ -14,6 +14,9 @@ import java.util.List;
 import static com.example.cnnlib.render.ComputeRender.getCompShaderLocalSizeY;
 import static com.example.cnnlib.render.ComputeRender.initPoolingPro;
 
+/**
+ * kennel 存储方式为 纹理每行存储一个 kennel， 纹理高度与kennel个数相同
+ */
 public class FullConnectLayer extends Layer {
 
     private static final String TAG = "FullConnectLayer";
@@ -22,7 +25,7 @@ public class FullConnectLayer extends Layer {
     private int mNumGroupsY;
     private int mShaderPro;
     private int mKennelAmount;                      // kennel组 个数
-    private int[] mKennelSize = new int[3];         // 每个kennel的大小 w,h,c
+
     private int[] mParams;
     private int mKennelTex;
 
@@ -39,12 +42,13 @@ public class FullConnectLayer extends Layer {
         mShaderPro = initPoolingPro(mContext, "full_connect.comp", mKennelAmount, mLayerParams.outputShape[0], localSizeY);
         mAttachID = AttachIDManager.getInstance().getAttachID();
         mOutTex = ComputeRender.createTexture(mAttachID);
-        int attachID = AttachIDManager.getInstance().getAttachID();
-        mKennelTex = ComputeRender.createTexture(attachID);
 
-        calculateKennelSize();
+
+        int[] kennelSize = calculateKennelSize();
+        int attachID = AttachIDManager.getInstance().getAttachID();
+        mKennelTex = ComputeRender.createTexture(attachID, kennelSize[0], mKennelAmount);
         createKennels();
-        transferKennelToTex(mKennelTex);
+        transferKennelToTex(kennelSize, mKennelTex);
 
         mParams = new int[9];
         mParams[0] = mLayerParams.inputShape[0];
@@ -53,28 +57,27 @@ public class FullConnectLayer extends Layer {
         mParams[3] = mLayerParams.outputShape[0];
         mParams[4] = mLayerParams.outputShape[1];
         mParams[5] = mLayerParams.outputShape[2];
-        mParams[6] = mKennelSize[0];
-        mParams[7] = mKennelSize[1];
-        mParams[8] = mKennelSize[2];
+        mParams[6] = kennelSize[0];
+        mParams[7] = kennelSize[1];
+        mParams[8] = kennelSize[2];
     }
 
     // kennel size width <= 1024 height=1
-    private void calculateKennelSize() {
+    private int[] calculateKennelSize() {
+        int[] kennelSize = new int[3];
         int[] inputShape = mLayerParams.inputShape;
         int inputSize = inputShape[0] * inputShape[1] * inputShape[2] + 1;  // 最后一列存储bias
         int width = inputSize / 4;
         int remain = inputSize % 4;
-        mKennelSize[0] = remain == 0 ? width : width + 1;
-        mKennelSize[1] = 1;
-        mKennelSize[2] = remain - 1 <0? 3: remain-1;    // 表示最后一位数据的下标
+        kennelSize[0] = remain == 0 ? width : width + 1;
+        kennelSize[1] = 1;
+        kennelSize[2] = remain - 1 < 0 ? 3 : remain - 1;    // 表示最后一位数据的下标
+        return kennelSize;
     }
 
-    private void transferKennelToTex(int tex) {
-        int cols = 0;
+    private void transferKennelToTex(int[] kennelSize, int tex) {
         for (int i = 0; i < mKennels.size(); i++) {
-            int startX = cols / 1024 * mKennelSize[0];
-            int startY = i % 1024;
-            ComputeRender.transferToTexture(FloatBuffer.wrap(mKennels.get(i)), tex, startX, startY, mKennelSize[0], mKennelSize[1]);
+            ComputeRender.transferToTexture(FloatBuffer.wrap(mKennels.get(i)), tex, 0, i, kennelSize[0], 1);
         }
     }
 

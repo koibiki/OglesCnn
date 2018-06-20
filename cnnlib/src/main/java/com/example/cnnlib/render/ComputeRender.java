@@ -94,6 +94,21 @@ public class ComputeRender {
         return texture[0];
     }
 
+    public static int createTexture(int attachID, int width, int height) {
+        int[] texture = new int[1];
+        glGenTextures(1, texture, 0);
+        glBindTexture(GL_TEXTURE_2D, texture[0]);
+        glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, width, height);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        GLES31.glBindTexture(GL_TEXTURE_2D, 0);
+        int attachment = GL_COLOR_ATTACHMENT0 + attachID;
+        glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture[0], 0);
+        return texture[0];
+    }
+
     public static void cleanTexture(int texID) {
         glBindTexture(GL_TEXTURE_2D, texID);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 1024, 1024, GL_RGBA, GL_FLOAT, null);

@@ -33,18 +33,18 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
         mCnnNetwork = new CnnNetwork();
         try {
-            LayerParams inLayerParams = new LayerParams(4, 4, 1, LayerParams.TYPE.SAME);
+            LayerParams inLayerParams = new LayerParams(32, 32, 4, LayerParams.TYPE.SAME);
             mCnnNetwork.addLayer(new InputLayer(this, inLayerParams));
 
-            LayerParams flatParams = new LayerParams(4, 4, 1, LayerParams.TYPE.FLAT);
+            LayerParams flatParams = new LayerParams(32, 32, 4, LayerParams.TYPE.FLAT);
             mCnnNetwork.addLayer(new FlatLayer(this, flatParams));
 
-//            LayerParams fullConnParams = new LayerParams(flatParams.outputShape, 20, 1, 1);
-//            mCnnNetwork.addLayer(new FullConnectLayer(this, fullConnParams, 20));
+            LayerParams fullConnParams = new LayerParams(flatParams.outputShape, 20, 1, 1);
+            mCnnNetwork.addLayer(new FullConnectLayer(this, fullConnParams, 20));
 
 
-            LayerParams softLayerParams = new LayerParams(16, 1, 1, LayerParams.TYPE.SAME);
-            mCnnNetwork.addLayer(new SoftMaxLayer(this, softLayerParams));
+//            LayerParams softLayerParams = new LayerParams(16, 1, 1, LayerParams.TYPE.SAME);
+//            mCnnNetwork.addLayer(new SoftMaxLayer(this, softLayerParams));
 
 //            LayerParams convParams1 = new LayerParams(64, 64, 4, 64, 64, 64);
 //            List<Kennel> kennels = new ArrayList<>();
