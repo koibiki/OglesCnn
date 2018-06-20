@@ -27,7 +27,7 @@ void main(void)
         vec4 data = imageLoad(input_image, index_on_tex);
         for (int ii=0; ii < 4; ii++) {
             if(i*4 + ii < input_shape[2]){
-                vec4 out_data = vec4(data[i], 0, 0 ,0);
+                vec4 out_data = vec4(data[ii], 0, 0 ,0);
                 int y = i * 4 + ii;
                 ivec2 restore_pos = ivec2(pos.x, y);
                 imageStore(output_image, restore_pos, out_data);
@@ -45,7 +45,7 @@ ivec2 getInIndexOnFeatureMap(ivec2 pos, int[3] input_shape) {
 
 // count 表示总的计算次数 remain 表示最后一次计算需要的通道数
 ivec2 getComputeCount(int[3] input_shape){
-    int count = input_shape[2]/4;
+    int count = input_shape[2] / 4;
     int remain = input_shape[2] % 4;
     if (remain != 0) {
         count = count + 1;

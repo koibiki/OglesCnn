@@ -9,7 +9,7 @@ import com.example.cnnlib.utils.AttachIDManager;
 import static com.example.cnnlib.render.ComputeRender.initCompPro;
 
 /**
- * 输入限制 尺寸 1024 X 1024 X 1
+ * 输出维度为输入的 w*h, c, 1
  */
 public class FlatLayer extends Layer {
 
@@ -24,7 +24,8 @@ public class FlatLayer extends Layer {
     private void initFlat() {
         mShaderPro = initCompPro(mContext, "flat.comp", mLayerParams.outputShape[0], 1);
         mAttachID = AttachIDManager.getInstance().getAttachID();
-        mOutTex = ComputeRender.createTexture(mAttachID);
+        int[] outputShape = mLayerParams.outputShape;
+        mOutTex = ComputeRender.createTexture(mAttachID, outputShape[0] , outputShape[1]);
 
         mParams = new int[10];
         mParams[0] = mLayerParams.inputShape[0];
@@ -42,7 +43,7 @@ public class FlatLayer extends Layer {
     }
 
     @Override
-    public void readOutput(){
+    public void readOutput() {
 
     }
 
