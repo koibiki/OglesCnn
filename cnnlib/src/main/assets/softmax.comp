@@ -16,7 +16,12 @@ void main(void)
     scanline[index] = data.r;
     barrier();
     vec2 extremun = getExtremum();
-    float softmax = getSoftmaxValue(index, extremun);
+    float softmax = 0.0;
+    if (extremun[0] != extremun[1]) {
+        softmax = getSoftmaxValue(index, extremun);
+    } else {
+        softmax = 1.0 / float(KENNEL_AREA);
+    }
     imageStore(output_image, pos.xy, vec4(softmax, 0.0, 0.0, 0.0));
 }
 
