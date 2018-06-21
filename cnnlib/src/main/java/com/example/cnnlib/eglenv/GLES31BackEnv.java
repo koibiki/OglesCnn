@@ -26,13 +26,10 @@ public class GLES31BackEnv {
         mGLThread.start();
 
         mHandler = new Handler(mGLThread.getLooper());
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                mEGLHelper = new EGLHelper();
-                mEGLHelper.eglInit(width, height);
-                initFBO();
-            }
+        mHandler.post(() -> {
+            mEGLHelper = new EGLHelper();
+            mEGLHelper.eglInit(width, height);
+            initFBO();
         });
     }
 
@@ -46,12 +43,7 @@ public class GLES31BackEnv {
     }
 
     public void destroy() {
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                mEGLHelper.destroy();
-            }
-        });
+        mHandler.post(mEGLHelper::destroy);
     }
 
 

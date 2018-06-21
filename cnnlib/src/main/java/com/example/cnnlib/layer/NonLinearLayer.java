@@ -58,9 +58,4 @@ public class NonLinearLayer extends Layer {
         ComputeRender.performWithoutParams(mShaderPro, mPreLayer.getOutTex(), mOutTex, mNumGroupsY);
     }
 
-    @Override
-    public void readOutput() {
-
-    }
-
 }

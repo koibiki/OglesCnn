@@ -44,11 +44,6 @@ public class InputLayer extends Layer {
         }
     }
 
-    @Override
-    public void readOutput() {
-
-    }
-
     private void writeInput(float[][] input, int texID, int index) {
         int width = mOutputShape[0];
         int[] indexes = SortUtils.getXYIndex(width, index);

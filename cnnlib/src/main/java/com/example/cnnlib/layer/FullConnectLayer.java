@@ -111,9 +111,4 @@ public class FullConnectLayer extends Layer {
         ComputeRender.performFullConnect(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mKennelTex, mNumGroupsY);
     }
 
-    @Override
-    public void readOutput() {
-
-    }
-
 }

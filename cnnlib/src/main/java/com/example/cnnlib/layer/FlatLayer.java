@@ -52,9 +52,4 @@ public class FlatLayer extends Layer {
         ComputeRender.performWithIntParams(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, 1);
     }
 
-    @Override
-    public void readOutput() {
-
-    }
-
 }

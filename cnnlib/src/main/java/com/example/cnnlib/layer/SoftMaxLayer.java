@@ -47,9 +47,4 @@ public class SoftMaxLayer extends Layer {
         ComputeRender.performWithoutParams(mShaderPro, mPreLayer.getOutTex(), mOutTex, mNumGroupsY);
     }
 
-    @Override
-    public void readOutput() {
-
-    }
-
 }

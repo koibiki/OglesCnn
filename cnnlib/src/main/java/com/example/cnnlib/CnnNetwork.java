@@ -35,7 +35,11 @@ public class CnnNetwork {
         mLayers.add(layer);
     }
 
-    private void initialize() {
+    public void initialize() {
+        mGLes31BackEnv.post(this::actualInitialize);
+    }
+
+    private void actualInitialize() {
         if (!mIsInit) {
             mIsInit = true;
             for (Layer layer : mLayers) {
@@ -49,21 +53,15 @@ public class CnnNetwork {
     }
 
     public void run() {
-        mGLes31BackEnv.post(new Runnable() {
-            @Override
-            public void run() {
-                actualRun();
-            }
-        });
+        mGLes31BackEnv.post(this::actualRun);
     }
 
     private void actualRun() {
-        initialize();
         StringBuilder sb = new StringBuilder();
         long begin = System.currentTimeMillis();
         for (int i = 0; i < mLayers.size(); i++) {
             long begin1 = System.currentTimeMillis();
-            mLayers.get(i).forwardProc();
+            mLayers.get(i).forwardProc(false);
             sb.append(i).append(":").append(System.currentTimeMillis() - begin1).append("; ");
         }
         Log.d(TAG, sb.toString());
@@ -72,12 +70,7 @@ public class CnnNetwork {
     }
 
     public void readOutput() {
-        mGLes31BackEnv.post(new Runnable() {
-            @Override
-            public void run() {
-                actualReadOutput();
-            }
-        });
+        mGLes31BackEnv.post(this::actualReadOutput);
     }
 
     private void actualReadOutput() {

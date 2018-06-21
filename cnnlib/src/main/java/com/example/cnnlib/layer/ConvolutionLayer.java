@@ -86,9 +86,4 @@ public class ConvolutionLayer extends Layer {
         }
     }
 
-    @Override
-    public void readOutput() {
-
-    }
-
 }

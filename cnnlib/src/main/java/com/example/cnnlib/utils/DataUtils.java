@@ -6,6 +6,8 @@ import com.example.cnnlib.layer.Layer;
 import com.example.cnnlib.render.ComputeRender;
 
 import java.nio.FloatBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class DataUtils {
@@ -26,15 +28,17 @@ public class DataUtils {
         return input;
     }
 
-    public static void readOutput(Layer layer) {
+    public static List<float[]> readOutput(Layer layer) {
+        List<float[]> results = new ArrayList<>();
         int channel = layer.getOutputShape()[2];
         int[] count = SortUtils.getCount(channel);
         for (int i = 0; i < count[0]; i++) {
-            readOutput(layer, i);
+            results.add(readOutput(layer, i));
         }
+        return results;
     }
 
-    private static void readOutput(Layer layer, int index) {
+    private static float[] readOutput(Layer layer, int index) {
         int[] outputShape = layer.getOutputShape();
         int width = outputShape[0];
         int[] indexes = SortUtils.getXYIndex(width, index);
@@ -44,8 +48,8 @@ public class DataUtils {
         FloatBuffer allocate = FloatBuffer.allocate(width * height * 4);
         allocate = (FloatBuffer) ComputeRender.transferFromTexture(allocate, layer.getAttachID(), startX, startY, width, height);
         float[] array = allocate.array();
-        Log.w(TAG, "output:" + array[0]);
 //        LogUtils.printf(array, width, "output" + indexes[0] + "_" + indexes[1] + ".txt");
+        return array;
     }
 
     public static float[] createFullConnKennel(int size, int index) {

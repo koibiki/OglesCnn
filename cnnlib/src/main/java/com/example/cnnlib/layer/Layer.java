@@ -2,6 +2,10 @@ package com.example.cnnlib.layer;
 
 import android.content.Context;
 
+import com.example.cnnlib.utils.DataUtils;
+
+import java.util.List;
+
 public abstract class Layer {
 
     protected Context mContext;
@@ -9,6 +13,7 @@ public abstract class Layer {
 
     protected int mOutTex;
     protected int mAttachID;
+    private List<float[]> mResult;
 
     public Layer(Context context, int[] shape) {
         this.mContext = context;
@@ -33,11 +38,16 @@ public abstract class Layer {
 
     protected abstract void actualForwardProc();
 
-    public void forwardProc() {
+    public void forwardProc(boolean restore) {
         bindTextureAndBuffer();
         actualForwardProc();
+        if (restore) {
+            restoreResult();
+        }
     }
 
-    public abstract void readOutput();
+    private void restoreResult() {
+        mResult = DataUtils.readOutput(this);
+    }
 
 }

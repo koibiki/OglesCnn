@@ -61,9 +61,4 @@ public class PoolingLayer extends Layer {
         ComputeRender.performWithIntParams(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mNumGroupsY);
     }
 
-    @Override
-    public void readOutput() {
-
-    }
-
 }

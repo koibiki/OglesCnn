@@ -24,7 +24,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         buildNet();
-
     }
 
     @Override
@@ -61,6 +60,8 @@ public class MainActivity extends AppCompatActivity {
 
 //            Layer softmaxLayer = new SoftMaxLayer(this, fullConnLayer, new int[]{20, 1, 1});
 //            mCnnNetwork.addLayer(softmaxLayer);
+
+        mCnnNetwork.initialize();
 
     }
 
