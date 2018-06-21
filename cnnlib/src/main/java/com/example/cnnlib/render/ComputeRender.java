@@ -80,7 +80,7 @@ public class ComputeRender {
         return compProg;
     }
 
-    public static int createTexture(int attachID) {
+    public static int createTexture() {
         int[] texture = new int[1];
         glGenTextures(1, texture, 0);
         glBindTexture(GL_TEXTURE_2D, texture[0]);
@@ -98,7 +98,7 @@ public class ComputeRender {
         glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texID, 0);
     }
 
-    public static int createTexture(int attachID, int width, int height) {
+    public static int createTexture( int width, int height) {
         int[] texture = new int[1];
         glGenTextures(1, texture, 0);
         glBindTexture(GL_TEXTURE_2D, texture[0]);
@@ -108,8 +108,6 @@ public class ComputeRender {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         GLES31.glBindTexture(GL_TEXTURE_2D, 0);
-        int attachment = GL_COLOR_ATTACHMENT0 + attachID;
-        glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture[0], 0);
         return texture[0];
     }
 

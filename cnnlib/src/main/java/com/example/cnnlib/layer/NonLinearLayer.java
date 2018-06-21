@@ -19,7 +19,8 @@ public class NonLinearLayer extends Layer {
         RELU(0), SIGMOID(1), TANH(2), NONE(-1);
 
         public int index;
-        private NonLinearType(int index) {
+
+        NonLinearType(int index) {
             this.index = index;
         }
 
@@ -46,7 +47,7 @@ public class NonLinearLayer extends Layer {
         mNumGroupsY = (int) Math.ceil(mOutputShape[1] * 1.0d / localSizeY);
         mShaderPro = initCompPro(mContext, csPath, mOutputShape[0], localSizeY);
         mAttachID = AttachIDManager.getInstance().getAttachID();
-        mOutTex = ComputeRender.createTexture(mAttachID);
+        mOutTex = ComputeRender.createTexture();
     }
 
     @Override

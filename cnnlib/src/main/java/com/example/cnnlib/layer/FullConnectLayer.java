@@ -50,12 +50,12 @@ public class FullConnectLayer extends Layer {
         mNumGroupsY = (int) Math.ceil(mOutputShape[1] * 1.0d / localSizeY);
         mShaderPro = initPoolingPro(mContext, "full_connect.comp", mKennelAmount, mOutputShape[0], localSizeY);
         mAttachID = AttachIDManager.getInstance().getAttachID();
-        mOutTex = ComputeRender.createTexture(mAttachID);
+        mOutTex = ComputeRender.createTexture();
 
 
         int[] kennelSize = calculateKennelSize();
         mKennelAttachID = AttachIDManager.getInstance().getAttachID();
-        mKennelTex = ComputeRender.createTexture(mKennelAttachID, kennelSize[0], mKennelAmount);
+        mKennelTex = ComputeRender.createTexture(kennelSize[0], mKennelAmount);
         mKennels = createKennels();
         transferKennelToTex(kennelSize, mKennelTex);
 

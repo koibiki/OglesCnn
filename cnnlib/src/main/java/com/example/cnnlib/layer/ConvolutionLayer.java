@@ -42,7 +42,7 @@ public class ConvolutionLayer extends Layer {
         mNumGroupsY = (int) Math.ceil(mOutputShape[1] * 1.0d / localSizeY);
         mShaderPro = initConvolutePro(mContext, "conv.comp", mKennelShape, mOutputShape[0], localSizeY);
         mAttachID = AttachIDManager.getInstance().getAttachID();
-        mOutTex = ComputeRender.createTexture(mAttachID);
+        mOutTex = ComputeRender.createTexture();
 
         mKennels = createKennels();
 

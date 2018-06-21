@@ -30,7 +30,7 @@ public class PoolingLayer extends Layer {
         mNumGroupsY = (int) Math.ceil(mOutputShape[1] * 1.0d / localSizeY);
         mShaderPro = initPoolingPro(mContext, "pooling.comp", mKsize[0] * mKsize[1], mOutputShape[0], localSizeY);
         mAttachID = AttachIDManager.getInstance().getAttachID();
-        mOutTex = ComputeRender.createTexture(mAttachID);
+        mOutTex = ComputeRender.createTexture();
 
         int[] inputShape = mPreLayer.getOutputShape();
         mParams = new int[10];

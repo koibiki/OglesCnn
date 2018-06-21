@@ -29,7 +29,7 @@ public class SoftMaxLayer extends Layer {
         mNumGroupsY = (int) Math.ceil(mOutputShape[1] * 1.0d / localSizeY);
         mShaderPro = initPoolingPro(mContext, "softmax.comp", mOutputShape[0] * mOutputShape[1], mOutputShape[0], localSizeY);
         mAttachID = AttachIDManager.getInstance().getAttachID();
-        mOutTex = ComputeRender.createTexture(mAttachID);
+        mOutTex = ComputeRender.createTexture();
     }
 
     @Override
