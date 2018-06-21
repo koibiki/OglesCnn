@@ -2,7 +2,6 @@ package com.example.cnnlib.layer;
 
 import android.content.Context;
 
-import com.example.cnnlib.model.LayerParams;
 import com.example.cnnlib.render.ComputeRender;
 import com.example.cnnlib.utils.AttachIDManager;
 import com.example.cnnlib.utils.DataUils;
@@ -16,47 +15,52 @@ import static com.example.cnnlib.render.ComputeRender.initPoolingPro;
 
 /**
  * kennel 存储方式为 纹理每行存储一个 kennel， 纹理高度与kennel个数相同
+ * 全连接前接 flat 或 全连接层  只有纹理的第一个通道存储数据
  */
 public class FullConnectLayer extends Layer {
 
     private static final String TAG = "FullConnectLayer";
 
-    List<float[]> mKennels = new ArrayList<>();
+    private Layer mPreLayer;
+    private List<float[]> mKennels;
     private int mNumGroupsY;
     private int mShaderPro;
     private int mKennelAmount;                      // kennel组 个数
 
     private int[] mParams;
     private int mKennelTex;
+    private int mKennelAttachID;
 
-    public FullConnectLayer(Context context, LayerParams layerParams, int kennelAmount) {
-        super(context, layerParams);
-        this.mKennelAmount = kennelAmount;
-
+    public FullConnectLayer(Context context, Layer preLayer, int[] shape) {
+        super(context, shape);
+        this.mPreLayer = preLayer;
+        this.mKennelAmount = shape[0] * shape[1];
         initFullConnect();
     }
 
     private void initFullConnect() {
-        int localSizeY = getCompShaderLocalSizeY(mLayerParams.outputShape);
-        mNumGroupsY = (int) Math.ceil(mLayerParams.outputShape[1] * 1.0d / localSizeY);
-        mShaderPro = initPoolingPro(mContext, "full_connect.comp", mKennelAmount, mLayerParams.outputShape[0], localSizeY);
+        int localSizeY = getCompShaderLocalSizeY(mOutputShape);
+        mNumGroupsY = (int) Math.ceil(mOutputShape[1] * 1.0d / localSizeY);
+        mShaderPro = initPoolingPro(mContext, "full_connect.comp", mKennelAmount, mOutputShape[0], localSizeY);
         mAttachID = AttachIDManager.getInstance().getAttachID();
         mOutTex = ComputeRender.createTexture(mAttachID);
 
 
         int[] kennelSize = calculateKennelSize();
-        int attachID = AttachIDManager.getInstance().getAttachID();
-        mKennelTex = ComputeRender.createTexture(attachID, kennelSize[0], mKennelAmount);
-        createKennels();
+        mKennelAttachID = AttachIDManager.getInstance().getAttachID();
+        mKennelTex = ComputeRender.createTexture(mKennelAttachID, kennelSize[0], mKennelAmount);
+        mKennels = createKennels();
         transferKennelToTex(kennelSize, mKennelTex);
 
+        int[] inputShape = mPreLayer.getOutputShape();
+
         mParams = new int[9];
-        mParams[0] = mLayerParams.inputShape[0];
-        mParams[1] = mLayerParams.inputShape[1];
-        mParams[2] = mLayerParams.inputShape[2];
-        mParams[3] = mLayerParams.outputShape[0];
-        mParams[4] = mLayerParams.outputShape[1];
-        mParams[5] = mLayerParams.outputShape[2];
+        mParams[0] = inputShape[0];
+        mParams[1] = inputShape[1];
+        mParams[2] = inputShape[2];
+        mParams[3] = mOutputShape[0];
+        mParams[4] = mOutputShape[1];
+        mParams[5] = mOutputShape[2];
         mParams[6] = kennelSize[0];
         mParams[7] = kennelSize[1];
         mParams[8] = kennelSize[2];
@@ -65,13 +69,13 @@ public class FullConnectLayer extends Layer {
     // kennel size width <= 1024 height=1
     private int[] calculateKennelSize() {
         int[] kennelSize = new int[3];
-        int[] inputShape = mLayerParams.inputShape;
+        int[] inputShape = mPreLayer.getOutputShape();
         int inputSize = inputShape[0] * inputShape[1] * inputShape[2] + 1;  // 最后一列存储bias
         int width = inputSize / 4;
         int remain = inputSize % 4;
         kennelSize[0] = remain == 0 ? width : width + 1;
         kennelSize[1] = 1;
-        kennelSize[2] = remain - 1 < 0 ? 3 : remain - 1;    // 表示最后一位数据的下标
+        kennelSize[2] = remain - 1 < 0 ? 3 : remain - 1;                    // 表示最后一位数据的下标
         return kennelSize;
     }
 
@@ -81,19 +85,26 @@ public class FullConnectLayer extends Layer {
         }
     }
 
-    private void createKennels() {
-        int[] inputShape = mLayerParams.inputShape;
+    private List<float[]> createKennels() {
+        List<float[]> kennels = new ArrayList<>();
+        int[] inputShape = mPreLayer.getOutputShape();
         int inputSize = inputShape[0] * inputShape[1] * inputShape[2] + 1;     // 最后一列存储bias
         for (int i = 0; i < mKennelAmount; i++) {
             float[] kennel = DataUils.createFullConnKennel(inputSize, i);
-            mKennels.add(kennel);
+            kennels.add(kennel);
         }
+        return kennels;
     }
 
     @Override
-    public int forwardProc(int inTex) {
-        ComputeRender.performFullConnect(mShaderPro, mParams, inTex, mOutTex, mKennelTex, mNumGroupsY);
-        return mOutTex;
+    protected void bindTextureAndBuffer() {
+        ComputeRender.bindTextureAndBuffer(mKennelTex, mKennelAttachID);
+        ComputeRender.bindTextureAndBuffer(mOutTex, mAttachID);
+    }
+
+    @Override
+    protected void actualForwardProc() {
+        ComputeRender.performFullConnect(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mKennelTex, mNumGroupsY);
     }
 
     @Override

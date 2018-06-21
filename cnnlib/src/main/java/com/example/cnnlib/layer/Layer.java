@@ -2,24 +2,17 @@ package com.example.cnnlib.layer;
 
 import android.content.Context;
 
-import com.example.cnnlib.model.LayerParams;
-
 public abstract class Layer {
 
     protected Context mContext;
-    protected LayerParams mLayerParams;
-
-
-    Layer(Context context, LayerParams layerParams) {
-        this.mContext = context;
-        this.mLayerParams = layerParams;
-    }
+    protected int[] mOutputShape;
 
     protected int mOutTex;
     protected int mAttachID;
 
-    public LayerParams getLayerParams() {
-        return mLayerParams;
+    public Layer(Context context, int[] shape) {
+        this.mContext = context;
+        this.mOutputShape = shape;
     }
 
     public int getAttachID() {
@@ -30,7 +23,18 @@ public abstract class Layer {
         return mOutTex;
     }
 
-    public abstract int forwardProc(int inTex);
+    public int[] getOutputShape() {
+        return mOutputShape;
+    }
+
+    protected abstract void bindTextureAndBuffer();
+
+    protected abstract void actualForwardProc();
+
+    public void forwardProc() {
+        bindTextureAndBuffer();
+        actualForwardProc();
+    }
 
     public abstract void readOutput();
 

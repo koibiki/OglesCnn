@@ -2,7 +2,6 @@ package com.example.cnnlib.layer;
 
 import android.content.Context;
 
-import com.example.cnnlib.model.LayerParams;
 import com.example.cnnlib.render.ComputeRender;
 import com.example.cnnlib.utils.AttachIDManager;
 
@@ -13,33 +12,39 @@ import static com.example.cnnlib.render.ComputeRender.initCompPro;
  */
 public class FlatLayer extends Layer {
 
+    private Layer mPreLayer;
     private int mShaderPro;
     private int[] mParams;
 
-    public FlatLayer(Context context, LayerParams layerParams) {
-        super(context, layerParams);
+    public FlatLayer(Context context, Layer preLayer, int[] shape) {
+        super(context, shape);
+        this.mPreLayer = preLayer;
         initFlat();
     }
 
     private void initFlat() {
-        mShaderPro = initCompPro(mContext, "flat.comp", mLayerParams.outputShape[0], 1);
+        mShaderPro = initCompPro(mContext, "flat.comp", mOutputShape[0], 1);
         mAttachID = AttachIDManager.getInstance().getAttachID();
-        int[] outputShape = mLayerParams.outputShape;
-        mOutTex = ComputeRender.createTexture(mAttachID, outputShape[0] , outputShape[1]);
+        mOutTex = ComputeRender.createTexture(mAttachID, mOutputShape[0], mOutputShape[1]);
 
+        int[] inputShape = mPreLayer.getOutputShape();
         mParams = new int[10];
-        mParams[0] = mLayerParams.inputShape[0];
-        mParams[1] = mLayerParams.inputShape[1];
-        mParams[2] = mLayerParams.inputShape[2];
-        mParams[3] = mLayerParams.outputShape[0];
-        mParams[4] = mLayerParams.outputShape[1];
-        mParams[5] = mLayerParams.outputShape[2];
+        mParams[0] = inputShape[0];
+        mParams[1] = inputShape[1];
+        mParams[2] = inputShape[2];
+        mParams[3] = mOutputShape[0];
+        mParams[4] = mOutputShape[1];
+        mParams[5] = mOutputShape[2];
     }
 
     @Override
-    public int forwardProc(int inTex) {
-        ComputeRender.performWithIntParams(mShaderPro, mParams, inTex, mOutTex, 1);
-        return mOutTex;
+    protected void bindTextureAndBuffer() {
+        ComputeRender.bindTextureAndBuffer(mOutTex, mAttachID);
+    }
+
+    @Override
+    protected void actualForwardProc() {
+        ComputeRender.performWithIntParams(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, 1);
     }
 
     @Override

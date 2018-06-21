@@ -3,7 +3,6 @@ package com.example.cnnlib.render;
 import android.content.Context;
 import android.opengl.GLES31;
 
-import com.example.cnnlib.model.Kennel;
 import com.example.cnnlib.utils.Constants;
 import com.example.cnnlib.utils.MathUtils;
 import com.example.cnnlib.utils.ShaderUtils;
@@ -43,8 +42,8 @@ import static android.opengl.GLES31.glTexStorage2D;
 import static android.opengl.GLES31.glTexSubImage2D;
 import static android.opengl.GLES31.glUniform1fv;
 import static android.opengl.GLES31.glUseProgram;
-import static com.example.cnnlib.utils.Constants.S_CONV_SHADER_HEADER;
 import static com.example.cnnlib.utils.Constants.S_COMMON_SHADER_HEADER;
+import static com.example.cnnlib.utils.Constants.S_CONV_SHADER_HEADER;
 import static com.example.cnnlib.utils.Constants.S_POOLING_SHADER_HEADER;
 import static com.example.cnnlib.utils.Constants.S_TEXTURE_SIZE;
 
@@ -52,10 +51,12 @@ public class ComputeRender {
 
     private static final String TAG = "ComputeRender";
 
-    public static int initConvolutePro(Context context, String csPath, Kennel kennel, int xSize, int ySize) {
+    public static int initConvolutePro(Context context, String csPath, int[] kennelShape, int xSize, int ySize) {
         int compProg = GLES31.glCreateProgram();
         String source = ShaderUtils.loadFromAssetsFile(csPath, context.getResources());
-        source = String.format(Locale.getDefault(), S_CONV_SHADER_HEADER, kennel.area, kennel.size, xSize, ySize) + source;
+        int kennelArea = kennelShape[0] * kennelShape[1];
+        int kennelSize = kennelArea * kennelShape[2];
+        source = String.format(Locale.getDefault(), S_CONV_SHADER_HEADER, kennelArea, kennelSize, xSize, ySize) + source;
         ShaderUtils.vglAttachShaderSource(compProg, GL_COMPUTE_SHADER, source);
         glLinkProgram(compProg);
         return compProg;
@@ -89,9 +90,12 @@ public class ComputeRender {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         GLES31.glBindTexture(GL_TEXTURE_2D, 0);
-        int attachment = GL_COLOR_ATTACHMENT0 + attachID;
-        glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture[0], 0);
         return texture[0];
+    }
+
+    public static void bindTextureAndBuffer(int texID, int attachID){
+        int attachment = GL_COLOR_ATTACHMENT0 + attachID;
+        glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texID, 0);
     }
 
     public static int createTexture(int attachID, int width, int height) {
@@ -109,14 +113,9 @@ public class ComputeRender {
         return texture[0];
     }
 
-    public static void cleanTexture(int texID) {
-        glBindTexture(GL_TEXTURE_2D, texID);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 1024, 1024, GL_RGBA, GL_FLOAT, null);
-    }
-
-    public static void performConvolute(int compProg, Kennel kennel, int[] params, int inTex, int outTex, int numGroupsY) {
+    public static void performConvolute(int compProg, float[] kennel, int[] params, int inTex, int outTex, int numGroupsY) {
         glUseProgram(compProg);
-        glUniform1fv(glGetUniformLocation(compProg, "k"), kennel.data.length, kennel.data, 0);
+        glUniform1fv(glGetUniformLocation(compProg, "k"), kennel.length, kennel, 0);
         glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
 
         glBindImageTexture(0, inTex, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);

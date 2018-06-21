@@ -2,7 +2,6 @@ package com.example.cnnlib.layer;
 
 import android.content.Context;
 
-import com.example.cnnlib.model.LayerParams;
 import com.example.cnnlib.render.ComputeRender;
 import com.example.cnnlib.utils.AttachIDManager;
 
@@ -11,6 +10,7 @@ import static com.example.cnnlib.render.ComputeRender.initCompPro;
 
 public class NonLinearLayer extends Layer {
 
+    private Layer mPreLayer;
     private NonLinearType mType;
     private int mNumGroupsY;
     private int mShaderPro;
@@ -20,8 +20,9 @@ public class NonLinearLayer extends Layer {
     }
 
 
-    public NonLinearLayer(Context context, LayerParams layerParams, NonLinearType type) {
-        super(context, layerParams);
+    public NonLinearLayer(Context context, Layer preLayer, int[] shape, NonLinearType type) {
+        super(context, shape);
+        this.mPreLayer = preLayer;
         this.mType = type;
 
         initNonlinear();
@@ -36,21 +37,27 @@ public class NonLinearLayer extends Layer {
         } else if (mType == NonLinearType.TANH) {
             csPath = "tanh.comp";
         }
-        int localSizeY = getCompShaderLocalSizeY(mLayerParams.outputShape);
-        mNumGroupsY = (int) Math.ceil(mLayerParams.outputShape[1] * 1.0d / localSizeY);
-        mShaderPro = initCompPro(mContext, csPath, mLayerParams.outputShape[0], localSizeY);
+
+        int localSizeY = getCompShaderLocalSizeY(mOutputShape);
+        mNumGroupsY = (int) Math.ceil(mOutputShape[1] * 1.0d / localSizeY);
+        mShaderPro = initCompPro(mContext, csPath, mOutputShape[0], localSizeY);
         mAttachID = AttachIDManager.getInstance().getAttachID();
         mOutTex = ComputeRender.createTexture(mAttachID);
     }
 
     @Override
-    public int forwardProc(int inTex) {
-        ComputeRender.performWithoutParams(mShaderPro, inTex, mOutTex, mNumGroupsY);
-        return mOutTex;
+    protected void bindTextureAndBuffer() {
+        ComputeRender.bindTextureAndBuffer(mOutTex, mAttachID);
+    }
+
+    @Override
+    protected void actualForwardProc() {
+        ComputeRender.performWithoutParams(mShaderPro, mPreLayer.getOutTex(), mOutTex, mNumGroupsY);
     }
 
     @Override
     public void readOutput() {
 
     }
+
 }

@@ -2,7 +2,6 @@ package com.example.cnnlib.layer;
 
 import android.content.Context;
 
-import com.example.cnnlib.model.LayerParams;
 import com.example.cnnlib.render.ComputeRender;
 import com.example.cnnlib.utils.AttachIDManager;
 import com.example.cnnlib.utils.SortUtils;
@@ -13,29 +12,34 @@ import static com.example.cnnlib.utils.DataUils.createInputBuffer;
 
 public class InputLayer extends Layer {
 
+
     private float[][] mInput;
 
-    public InputLayer(Context context, LayerParams layerParams) {
-        super(context, layerParams);
+
+    public InputLayer(Context context, int[] shape) {
+        super(context, shape);
         this.mAttachID = AttachIDManager.getInstance().getAttachID();
         this.mOutTex = ComputeRender.createTexture(mAttachID);
-
         initInput();
     }
 
     private void initInput() {
-        mInput = createInputBuffer(mLayerParams);
+        mInput = createInputBuffer(mOutputShape);
     }
 
+    @Override
+    protected void bindTextureAndBuffer() {
+        ComputeRender.bindTextureAndBuffer(mOutTex, mAttachID);
+    }
 
     @Override
-    public int forwardProc(int inTex) {
-        int channel = mLayerParams.outputShape[2];
+    protected void actualForwardProc() {
+        initInput();
+        int channel = mOutputShape[2];
         int[] count = SortUtils.getCount(channel);
         for (int i = 0; i < count[0]; i++) {
             writeInput(mInput, mOutTex, i);
         }
-        return mOutTex;
     }
 
     @Override
@@ -44,10 +48,10 @@ public class InputLayer extends Layer {
     }
 
     private void writeInput(float[][] input, int texID, int index) {
-        int width = mLayerParams.outputShape[0];
+        int width = mOutputShape[0];
         int[] indexes = SortUtils.getXYIndex(width, index);
-        int height = mLayerParams.outputShape[1];
-        int channel = mLayerParams.outputShape[2];
+        int height = mOutputShape[1];
+        int channel = mOutputShape[2];
         int startX = indexes[0] * width;
         int startY = indexes[1] * height;
         float[] localInput = new float[width * height * 4];

@@ -6,6 +6,7 @@ public class AttachIDManager {
 
     private static Stack<Integer> mStack;
     private static AttachIDManager mAttachIDManager;
+    private int i = 0;
 
     private AttachIDManager() {
         mStack = new Stack<>();
@@ -23,7 +24,8 @@ public class AttachIDManager {
 
 
     public int getAttachID() {
-        return mStack.pop();
+        i++;
+        return i % 7;
     }
 
     public void pushAttachID(int i) {

@@ -2,12 +2,10 @@ package com.example.cnnlib.layer;
 
 import android.content.Context;
 
-import com.example.cnnlib.model.LayerParams;
 import com.example.cnnlib.render.ComputeRender;
 import com.example.cnnlib.utils.AttachIDManager;
 
 import static com.example.cnnlib.render.ComputeRender.getCompShaderLocalSizeY;
-import static com.example.cnnlib.render.ComputeRender.initCompPro;
 import static com.example.cnnlib.render.ComputeRender.initPoolingPro;
 
 /**
@@ -16,32 +14,38 @@ import static com.example.cnnlib.render.ComputeRender.initPoolingPro;
 public class SoftMaxLayer extends Layer {
 
     private static final String TAG = "SoftMaxLayer";
+
+    private Layer mPreLayer;
     private int mShaderPro;
     private int mNumGroupsY;
 
-    public SoftMaxLayer(Context context, LayerParams layerParams) {
-        super(context, layerParams);
+    public SoftMaxLayer(Context context, Layer preLayer, int[] shape) {
+        super(context, shape);
+        this.mPreLayer = preLayer;
         initSoftmax();
     }
 
     private void initSoftmax() {
-        int localSizeY = getCompShaderLocalSizeY(mLayerParams.outputShape);
-        mNumGroupsY = (int) Math.ceil(mLayerParams.outputShape[1] * 1.0d / localSizeY);
-        mShaderPro = initPoolingPro(mContext, "softmax.comp", mLayerParams.outputShape[0] * mLayerParams.outputShape[1], mLayerParams.outputShape[0], localSizeY);
+        int localSizeY = getCompShaderLocalSizeY(mOutputShape);
+        mNumGroupsY = (int) Math.ceil(mOutputShape[1] * 1.0d / localSizeY);
+        mShaderPro = initPoolingPro(mContext, "softmax.comp", mOutputShape[0] * mOutputShape[1], mOutputShape[0], localSizeY);
         mAttachID = AttachIDManager.getInstance().getAttachID();
         mOutTex = ComputeRender.createTexture(mAttachID);
     }
 
     @Override
-    public int forwardProc(int inTex) {
-        ComputeRender.performWithoutParams(mShaderPro, inTex, mOutTex, mNumGroupsY);
-        return mOutTex;
+    protected void bindTextureAndBuffer() {
+        ComputeRender.bindTextureAndBuffer(mOutTex, mAttachID);
+    }
+
+    @Override
+    protected void actualForwardProc() {
+        ComputeRender.performWithoutParams(mShaderPro, mPreLayer.getOutTex(), mOutTex, mNumGroupsY);
     }
 
     @Override
     public void readOutput() {
 
     }
-
 
 }
