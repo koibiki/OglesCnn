@@ -12,6 +12,7 @@ import java.util.List;
 
 import static com.example.cnnlib.render.ComputeRender.getCompShaderLocalSizeY;
 import static com.example.cnnlib.render.ComputeRender.initPoolingPro;
+import static com.example.cnnlib.render.ComputeRender.performWithIntParams;
 
 /**
  * kennel 存储方式为 纹理每行存储一个 kennel， 纹理高度与kennel个数相同
@@ -30,11 +31,13 @@ public class FullConnectLayer extends Layer {
     private int[] mParams;
     private int mKennelTex;
     private int mKennelAttachID;
+    private NonLinearLayer.NonLinearType mType;
 
-    public FullConnectLayer(Context context, Layer preLayer, int[] shape) {
+    public FullConnectLayer(Context context, Layer preLayer, int[] shape, NonLinearLayer.NonLinearType type) {
         super(context, shape);
         this.mPreLayer = preLayer;
         this.mKennelAmount = shape[0] * shape[1];
+        this.mType = type;
     }
 
     @Override
@@ -58,7 +61,7 @@ public class FullConnectLayer extends Layer {
 
         int[] inputShape = mPreLayer.getOutputShape();
 
-        mParams = new int[9];
+        mParams = new int[10];
         mParams[0] = inputShape[0];
         mParams[1] = inputShape[1];
         mParams[2] = inputShape[2];
@@ -68,6 +71,7 @@ public class FullConnectLayer extends Layer {
         mParams[6] = kennelSize[0];
         mParams[7] = kennelSize[1];
         mParams[8] = kennelSize[2];
+        mParams[9] = mType.index;
     }
     // kennel size width <= 1024 height=1
 

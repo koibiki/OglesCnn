@@ -1,7 +1,7 @@
 layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = 1) in;
 
 uniform float k[KENNEL_SIZE + 1];
-uniform int params[13];  // kennel_shape[3] input_shape[3] output_shape[3] strides[2] padding kennel_index
+uniform int params[14];  // kennel_shape[3] input_shape[3] output_shape[3] strides[2] padding active_type kennel_index
 layout(binding = 0, rgba32f) readonly uniform image2D input_image1;
 layout(binding = 1, rgba32f) readonly uniform image2D input_image2; //input_image2 == output_image
 layout(binding = 2, rgba32f) writeonly uniform image2D output_image;
@@ -12,6 +12,9 @@ float performConvolute(int num, ivec2 [KENNEL_AREA] input_data_index, int[3] inp
 ivec3 getRealStoreIndex(ivec2 pos, int[3] output_shape, int kennel_index);
 ivec2 getFeatureMapIndexInTexture(int num, int width);
 int getComputeCount(int[3] kennel_shape);
+float relu(float i);
+float sigmoid(float i);
+float activeValue(int type, float v);
 
 void main(void)
 {
@@ -21,7 +24,8 @@ void main(void)
     int output_shape[3] = int[3](params[6], params[7] , params[8]);
     int strides[2] = int[2](params[9], params[10]);
     int padding = params[11];
-    int kennel_index = params[12];
+    int active_type = params[12];
+    int kennel_index = params[13];
 
     ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
 
@@ -39,7 +43,8 @@ void main(void)
         output_value += performConvolute(i, input_data_index, input_shape);
     }
 
-    data_origin[real_pos.z] = output_value + k[KENNEL_SIZE];
+    output_value = output_value + k[KENNEL_SIZE];
+    data_origin[real_pos.z] = activeValue(active_type,output_value);
     imageStore(output_image, real_pos.xy, data_origin);
 }
 
@@ -116,4 +121,28 @@ int getComputeCount(int[3] kennel_shape){
         count = count + 1;
     }
     return count;
+}
+
+float relu(float i){
+    if (i > 0.0){
+        return i;
+    } else {
+        return 0.0;
+    }
+}
+
+float sigmoid(float i){
+    return 1.0 / (1.0 + exp(-i));
+}
+
+float activeValue(int type, float v){
+    if (type == 0) {
+        return relu(v);
+    } else if (type == 1) {
+        return sigmoid(v);
+    } else if (type == 2){
+        return tanh(v);
+    } else {
+        return v;
+    }
 }

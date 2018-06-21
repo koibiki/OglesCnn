@@ -16,7 +16,13 @@ public class NonLinearLayer extends Layer {
     private int mShaderPro;
 
     public enum NonLinearType {
-        RELU, SIGMOID, TANH
+        RELU(0), SIGMOID(1), TANH(2), NONE(-1);
+
+        public int index;
+        private NonLinearType(int index) {
+            this.index = index;
+        }
+
     }
 
 

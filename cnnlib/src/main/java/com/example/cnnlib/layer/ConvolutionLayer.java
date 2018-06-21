@@ -24,14 +24,16 @@ public class ConvolutionLayer extends Layer {
     private int mShaderPro;
     private int mNumGroupsY;
     private int[] mParams;
+    private NonLinearLayer.NonLinearType mType;
 
 
-    public ConvolutionLayer(Context context, Layer preLayer, int[] shape, int[] kennelShape, int padding, int[] strides) {
+    public ConvolutionLayer(Context context, Layer preLayer, int[] shape, int[] kennelShape, int padding, int[] strides, NonLinearLayer.NonLinearType type) {
         super(context, shape);
         this.mPreLayer = preLayer;
         this.mKennelShape = kennelShape;
         this.mPadding = padding;
         this.mStrides = strides;
+        this.mType = type;
 
     }
 
@@ -41,10 +43,10 @@ public class ConvolutionLayer extends Layer {
         mShaderPro = initConvolutePro(mContext, "conv.comp", mKennelShape, mOutputShape[0], localSizeY);
         mAttachID = AttachIDManager.getInstance().getAttachID();
         mOutTex = ComputeRender.createTexture(mAttachID);
-        mParams = new int[13];
 
         mKennels = createKennels();
 
+        mParams = new int[14];
         int[] inputShape = mPreLayer.getOutputShape();
         mParams[0] = mKennelShape[0];
         mParams[1] = mKennelShape[1];
@@ -58,6 +60,7 @@ public class ConvolutionLayer extends Layer {
         mParams[9] = mStrides[0];
         mParams[10] = mStrides[1];
         mParams[11] = mPadding;
+        mParams[12] = mType.index;
     }
 
     private List<float[]> createKennels() {
@@ -81,7 +84,7 @@ public class ConvolutionLayer extends Layer {
     @Override
     protected void actualForwardProc() {
         for (int i = 0; i < mKennels.size(); i++) {
-            mParams[12] = i;
+            mParams[13] = i;
             ComputeRender.performConvolute(mShaderPro, mKennels.get(i), mParams, mPreLayer.getOutTex(), mOutTex, mNumGroupsY);
         }
     }

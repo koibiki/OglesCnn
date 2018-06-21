@@ -1,9 +1,13 @@
 layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = 1) in;
 
-uniform int params[9];  // input_shape[3] output_shape[3] kennel_shape[3]
+uniform int params[10];  // input_shape[3] output_shape[3] kennel_shape[3] active_type
 layout(binding = 0, rgba32f) readonly uniform image2D input_image;
 layout(binding = 1, rgba32f) readonly uniform image2D kennel_image;
 layout(binding = 2, rgba32f) writeonly uniform image2D output_image;
+
+float relu(float i);
+float sigmoid(float i);
+float activeValue(int type, float v);
 
 // 全连接上一层只能是已拉平的数据，即只在第一个通道有数据
 void main(void)
@@ -13,6 +17,7 @@ void main(void)
     int input_shape[3] = int[3](params[0], params[1], params[2]);
     int output_shape[3] = int[3](params[3], params[4], params[5]);
     int kennel_shape[3] = int[3](params[6], params[7], params[8]);
+    int active_type = params[9];
 
     // 获得当前计算器坐标
     int index = pos.y * 1024 + pos.x;
@@ -36,6 +41,31 @@ void main(void)
 
     output_value += bias[kennel_shape[2]];
 
+    output_value = activeValue(active_type, output_value);
+
     imageStore(output_image, pos.xy, vec4(output_value, 0.0, 0.0, 0.0));
 }
 
+float relu(float i){
+    if (i > 0.0){
+        return i;
+    } else {
+        return 0.0;
+    }
+}
+
+float sigmoid(float i){
+    return 1.0 / (1.0 + exp(-i));
+}
+
+float activeValue(int type, float v){
+    if (type == 0) {
+        return relu(v);
+    } else if (type == 1) {
+        return sigmoid(v);
+    } else if (type == 2){
+        return tanh(v);
+    } else {
+        return v;
+    }
+}
