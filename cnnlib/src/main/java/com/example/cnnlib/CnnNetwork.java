@@ -4,11 +4,10 @@ import android.util.Log;
 
 import com.example.cnnlib.eglenv.GLES31BackEnv;
 import com.example.cnnlib.layer.Layer;
-import com.example.cnnlib.utils.DataUils;
+import com.example.cnnlib.utils.DataUtils;
 
 import java.util.ArrayList;
 
-import static android.os.Looper.getMainLooper;
 import static com.example.cnnlib.utils.Constants.S_TEXTURE_SIZE;
 
 /**
@@ -20,21 +19,29 @@ public class CnnNetwork {
 
     private ArrayList<Layer> mLayers;
 
+    private boolean mIsInit;
+    private GLES31BackEnv mGLes31BackEnv;
+
     public CnnNetwork() {
         init();
         this.mLayers = new ArrayList<>();
     }
 
     private void init() {
-        GLES31BackEnv gles31BackEnv = new GLES31BackEnv(S_TEXTURE_SIZE, S_TEXTURE_SIZE);
+        mGLes31BackEnv = new GLES31BackEnv(S_TEXTURE_SIZE, S_TEXTURE_SIZE);
     }
 
-    public void addLayer(Layer layer) throws Exception {
-        int size = mLayers.size();
-        if (size > 0) {
-            Layer last = mLayers.get(size - 1);
-        }
+    public void addLayer(Layer layer) {
         mLayers.add(layer);
+    }
+
+    private void initialize() {
+        if (!mIsInit) {
+            mIsInit = true;
+            for (Layer layer : mLayers) {
+                layer.initialize();
+            }
+        }
     }
 
     public void removeLayer(Layer layer) {
@@ -42,6 +49,16 @@ public class CnnNetwork {
     }
 
     public void run() {
+        mGLes31BackEnv.post(new Runnable() {
+            @Override
+            public void run() {
+                actualRun();
+            }
+        });
+    }
+
+    private void actualRun() {
+        initialize();
         StringBuilder sb = new StringBuilder();
         long begin = System.currentTimeMillis();
         for (int i = 0; i < mLayers.size(); i++) {
@@ -51,12 +68,21 @@ public class CnnNetwork {
         }
         Log.d(TAG, sb.toString());
         Log.w(TAG, "----- total spent:" + (System.currentTimeMillis() - begin));
-        readOutput();
+        actualReadOutput();
     }
 
     public void readOutput() {
+        mGLes31BackEnv.post(new Runnable() {
+            @Override
+            public void run() {
+                actualReadOutput();
+            }
+        });
+    }
+
+    private void actualReadOutput() {
         Layer layer = mLayers.get(mLayers.size() - 1);
-        DataUils.readOutput(layer);
+        DataUtils.readOutput(layer);
     }
 
 

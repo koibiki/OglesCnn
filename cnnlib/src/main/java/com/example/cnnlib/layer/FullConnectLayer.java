@@ -4,7 +4,7 @@ import android.content.Context;
 
 import com.example.cnnlib.render.ComputeRender;
 import com.example.cnnlib.utils.AttachIDManager;
-import com.example.cnnlib.utils.DataUils;
+import com.example.cnnlib.utils.DataUtils;
 
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
@@ -35,6 +35,10 @@ public class FullConnectLayer extends Layer {
         super(context, shape);
         this.mPreLayer = preLayer;
         this.mKennelAmount = shape[0] * shape[1];
+    }
+
+    @Override
+    public void initialize() {
         initFullConnect();
     }
 
@@ -65,8 +69,8 @@ public class FullConnectLayer extends Layer {
         mParams[7] = kennelSize[1];
         mParams[8] = kennelSize[2];
     }
-
     // kennel size width <= 1024 height=1
+
     private int[] calculateKennelSize() {
         int[] kennelSize = new int[3];
         int[] inputShape = mPreLayer.getOutputShape();
@@ -90,7 +94,7 @@ public class FullConnectLayer extends Layer {
         int[] inputShape = mPreLayer.getOutputShape();
         int inputSize = inputShape[0] * inputShape[1] * inputShape[2] + 1;     // 最后一列存储bias
         for (int i = 0; i < mKennelAmount; i++) {
-            float[] kennel = DataUils.createFullConnKennel(inputSize, i);
+            float[] kennel = DataUtils.createFullConnKennel(inputSize, i);
             kennels.add(kennel);
         }
         return kennels;

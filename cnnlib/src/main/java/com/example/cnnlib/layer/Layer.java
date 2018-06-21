@@ -27,6 +27,8 @@ public abstract class Layer {
         return mOutputShape;
     }
 
+    public abstract void initialize();
+
     protected abstract void bindTextureAndBuffer();
 
     protected abstract void actualForwardProc();

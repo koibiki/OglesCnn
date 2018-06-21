@@ -1,12 +1,16 @@
 package com.example.cnnlib.utils;
 
+import android.util.Log;
+
 import com.example.cnnlib.layer.Layer;
 import com.example.cnnlib.render.ComputeRender;
 
 import java.nio.FloatBuffer;
 import java.util.Random;
 
-public class DataUils {
+public class DataUtils {
+
+    private static final String TAG = "DataUtils";
 
     public static float[][] createInputBuffer(int[] shape) {
         int channel = shape[2];
@@ -16,7 +20,7 @@ public class DataUils {
         float input[][] = new float[channel][areaCapacity];
         for (int j = 0; j < channel; j++) {
             for (int i = 0; i < areaCapacity; i++) {
-                input[j][i] = i * r * 0.1f;
+                input[j][i] = i * r * 0.0001f;
             }
         }
         return input;
@@ -40,6 +44,7 @@ public class DataUils {
         FloatBuffer allocate = FloatBuffer.allocate(width * height * 4);
         allocate = (FloatBuffer) ComputeRender.transferFromTexture(allocate, layer.getAttachID(), startX, startY, width, height);
         float[] array = allocate.array();
+        Log.w(TAG, "output:" + array[0]);
 //        LogUtils.printf(array, width, "output" + indexes[0] + "_" + indexes[1] + ".txt");
     }
 

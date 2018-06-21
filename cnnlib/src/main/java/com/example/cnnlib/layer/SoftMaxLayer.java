@@ -22,7 +22,6 @@ public class SoftMaxLayer extends Layer {
     public SoftMaxLayer(Context context, Layer preLayer, int[] shape) {
         super(context, shape);
         this.mPreLayer = preLayer;
-        initSoftmax();
     }
 
     private void initSoftmax() {
@@ -31,6 +30,11 @@ public class SoftMaxLayer extends Layer {
         mShaderPro = initPoolingPro(mContext, "softmax.comp", mOutputShape[0] * mOutputShape[1], mOutputShape[0], localSizeY);
         mAttachID = AttachIDManager.getInstance().getAttachID();
         mOutTex = ComputeRender.createTexture(mAttachID);
+    }
+
+    @Override
+    public void initialize() {
+        initSoftmax();
     }
 
     @Override

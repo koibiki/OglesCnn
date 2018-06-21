@@ -4,7 +4,7 @@ import android.content.Context;
 
 import com.example.cnnlib.render.ComputeRender;
 import com.example.cnnlib.utils.AttachIDManager;
-import com.example.cnnlib.utils.DataUils;
+import com.example.cnnlib.utils.DataUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +33,6 @@ public class ConvolutionLayer extends Layer {
         this.mPadding = padding;
         this.mStrides = strides;
 
-        initConv();
     }
 
     private void initConv() {
@@ -61,15 +60,18 @@ public class ConvolutionLayer extends Layer {
         mParams[11] = mPadding;
     }
 
-
     private List<float[]> createKennels() {
         List<float[]> kennels = new ArrayList<>();
         for (int i = 0; i < mOutputShape[2]; i++) {
-            kennels.add(DataUils.createConvKennel(i + 1, 3, 4, 1));
+            kennels.add(DataUtils.createConvKennel(i + 1, 3, 4, 1));
         }
         return kennels;
     }
 
+    @Override
+    public void initialize() {
+        initConv();
+    }
 
     @Override
     protected void bindTextureAndBuffer() {

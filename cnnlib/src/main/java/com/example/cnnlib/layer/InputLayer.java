@@ -8,18 +8,20 @@ import com.example.cnnlib.utils.SortUtils;
 
 import java.nio.FloatBuffer;
 
-import static com.example.cnnlib.utils.DataUils.createInputBuffer;
+import static com.example.cnnlib.utils.DataUtils.createInputBuffer;
 
 public class InputLayer extends Layer {
 
-
     private float[][] mInput;
-
 
     public InputLayer(Context context, int[] shape) {
         super(context, shape);
-        this.mAttachID = AttachIDManager.getInstance().getAttachID();
-        this.mOutTex = ComputeRender.createTexture(mAttachID);
+    }
+
+    @Override
+    public void initialize() {
+        mAttachID = AttachIDManager.getInstance().getAttachID();
+        mOutTex = ComputeRender.createTexture(mAttachID);
         initInput();
     }
 

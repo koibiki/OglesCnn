@@ -20,12 +20,10 @@ public class NonLinearLayer extends Layer {
     }
 
 
-    public NonLinearLayer(Context context, Layer preLayer, int[] shape, NonLinearType type) {
-        super(context, shape);
+    public NonLinearLayer(Context context, Layer preLayer, NonLinearType type) {
+        super(context, preLayer.getOutputShape());
         this.mPreLayer = preLayer;
         this.mType = type;
-
-        initNonlinear();
     }
 
     private void initNonlinear() {
@@ -43,6 +41,11 @@ public class NonLinearLayer extends Layer {
         mShaderPro = initCompPro(mContext, csPath, mOutputShape[0], localSizeY);
         mAttachID = AttachIDManager.getInstance().getAttachID();
         mOutTex = ComputeRender.createTexture(mAttachID);
+    }
+
+    @Override
+    public void initialize() {
+        initNonlinear();
     }
 
     @Override

@@ -19,7 +19,6 @@ public class FlatLayer extends Layer {
     public FlatLayer(Context context, Layer preLayer, int[] shape) {
         super(context, shape);
         this.mPreLayer = preLayer;
-        initFlat();
     }
 
     private void initFlat() {
@@ -36,6 +35,12 @@ public class FlatLayer extends Layer {
         mParams[4] = mOutputShape[1];
         mParams[5] = mOutputShape[2];
     }
+
+    @Override
+    public void initialize() {
+        initFlat();
+    }
+
 
     @Override
     protected void bindTextureAndBuffer() {
