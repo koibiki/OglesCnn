@@ -23,7 +23,7 @@ public class FlatLayer extends Layer {
 
     private void initFlat() {
         mShaderPro = initCompPro(mContext, "flat.comp", mOutputShape[0], 1);
-        mAttachID = AttachIDManager.getInstance().getAttachID();
+        mAttachID = AttachIDManager.getInstance().getDataAttachID();
         mOutTex = ComputeRender.createTexture(mOutputShape[0], mOutputShape[1]);
 
         int[] inputShape = mPreLayer.getOutputShape();

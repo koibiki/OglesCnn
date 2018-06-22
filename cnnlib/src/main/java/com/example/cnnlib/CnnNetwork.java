@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import static com.example.cnnlib.utils.Constants.S_TEXTURE_SIZE;
 
 /**
- * 网络最多只能保存7层数据
+ * 网络只有8个缓存能够保存数据
  */
 public class CnnNetwork {
 
@@ -66,6 +66,7 @@ public class CnnNetwork {
         }
         Log.d(TAG, sb.toString());
         Log.w(TAG, "----- total spent:" + (System.currentTimeMillis() - begin));
+
         actualReadOutput();
     }
 
@@ -74,8 +75,10 @@ public class CnnNetwork {
     }
 
     private void actualReadOutput() {
+        long begin = System.currentTimeMillis();
         Layer layer = mLayers.get(mLayers.size() - 1);
         DataUtils.readOutput(layer);
+        Log.w(TAG, "read spent:" + (System.currentTimeMillis() - begin));
     }
 
 

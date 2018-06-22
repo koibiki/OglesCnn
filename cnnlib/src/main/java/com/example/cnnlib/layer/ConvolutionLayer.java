@@ -41,7 +41,7 @@ public class ConvolutionLayer extends Layer {
         int localSizeY = getCompShaderLocalSizeY(mOutputShape);
         mNumGroupsY = (int) Math.ceil(mOutputShape[1] * 1.0d / localSizeY);
         mShaderPro = initConvolutePro(mContext, "conv.comp", mKennelShape, mOutputShape[0], localSizeY);
-        mAttachID = AttachIDManager.getInstance().getAttachID();
+        mAttachID = AttachIDManager.getInstance().getDataAttachID();
         mOutTex = ComputeRender.createTexture();
 
         mKennels = createKennels();
@@ -66,7 +66,7 @@ public class ConvolutionLayer extends Layer {
     private List<float[]> createKennels() {
         List<float[]> kennels = new ArrayList<>();
         for (int i = 0; i < mOutputShape[2]; i++) {
-            kennels.add(DataUtils.createConvKennel(i + 1, 3, 4, 1));
+            kennels.add(DataUtils.createConvKennel(i + 1, 3,3, 4, 1));
         }
         return kennels;
     }

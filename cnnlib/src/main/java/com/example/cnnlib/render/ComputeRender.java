@@ -11,8 +11,10 @@ import java.nio.Buffer;
 import java.util.Locale;
 
 import static android.opengl.GLES20.GL_FRAMEBUFFER;
+import static android.opengl.GLES20.glGetIntegerv;
 import static android.opengl.GLES20.glReadPixels;
 import static android.opengl.GLES20.glUniform1iv;
+import static android.opengl.GLES30.GL_MAX_DRAW_BUFFERS;
 import static android.opengl.GLES30.glReadBuffer;
 import static android.opengl.GLES31.GL_CLAMP_TO_EDGE;
 import static android.opengl.GLES31.GL_COLOR_ATTACHMENT0;
@@ -43,6 +45,7 @@ import static android.opengl.GLES31.glTexSubImage2D;
 import static android.opengl.GLES31.glUniform1fv;
 import static android.opengl.GLES31.glUseProgram;
 import static com.example.cnnlib.utils.Constants.S_COMMON_SHADER_HEADER;
+import static com.example.cnnlib.utils.Constants.S_CONV_KENNEL_TEXTURE_SIZE;
 import static com.example.cnnlib.utils.Constants.S_CONV_SHADER_HEADER;
 import static com.example.cnnlib.utils.Constants.S_POOLING_SHADER_HEADER;
 import static com.example.cnnlib.utils.Constants.S_TEXTURE_SIZE;
@@ -50,6 +53,14 @@ import static com.example.cnnlib.utils.Constants.S_TEXTURE_SIZE;
 public class ComputeRender {
 
     private static final String TAG = "ComputeRender";
+
+    private static int sConvTexId = -1;
+
+    public static int getMaxDrawBuffers() {
+        int[] maxBuffer = new int[1];
+        glGetIntegerv(GL_MAX_DRAW_BUFFERS, maxBuffer, 0);
+        return maxBuffer[0];
+    }
 
     public static int initConvolutePro(Context context, String csPath, int[] kennelShape, int xSize, int ySize) {
         int compProg = GLES31.glCreateProgram();
@@ -93,12 +104,7 @@ public class ComputeRender {
         return texture[0];
     }
 
-    public static void bindTextureAndBuffer(int texID, int attachID){
-        int attachment = GL_COLOR_ATTACHMENT0 + attachID;
-        glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texID, 0);
-    }
-
-    public static int createTexture( int width, int height) {
+    public static int createTexture(int width, int height) {
         int[] texture = new int[1];
         glGenTextures(1, texture, 0);
         glBindTexture(GL_TEXTURE_2D, texture[0]);
@@ -111,6 +117,27 @@ public class ComputeRender {
         return texture[0];
     }
 
+    public static int createConvKennelTexture() {
+        if (sConvTexId == -1) {
+            int[] texture = new int[1];
+            glGenTextures(1, texture, 0);
+            glBindTexture(GL_TEXTURE_2D, texture[0]);
+            glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, S_CONV_KENNEL_TEXTURE_SIZE, S_CONV_KENNEL_TEXTURE_SIZE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            GLES31.glBindTexture(GL_TEXTURE_2D, 0);
+            sConvTexId = texture[0];
+        }
+        return sConvTexId;
+    }
+
+    public static void bindTextureAndBuffer(int texID, int attachID) {
+        int attachment = GL_COLOR_ATTACHMENT0 + attachID;
+        glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texID, 0);
+    }
+
     public static void performConvolute(int compProg, float[] kennel, int[] params, int inTex, int outTex, int numGroupsY) {
         glUseProgram(compProg);
         glUniform1fv(glGetUniformLocation(compProg, "k"), kennel.length, kennel, 0);
@@ -121,6 +148,19 @@ public class ComputeRender {
         glBindImageTexture(2, outTex, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
         glDispatchCompute(1, numGroupsY, 1);
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    }
+
+    public static void performConvolute(int compProg, int[] params, int inTex, int outTex, int kennelTex, int numGroupsY, int numGroupsZ) {
+        glUseProgram(compProg);
+        glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
+
+        glBindImageTexture(0, inTex, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+        glBindImageTexture(1, kennelTex, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+        glBindImageTexture(2, outTex, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+        glBindImageTexture(3, outTex, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
+        glDispatchCompute(1, numGroupsY, numGroupsZ);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }
 

@@ -3,6 +3,8 @@ package com.example.cnnlib.eglenv;
 import android.os.Handler;
 import android.os.HandlerThread;
 
+import com.example.cnnlib.render.ComputeRender;
+
 import static android.opengl.GLES31.GL_FRAMEBUFFER;
 import static android.opengl.GLES31.glBindFramebuffer;
 import static android.opengl.GLES31.glGenFramebuffers;
@@ -30,6 +32,7 @@ public class GLES31BackEnv {
             mEGLHelper = new EGLHelper();
             mEGLHelper.eglInit(width, height);
             initFBO();
+            ComputeRender.getMaxDrawBuffers();
         });
     }
 

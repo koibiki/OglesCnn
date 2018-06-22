@@ -10,6 +10,7 @@ public class Constants {
 
     public static final int S_MAX_COMPUTE_SIZE = 1024;
     public static final int S_TEXTURE_SIZE = S_MAX_COMPUTE_SIZE;
+    public static final int S_CONV_KENNEL_TEXTURE_SIZE = 4096;
 
 
 

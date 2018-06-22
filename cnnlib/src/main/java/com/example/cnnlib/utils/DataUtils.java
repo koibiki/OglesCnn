@@ -61,12 +61,12 @@ public class DataUtils {
         return kennel;
     }
 
-    public static float[] createConvKennel(int num, int length, int channel, float bias) {
-        float[] data = new float[length * length * channel + 1];
-        for (int i = 0; i < length * length * channel; i++) {
+    public static float[] createConvKennel(int num, int width, int height, int channel, float bias) {
+        float[] data = new float[width * height * channel + 1];
+        for (int i = 0; i < width * height * channel; i++) {
             data[i] = 0.1f;
         }
-        data[length * length * channel] = bias;
+        data[width * height * channel] = bias;
         return data;
     }
 

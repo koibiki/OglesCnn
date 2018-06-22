@@ -20,7 +20,7 @@ public class InputLayer extends Layer {
 
     @Override
     public void initialize() {
-        mAttachID = AttachIDManager.getInstance().getAttachID();
+        mAttachID = AttachIDManager.getInstance().getDataAttachID();
         mOutTex = ComputeRender.createTexture();
         initInput();
     }
