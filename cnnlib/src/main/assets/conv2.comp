@@ -4,7 +4,7 @@ uniform int params[17];  // kennel_shape[3] input_shape[3] output_shape[3] strid
 layout(binding = 0, rgba32f) readonly uniform image2D input_image;
 layout(binding = 1, rgba32f) readonly uniform image2D kennel_image;
 layout(binding = 2, rgba32f) readonly uniform image2D input_image2; //input_image2 == output_image
-layout(binding = 2, rgba32f) writeonly uniform image2D output_image;
+layout(binding = 3, rgba32f) writeonly uniform image2D output_image;
 
 bool isZero(ivec2 index, int[3] input_shape);
 ivec2[KENNEL_AREA] getInIndexInFeatureMap(ivec3 pos, int[3] kennel_shape, int padding, int[2] strides);
@@ -102,7 +102,7 @@ ivec2[KENNEL_AREA] getInIndexInFeatureMap(ivec3 pos, int[3] kennel_shape, int pa
 }
 
 // 在一组特征图上继续卷积运算
-float performConvolute(int num, ivec2[KENNEL_AREA] input_data_index, int[3] input_shape, int startY, int kennel_index) {
+float performConvolute( int num, ivec2[KENNEL_AREA] input_data_index, int[3] input_shape, int startY, int kennel_index) {
     ivec2 feature_map_index_in_texture = getFeatureMapIndexInTexture(num, input_shape[0]);
 
     float output_value = 0.0;
