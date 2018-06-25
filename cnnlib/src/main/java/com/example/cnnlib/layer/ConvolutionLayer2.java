@@ -13,6 +13,9 @@ import java.util.List;
 import static com.example.cnnlib.render.ComputeRender.getCompShaderLocalSizeY;
 import static com.example.cnnlib.render.ComputeRender.initConvolutePro;
 
+/**
+ * 使用纹理(fbo) 存储kennel
+ * */
 public class ConvolutionLayer2 extends Layer {
 
     private static final String TAG = "ConvolutionLayer";

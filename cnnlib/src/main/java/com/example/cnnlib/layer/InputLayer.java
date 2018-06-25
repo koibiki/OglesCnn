@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.example.cnnlib.render.ComputeRender;
 import com.example.cnnlib.utils.AttachIDManager;
+import com.example.cnnlib.utils.Constants;
 import com.example.cnnlib.utils.SortUtils;
 
 import java.nio.FloatBuffer;
@@ -46,7 +47,7 @@ public class InputLayer extends Layer {
 
     private void writeInput(float[][] input, int texID, int index) {
         int width = mOutputShape[0];
-        int[] indexes = SortUtils.getXYIndex(width, index);
+        int[] indexes = SortUtils.getXYIndex(width, index, Constants.S_TEXTURE_SIZE);
         int height = mOutputShape[1];
         int channel = mOutputShape[2];
         int startX = indexes[0] * width;

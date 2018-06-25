@@ -11,10 +11,16 @@ import java.nio.Buffer;
 import java.util.Locale;
 
 import static android.opengl.GLES20.GL_FRAMEBUFFER;
+import static android.opengl.GLES20.glBindBuffer;
+import static android.opengl.GLES20.glBufferData;
+import static android.opengl.GLES20.glBufferSubData;
+import static android.opengl.GLES20.glGenBuffers;
 import static android.opengl.GLES20.glGetIntegerv;
 import static android.opengl.GLES20.glReadPixels;
 import static android.opengl.GLES20.glUniform1iv;
+import static android.opengl.GLES30.GL_DYNAMIC_COPY;
 import static android.opengl.GLES30.GL_MAX_DRAW_BUFFERS;
+import static android.opengl.GLES30.glBindBufferBase;
 import static android.opengl.GLES30.glReadBuffer;
 import static android.opengl.GLES31.GL_CLAMP_TO_EDGE;
 import static android.opengl.GLES31.GL_COLOR_ATTACHMENT0;
@@ -25,6 +31,7 @@ import static android.opengl.GLES31.GL_READ_ONLY;
 import static android.opengl.GLES31.GL_RGBA;
 import static android.opengl.GLES31.GL_RGBA32F;
 import static android.opengl.GLES31.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
+import static android.opengl.GLES31.GL_SHADER_STORAGE_BUFFER;
 import static android.opengl.GLES31.GL_TEXTURE_2D;
 import static android.opengl.GLES31.GL_TEXTURE_MAG_FILTER;
 import static android.opengl.GLES31.GL_TEXTURE_MIN_FILTER;
@@ -45,6 +52,7 @@ import static android.opengl.GLES31.glTexSubImage2D;
 import static android.opengl.GLES31.glUniform1fv;
 import static android.opengl.GLES31.glUseProgram;
 import static com.example.cnnlib.utils.Constants.S_COMMON_SHADER_HEADER;
+import static com.example.cnnlib.utils.Constants.S_CONV3_SHADER_HEADER;
 import static com.example.cnnlib.utils.Constants.S_CONV_KENNEL_TEXTURE_SIZE;
 import static com.example.cnnlib.utils.Constants.S_CONV_SHADER_HEADER;
 import static com.example.cnnlib.utils.Constants.S_POOLING_SHADER_HEADER;
@@ -62,12 +70,31 @@ public class ComputeRender {
         return maxBuffer[0];
     }
 
+    public static int initKennelBuffer(int size) {
+        int[] fFrame = new int[1];
+        glGenBuffers(1, fFrame, 0);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, fFrame[0]);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, size, null, GL_DYNAMIC_COPY);
+        return fFrame[0];
+    }
+
     public static int initConvolutePro(Context context, String csPath, int[] kennelShape, int xSize, int ySize) {
         int compProg = GLES31.glCreateProgram();
         String source = ShaderUtils.loadFromAssetsFile(csPath, context.getResources());
         int kennelArea = kennelShape[0] * kennelShape[1];
         int kennelSize = kennelArea * kennelShape[2];
         source = String.format(Locale.getDefault(), S_CONV_SHADER_HEADER, kennelArea, kennelSize, xSize, ySize) + source;
+        ShaderUtils.vglAttachShaderSource(compProg, GL_COMPUTE_SHADER, source);
+        glLinkProgram(compProg);
+        return compProg;
+    }
+
+    public static int initConvolute3Pro(Context context, String csPath, int[] kennelShape, int kennel_amount, int xSize, int ySize, int zSize) {
+        int compProg = GLES31.glCreateProgram();
+        String source = ShaderUtils.loadFromAssetsFile(csPath, context.getResources());
+        int kennelArea = kennelShape[0] * kennelShape[1];
+        int kennelSize = kennelArea * kennelShape[2];
+        source = String.format(Locale.getDefault(), S_CONV3_SHADER_HEADER, kennelArea, kennel_amount, kennelSize, xSize, ySize, zSize) + source;
         ShaderUtils.vglAttachShaderSource(compProg, GL_COMPUTE_SHADER, source);
         glLinkProgram(compProg);
         return compProg;
@@ -138,6 +165,12 @@ public class ComputeRender {
         glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texID, 0);
     }
 
+    public static void bindTextureAndBuffer(int texID, int attachID, int bufferId) {
+        int attachment = GL_COLOR_ATTACHMENT0 + attachID;
+        glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texID, 0);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, bufferId);
+    }
+
     public static void performConvolute(int compProg, float[] kennel, int[] params, int inTex, int outTex, int numGroupsY) {
         glUseProgram(compProg);
         glUniform1fv(glGetUniformLocation(compProg, "k"), kennel.length, kennel, 0);
@@ -159,6 +192,20 @@ public class ComputeRender {
         glBindImageTexture(1, kennelTex, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
         glBindImageTexture(2, outTex, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
         glBindImageTexture(3, outTex, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
+        glDispatchCompute(1, numGroupsY, numGroupsZ);
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    }
+
+
+    public static void performConvolute3(int compProg, int[] params, int inTex, int outTex, int buffer, int numGroupsY, int numGroupsZ) {
+        glUseProgram(compProg);
+        glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
+
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffer);
+        glBindImageTexture(0, inTex, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+        glBindImageTexture(1, outTex, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+        glBindImageTexture(2, outTex, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
         glDispatchCompute(1, numGroupsY, numGroupsZ);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
@@ -208,6 +255,15 @@ public class ComputeRender {
         }
     }
 
+    public static int getCompShaderLocalSizeZ(int[] outputShape) {
+        int maxLoaclSizeZ = Constants.S_MAX_COMPUTE_SIZE / (outputShape[0] * outputShape[1]);
+        if (maxLoaclSizeZ > outputShape[2]) {
+            return outputShape[2];
+        } else {
+            return (int) Math.pow(2, MathUtils.getPowerBy2(maxLoaclSizeZ));
+        }
+    }
+
     public static Buffer transferFromTexture(Buffer data, int attachID, int x, int y, int width, int height) {
         glReadBuffer(GL_COLOR_ATTACHMENT0 + attachID);
         glReadPixels(x, y, width, height, GL_RGBA, GL_FLOAT, data);
@@ -217,6 +273,12 @@ public class ComputeRender {
     public static void transferToTexture(Buffer data, int texID, int xOffset, int yOffset, int width, int height) {
         glBindTexture(GL_TEXTURE_2D, texID);
         glTexSubImage2D(GL_TEXTURE_2D, 0, xOffset, yOffset, width, height, GL_RGBA, GL_FLOAT, data);
+    }
+
+    public static void transferToBuffer(Buffer data, int bufferId, int offset) {
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, bufferId);
+        glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, data.capacity(), data);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
     }
 
 }

@@ -13,9 +13,9 @@ public class SortUtils {
     }
 
     // 获得当前特征图在纹理上的坐标
-    public static int[] getXYIndex(int width, int i) {
-        int xIndex = i < 1024 / width ? i : i % (1024 / width);
-        int yIndex = i / (1024 / width);
+    public static int[] getXYIndex(int width, int i, int texWidth) {
+        int xIndex = i < texWidth / width ? i : i % (texWidth / width);
+        int yIndex = i / (texWidth / width);
         return new int[]{xIndex, yIndex};
     }
 }

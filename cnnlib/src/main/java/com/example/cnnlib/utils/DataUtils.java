@@ -41,7 +41,7 @@ public class DataUtils {
     private static float[] readOutput(Layer layer, int index) {
         int[] outputShape = layer.getOutputShape();
         int width = outputShape[0];
-        int[] indexes = SortUtils.getXYIndex(width, index);
+        int[] indexes = SortUtils.getXYIndex(width, index, Constants.S_TEXTURE_SIZE);
         int height = outputShape[1];
         int startX = indexes[0] * width;
         int startY = indexes[1] * height;
@@ -63,8 +63,10 @@ public class DataUtils {
 
     public static float[] createConvKennel(int num, int width, int height, int channel, float bias) {
         float[] data = new float[width * height * channel + 1];
-        for (int i = 0; i < width * height * channel; i++) {
-            data[i] = 0.1f;
+        for (int i = 0; i < width * height; i++) {
+            for (int ii = 0; ii < channel; ii++) {
+                data[i] = i + 0.00001f * ii;
+            }
         }
         data[width * height * channel] = bias;
         return data;
