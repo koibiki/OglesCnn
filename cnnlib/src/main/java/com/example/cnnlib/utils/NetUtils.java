@@ -1,6 +1,6 @@
 package com.example.cnnlib.utils;
 
-public class SortUtils {
+public class NetUtils {
 
     // 获得该通道总数下数据需要的特征图 存储个数
     public static int[] getCount(int channel) {
@@ -18,4 +18,12 @@ public class SortUtils {
         int yIndex = i / (texWidth / width);
         return new int[]{xIndex, yIndex};
     }
+
+    // 按照 4 对齐
+    public static int alignBy4(int channel) {
+        final int align = 4;
+        return (channel + (align - 1)) & ~(align - 1);
+    }
+
+
 }

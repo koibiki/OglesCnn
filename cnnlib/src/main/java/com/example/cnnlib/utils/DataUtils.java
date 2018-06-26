@@ -1,7 +1,5 @@
 package com.example.cnnlib.utils;
 
-import android.util.Log;
-
 import com.example.cnnlib.layer.Layer;
 import com.example.cnnlib.render.ComputeRender;
 
@@ -31,7 +29,7 @@ public class DataUtils {
     public static List<float[]> readOutput(Layer layer) {
         List<float[]> results = new ArrayList<>();
         int channel = layer.getOutputShape()[2];
-        int[] count = SortUtils.getCount(channel);
+        int[] count = NetUtils.getCount(channel);
         for (int i = 0; i < count[0]; i++) {
             results.add(readOutput(layer, i));
         }
@@ -41,7 +39,7 @@ public class DataUtils {
     private static float[] readOutput(Layer layer, int index) {
         int[] outputShape = layer.getOutputShape();
         int width = outputShape[0];
-        int[] indexes = SortUtils.getXYIndex(width, index, Constants.S_TEXTURE_SIZE);
+        int[] indexes = NetUtils.getXYIndex(width, index, Constants.S_TEXTURE_SIZE);
         int height = outputShape[1];
         int startX = indexes[0] * width;
         int startY = indexes[1] * height;

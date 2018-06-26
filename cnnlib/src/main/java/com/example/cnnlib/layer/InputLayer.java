@@ -5,7 +5,7 @@ import android.content.Context;
 import com.example.cnnlib.render.ComputeRender;
 import com.example.cnnlib.utils.AttachIDManager;
 import com.example.cnnlib.utils.Constants;
-import com.example.cnnlib.utils.SortUtils;
+import com.example.cnnlib.utils.NetUtils;
 
 import java.nio.FloatBuffer;
 
@@ -39,7 +39,7 @@ public class InputLayer extends Layer {
     protected void actualForwardProc() {
         initInput();
         int channel = mOutputShape[2];
-        int[] count = SortUtils.getCount(channel);
+        int[] count = NetUtils.getCount(channel);
         for (int i = 0; i < count[0]; i++) {
             writeInput(mInput, mOutTex, i);
         }
@@ -47,7 +47,7 @@ public class InputLayer extends Layer {
 
     private void writeInput(float[][] input, int texID, int index) {
         int width = mOutputShape[0];
-        int[] indexes = SortUtils.getXYIndex(width, index, Constants.S_TEXTURE_SIZE);
+        int[] indexes = NetUtils.getXYIndex(width, index, Constants.S_TEXTURE_SIZE);
         int height = mOutputShape[1];
         int channel = mOutputShape[2];
         int startX = indexes[0] * width;
