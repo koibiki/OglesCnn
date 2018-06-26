@@ -15,9 +15,10 @@ import static com.example.cnnlib.render.ComputeRender.getCompShaderLocalSizeZ;
 import static com.example.cnnlib.render.ComputeRender.initConvolute3Pro;
 
 /**
- * 使用 ssbo 存储kennel     26.8 ~ 27.8
+ * 使用 ssbo 存储kennel
+ * 每个计算器同时计算出输出的4个通道上的数据  27.9 ~ 28.9
  */
-public class ConvolutionLayer3 extends Layer {
+public class ConvolutionLayer4 extends Layer {
 
     private static final String TAG = "ConvolutionLayer3";
 
@@ -35,7 +36,7 @@ public class ConvolutionLayer3 extends Layer {
     private int[] mKennelBuffer = new int[1];
 
 
-    public ConvolutionLayer3(Context context, Layer preLayer, int[] shape, int[] kennelShape, int padding, int[] strides, NonLinearLayer.NonLinearType type) {
+    public ConvolutionLayer4(Context context, Layer preLayer, int[] shape, int[] kennelShape, int padding, int[] strides, NonLinearLayer.NonLinearType type) {
         super(context, shape);
         this.mPreLayer = preLayer;
         this.mKennelShape = kennelShape;
@@ -48,9 +49,9 @@ public class ConvolutionLayer3 extends Layer {
         int localSizeY = getCompShaderLocalSizeY(mOutputShape);
         mNumGroupsY = (int) Math.ceil(mOutputShape[1] * 1.0d / localSizeY);
         int localSizeZ = getCompShaderLocalSizeZ(mOutputShape);
-        mNumGroupsZ = (int) Math.ceil(mOutputShape[2] * 1.0d / localSizeZ);
+        mNumGroupsZ = (int) Math.ceil(mOutputShape[2] * 1.0d / (localSizeZ * 4));
 
-        mShaderPro = initConvolute3Pro(mContext, "conv3.comp", mKennelShape, mOutputShape[2], mOutputShape[0], localSizeY, localSizeZ);
+        mShaderPro = initConvolute3Pro(mContext, "conv4.comp", mKennelShape, mOutputShape[2], mOutputShape[0], localSizeY, localSizeZ);
         mAttachID = AttachIDManager.getInstance().getDataAttachID();
         mOutTex = ComputeRender.createTexture();
 

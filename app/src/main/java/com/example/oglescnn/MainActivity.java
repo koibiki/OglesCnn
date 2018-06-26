@@ -8,6 +8,7 @@ import com.example.cnnlib.CnnNetwork;
 import com.example.cnnlib.layer.ConvolutionLayer;
 import com.example.cnnlib.layer.ConvolutionLayer2;
 import com.example.cnnlib.layer.ConvolutionLayer3;
+import com.example.cnnlib.layer.ConvolutionLayer4;
 import com.example.cnnlib.layer.FlatLayer;
 import com.example.cnnlib.layer.FullConnectLayer;
 import com.example.cnnlib.layer.InputLayer;
@@ -43,13 +44,13 @@ public class MainActivity extends AppCompatActivity {
 //        Layer test = new TestLayer(this, in, new int[]{32, 32, 4});
 //        mCnnNetwork.addLayer(test);
 
-        Layer conv1 = new ConvolutionLayer(this, in, new int[]{32, 32, 64}, new int[]{3, 3, 4}, 1, new int[]{1, 1}, NonLinearLayer.NonLinearType.RELU);
+        Layer conv1 = new ConvolutionLayer3(this, in, new int[]{32, 32, 64}, new int[]{3, 3, 4}, 1, new int[]{1, 1}, NonLinearLayer.NonLinearType.RELU);
         mCnnNetwork.addLayer(conv1);
 
         Layer pool1 = new PoolingLayer(this, conv1, new int[]{16, 16, 64}, new int[]{2, 2}, new int[]{2, 2});
         mCnnNetwork.addLayer(pool1);
 
-        Layer conv2 = new ConvolutionLayer(this, pool1, new int[]{16, 16, 256}, new int[]{3, 3, 64}, 1, new int[]{1, 1}, NonLinearLayer.NonLinearType.RELU);
+        Layer conv2 = new ConvolutionLayer3(this, pool1, new int[]{16, 16, 256}, new int[]{3, 3, 64}, 1, new int[]{1, 1}, NonLinearLayer.NonLinearType.RELU);
         mCnnNetwork.addLayer(conv2);
 
         Layer pool2 = new PoolingLayer(this, conv2, new int[]{8, 8, 256}, new int[]{2, 2}, new int[]{2, 2});
