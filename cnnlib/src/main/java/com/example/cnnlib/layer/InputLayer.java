@@ -16,7 +16,7 @@ public class InputLayer extends Layer {
     private float[][] mInput;
 
     public InputLayer(Context context, int[] shape) {
-        super(context, shape);
+        super(context, shape, null);
     }
 
     @Override

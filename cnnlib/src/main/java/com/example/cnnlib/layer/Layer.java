@@ -9,14 +9,16 @@ import java.util.List;
 public abstract class Layer {
 
     protected Context mContext;
+    protected Layer mPreLayer;
     protected int[] mOutputShape;
 
     protected int mOutTex;
     protected int mAttachID;
     private List<float[]> mResult;
 
-    public Layer(Context context, int[] shape) {
+    public Layer(Context context, int[] shape, Layer preLayer) {
         this.mContext = context;
+        this.mPreLayer = preLayer;
         this.mOutputShape = shape;
     }
 

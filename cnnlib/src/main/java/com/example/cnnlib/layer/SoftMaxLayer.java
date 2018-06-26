@@ -15,13 +15,11 @@ public class SoftMaxLayer extends Layer {
 
     private static final String TAG = "SoftMaxLayer";
 
-    private Layer mPreLayer;
     private int mShaderPro;
     private int mNumGroupsY;
 
     public SoftMaxLayer(Context context, Layer preLayer, int[] shape) {
-        super(context, shape);
-        this.mPreLayer = preLayer;
+        super(context, shape, preLayer);
     }
 
     private void initSoftmax() {

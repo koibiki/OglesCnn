@@ -10,7 +10,6 @@ import static com.example.cnnlib.render.ComputeRender.initCompPro;
 
 public class NonLinearLayer extends Layer {
 
-    private Layer mPreLayer;
     private NonLinearType mType;
     private int mNumGroupsY;
     private int mShaderPro;
@@ -28,8 +27,7 @@ public class NonLinearLayer extends Layer {
 
 
     public NonLinearLayer(Context context, Layer preLayer, NonLinearType type) {
-        super(context, preLayer.getOutputShape());
-        this.mPreLayer = preLayer;
+        super(context, preLayer.getOutputShape(), preLayer);
         this.mType = type;
     }
 

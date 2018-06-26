@@ -22,7 +22,6 @@ public class FullConnectLayer extends Layer {
 
     private static final String TAG = "FullConnectLayer";
 
-    private Layer mPreLayer;
     private List<float[]> mKennels;
     private int mNumGroupsY;
     private int mShaderPro;
@@ -34,8 +33,7 @@ public class FullConnectLayer extends Layer {
     private NonLinearLayer.NonLinearType mType;
 
     public FullConnectLayer(Context context, Layer preLayer, int[] shape, NonLinearLayer.NonLinearType type) {
-        super(context, shape);
-        this.mPreLayer = preLayer;
+        super(context, shape, preLayer);
         this.mKennelAmount = shape[0] * shape[1];
         this.mType = type;
     }

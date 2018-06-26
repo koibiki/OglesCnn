@@ -22,7 +22,6 @@ public class ConvolutionLayer4 extends Layer {
 
     private static final String TAG = "ConvolutionLayer3";
 
-    private Layer mPreLayer;
     private List<float[]> mKennels;
     private int[] mStrides;
     private int[] mKennelShape;
@@ -37,8 +36,7 @@ public class ConvolutionLayer4 extends Layer {
 
 
     public ConvolutionLayer4(Context context, Layer preLayer, int[] shape, int[] kennelShape, int padding, int[] strides, NonLinearLayer.NonLinearType type) {
-        super(context, shape);
-        this.mPreLayer = preLayer;
+        super(context, shape, preLayer);
         this.mKennelShape = kennelShape;
         this.mPadding = padding;
         this.mStrides = strides;

@@ -12,13 +12,11 @@ import static com.example.cnnlib.render.ComputeRender.initCompPro;
  */
 public class FlatLayer extends Layer {
 
-    private Layer mPreLayer;
     private int mShaderPro;
     private int[] mParams;
 
     public FlatLayer(Context context, Layer preLayer, int[] shape) {
-        super(context, shape);
-        this.mPreLayer = preLayer;
+        super(context, shape, preLayer);
     }
 
     private void initFlat() {

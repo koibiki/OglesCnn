@@ -12,15 +12,13 @@ public class PoolingLayer extends Layer {
 
     private final int[] mKsize;
     private final int[] mStrides;
-    private Layer mPreLayer;
     private int mNumGroupsY;
     private int mShaderPro;
     private int[] mParams;
 
 
     public PoolingLayer(Context context, Layer preLayer, int[] shape, int[] ksize, int[] strides) {
-        super(context, shape);
-        this.mPreLayer = preLayer;
+        super(context, shape, preLayer);
         this.mKsize = ksize;
         this.mStrides = strides;
     }
