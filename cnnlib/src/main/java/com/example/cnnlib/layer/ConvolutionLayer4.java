@@ -16,7 +16,7 @@ import static com.example.cnnlib.render.ComputeRender.initConvolute3Pro;
 
 /**
  * 使用 ssbo 存储kennel
- * 每个计算器同时计算出输出的4个通道上的数据  18.68 ~ 19.648
+ * 每个计算器同时计算出输出的4个通道上的数据  17.9 ~ 19.1
  */
 public class ConvolutionLayer4 extends Layer {
 
