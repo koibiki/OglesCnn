@@ -8,10 +8,10 @@ layout(binding = 3, rgba32f) writeonly uniform image2D output_image;
 
 bool isZero(ivec2 index, int[3] input_shape);
 ivec2[KENNEL_AREA] getInIndexInFeatureMap(ivec3 pos, int[3] kennel_shape, int padding, int[2] strides);
-float performConvolute(int num, ivec2 [KENNEL_AREA] input_data_index, int[3] input_shape, int startY, int kennel_index);
+float performConvolute( int num, ivec2[KENNEL_AREA] input_data_index, int[3] input_shape, int startY, int kennel_index, int channel_width);
 ivec3 getRealStoreIndex(ivec3 pos, int[3] output_shape, int kennel_index);
 ivec2 getFeatureMapIndexInTexture(int num, int width);
-float getKennelValue(int kennel_value_index, int startY, int kennel_index);
+vec4 getKennelValue(int num, int kennel_value_index, int startY, int kennel_index, int channel_width);
 int getComputeCount(int[3] kennel_shape);
 float relu(float i);
 float sigmoid(float i);
@@ -27,7 +27,8 @@ void main(void)
     int padding = params[11];
     int active_type = params[12];
     int startY = params[13];
-    int kennel_restore_shape[3] = int[3](params[14], params[15], params[16]);
+    int channel_width = int(ceil(float(kennel_shape[2])/4.0));
+
 
     ivec3 pos = ivec3(gl_GlobalInvocationID.xyz);
     int kennel_index = pos.z;
@@ -43,14 +44,14 @@ void main(void)
     int count = getComputeCount(kennel_shape);
 
     for (int i=0; i < count; i++) {
-        output_value += performConvolute(i, input_data_index, input_shape, startY, kennel_index);
+        output_value += performConvolute(i, input_data_index, input_shape, startY, kennel_index, channel_width);
     }
 
-    int bias_x = kennel_restore_shape[0] - 1;
+    int bias_x = KENNEL_AREA * channel_width;
     int bias_y = startY + kennel_index;
     vec4 bias = imageLoad(kennel_image, ivec2(bias_x, bias_y));
 
-    output_value += bias[kennel_restore_shape[2]];
+    output_value += bias[0];
 
     data_origin[real_pos.z] = activeValue(active_type, output_value);
     imageStore(output_image, real_pos.xy, data_origin);
@@ -102,7 +103,7 @@ ivec2[KENNEL_AREA] getInIndexInFeatureMap(ivec3 pos, int[3] kennel_shape, int pa
 }
 
 // 在一组特征图上继续卷积运算
-float performConvolute( int num, ivec2[KENNEL_AREA] input_data_index, int[3] input_shape, int startY, int kennel_index) {
+float performConvolute( int num, ivec2[KENNEL_AREA] input_data_index, int[3] input_shape, int startY, int kennel_index, int channel_width) {
     ivec2 feature_map_index_in_texture = getFeatureMapIndexInTexture(num, input_shape[0]);
 
     float output_value = 0.0;
@@ -111,34 +112,25 @@ float performConvolute( int num, ivec2[KENNEL_AREA] input_data_index, int[3] inp
         if (!isZero(index, input_shape)) {
             ivec2 index_in_texture = index + ivec2(feature_map_index_in_texture[0]*input_shape[0],feature_map_index_in_texture[1]*input_shape[1]);
             vec4 data = imageLoad(input_image, index_in_texture);
-            for (int ii = 0;ii < 4; ii++) {
-                int kennel_value_index = (num * 4 + ii) * KENNEL_AREA + i;
-                if (kennel_value_index < KENNEL_SIZE) {
-                    float kennel_value = getKennelValue(kennel_value_index, startY, kennel_index);
-                    output_value += data[ii] * kennel_value;
-                }
-            }
+            vec4 k_v = getKennelValue(num, i, startY, kennel_index, channel_width);
+            output_value = dot(data, data);
         }
     }
     return output_value;
 }
 
-float getKennelValue(int kennel_value_index, int startY, int kennel_index) {
-    int x = kennel_value_index / 4;
-    int z = kennel_value_index % 4;
+
+vec4 getKennelValue(int num, int kennel_value_index, int startY, int kennel_index, int channel_width) {
+    int x = kennel_value_index * channel_width + num * 4;
     int y = startY + kennel_index;
     ivec2 k_pos = ivec2(x, y);
     vec4 data = imageLoad(kennel_image, k_pos);
-    return data[z];
+    return data;
 }
 
-int getComputeCount(int[3] kennel_shape){
-    int count = kennel_shape[2]/4;
-    int remain = kennel_shape[2] % 4;
-    if (remain != 0) {
-        count = count + 1;
-    }
-    return count;
+int getComputeCount(int[3] kennel_shape) {
+    float count = float(kennel_shape[2])/4.0;
+    return int(ceil(count));
 }
 
 float relu(float i){
@@ -153,7 +145,7 @@ float sigmoid(float i){
     return 1.0 / (1.0 + exp(-i));
 }
 
-float activeValue(int type, float v){
+float activeValue(int type, float v) {
     if (type == 0) {
         return relu(v);
     } else if (type == 1) {

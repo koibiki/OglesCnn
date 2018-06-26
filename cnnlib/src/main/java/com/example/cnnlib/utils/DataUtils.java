@@ -70,4 +70,19 @@ public class DataUtils {
         return data;
     }
 
+    /**
+     * channel需要4对齐, 依次排满通道后再排下一个值, 最后4个值为 bias, 0, 0, 0
+     * */
+    public static float[] createConvKennel2(int num, int width, int height, int channel, float bias) {
+        int alignChannel = NetUtils.alignBy4(channel);
+        float[] data = new float[width * height * alignChannel + 4];
+        for (int i = 0; i < width * height; i++) {
+            for (int ii = 0; ii < channel; ii++) {
+                data[i * alignChannel + ii] = i + 0.00001f * ii;
+            }
+        }
+        data[width * height * channel] = bias;
+        return data;
+    }
+
 }
