@@ -6,6 +6,7 @@ import com.example.cnnlib.render.ComputeRender;
 import com.example.cnnlib.utils.AttachIDManager;
 
 import static com.example.cnnlib.render.ComputeRender.getCompShaderLocalSizeY;
+import static com.example.cnnlib.render.ComputeRender.getCompShaderLocalSizeZ;
 import static com.example.cnnlib.render.ComputeRender.initPoolingPro;
 
 public class PoolingLayer extends Layer {
@@ -15,6 +16,7 @@ public class PoolingLayer extends Layer {
     private int mNumGroupsY;
     private int mShaderPro;
     private int[] mParams;
+    private int mNumGroupsZ;
 
 
     public PoolingLayer(Context context, Layer preLayer, int[] shape, int[] ksize, int[] strides) {
@@ -26,7 +28,10 @@ public class PoolingLayer extends Layer {
     private void initPooling() {
         int localSizeY = getCompShaderLocalSizeY(mOutputShape);
         mNumGroupsY = (int) Math.ceil(mOutputShape[1] * 1.0d / localSizeY);
-        mShaderPro = initPoolingPro(mContext, "pooling.comp", mKsize[0] * mKsize[1], mOutputShape[0], localSizeY);
+        int localSizeZ = getCompShaderLocalSizeZ(mOutputShape, 4);
+        mNumGroupsZ = (int) Math.ceil(mOutputShape[2] * 1.0d / localSizeZ);
+
+        mShaderPro = initPoolingPro(mContext, "pooling.comp", mKsize[0] * mKsize[1], mOutputShape[0], localSizeY, localSizeZ);
         mAttachID = AttachIDManager.getInstance().getDataAttachID();
         mOutTex = ComputeRender.createTexture();
 
@@ -56,7 +61,7 @@ public class PoolingLayer extends Layer {
 
     @Override
     protected void actualForwardProc() {
-        ComputeRender.performWithIntParams(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mNumGroupsY, 1);
+        ComputeRender.performWithIntParams(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mNumGroupsY, mNumGroupsZ);
     }
 
 }

@@ -5,29 +5,31 @@ layout(binding = 0, rgba32f) readonly uniform  image2D input_image;
 layout(binding = 1, rgba32f) writeonly uniform  image2D output_image;
 
 ivec2 getFeatureMapIndexInTexture(int num, int width);
-ivec2[KENNEL_AREA] getInIndexInFeatureMap(ivec2 pos, int[2] kennel_shape, int[2] strides);
+ivec2[KENNEL_AREA] getInIndexInFeatureMap(ivec3 pos, int[2] kennel_shape, int[2] strides);
 int getComputeCount(int[3] input_shape);
 bool isInInputShape(ivec2 index, int[3] input_shape);
-ivec2 getRealStoreIndex(ivec2 pos, int num, int[3] output_shape);
+ivec2 getRealStoreIndex(ivec3 pos, int num, int[3] output_shape);
 vec4 performMaxPooling(int num, ivec2[KENNEL_AREA] input_data_index, int[3] input_shape);
 
+// 计算工作组坐标 x, y, z  x为输出特征图的x y为输入特征图的y z为输出特征图在输出纹理上的编号
 void main(void)
 {
-    ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
+    ivec3 pos = ivec3(gl_GlobalInvocationID.xyz);
     int input_shape[3] = int[3](params[0], params[1], params[2]);
     int output_shape[3] = int[3](params[3], params[4], params[5]);
     int kennel_shape[2] = int[2](params[6], params[7]);
     int strides[2] = int[2](params[8], params[9]);
+    int count = getComputeCount(input_shape);
+
+    if (pos.z > count) {
+        return;
+    }
 
     ivec2 input_data_index[KENNEL_AREA] = getInIndexInFeatureMap(pos, kennel_shape, strides);
 
-    int count = getComputeCount(input_shape);
-
-    for (int i=0; i < count; i++) {
-        vec4 pooling_result = performMaxPooling(i,input_data_index, input_shape);
-        ivec2 store_pos = getRealStoreIndex(pos, i, output_shape);
-        imageStore(output_image, store_pos.xy, pooling_result);
-    }
+    vec4 pooling_result = performMaxPooling(pos.z,input_data_index, input_shape);
+    ivec2 store_pos = getRealStoreIndex(pos, pos.z, output_shape);
+    imageStore(output_image, store_pos.xy, pooling_result);
 }
 
 // 获得本次池化的特征图 在输入纹理上的 坐标
@@ -45,7 +47,7 @@ ivec2 getFeatureMapIndexInTexture(int num, int width) {
 }
 
 // 获得本次池化 在输入特征图上的坐标
-ivec2[KENNEL_AREA] getInIndexInFeatureMap(ivec2 pos, int[2] kennel_shape, int[2] strides) {
+ivec2[KENNEL_AREA] getInIndexInFeatureMap(ivec3 pos, int[2] kennel_shape, int[2] strides) {
     ivec2 input_data_index[KENNEL_AREA];
     for (int y=0; y < kennel_shape[1]; y++){
         for (int x=0;x < kennel_shape[0]; x++){
@@ -55,13 +57,9 @@ ivec2[KENNEL_AREA] getInIndexInFeatureMap(ivec2 pos, int[2] kennel_shape, int[2]
     return input_data_index;
 }
 
-int getComputeCount(int[3] input_shape){
-    int count = input_shape[2]/4;
-    int remain = input_shape[2] % 4;
-    if (remain != 0) {
-        count = count + 1;
-    }
-    return count;
+int getComputeCount(int[3] input_shape) {
+    float count = float(input_shape[2])/4.0;
+    return int(ceil(count));
 }
 
 // 判断是否处于输入区域
@@ -76,7 +74,7 @@ bool isInInputShape(ivec2 index, int[3] input_shape) {
 }
 
 // 获得实际存储位置 x,y表示在特征图上的坐标
-ivec2 getRealStoreIndex(ivec2 pos, int num, int[3] output_shape) {
+ivec2 getRealStoreIndex(ivec3 pos, int num, int[3] output_shape) {
     ivec2 relative_pos = pos.xy;
     ivec2 feature_map_index_in_texture = getFeatureMapIndexInTexture(num, output_shape[0]);
     ivec2 index_in_texture = relative_pos + ivec2(feature_map_index_in_texture[0]*output_shape[0], feature_map_index_in_texture[1]*output_shape[1]);
@@ -87,16 +85,20 @@ ivec2 getRealStoreIndex(ivec2 pos, int num, int[3] output_shape) {
 vec4 performMaxPooling(int num, ivec2[KENNEL_AREA] input_data_index, int[3] input_shape) {
     ivec2 feature_map_index_in_texture = getFeatureMapIndexInTexture(num, input_shape[0]);
 
-    vec4 output_value = vec4(1.0);
+    vec4 output_value;
     for (int i = 0; i < KENNEL_AREA;i++){
         ivec2 index = input_data_index[i];
         if (isInInputShape(index, input_shape)) {
             ivec2 index_in_texture = index + ivec2(feature_map_index_in_texture[0]*input_shape[0],feature_map_index_in_texture[1]*input_shape[1]);
             vec4 data = imageLoad(input_image, index_in_texture);
-            for (int ii = 0;ii < 4; ii++) {
-                if (output_value[ii] < data[ii]) {
-                    output_value[ii] = data[ii];
+            if (i != 0) {
+                for (int ii = 0;ii < 4; ii++) {
+                    if (output_value[ii] < data[ii]) {
+                        output_value[ii] = data[ii];
+                    }
                 }
+            } else {
+                output_value = data;
             }
         }
     }

@@ -100,10 +100,10 @@ public class ComputeRender {
         return compProg;
     }
 
-    public static int initPoolingPro(Context context, String csPath, int pooling_area, int xSize, int ySize) {
+    public static int initPoolingPro(Context context, String csPath, int pooling_area, int xSize, int ySize, int zSize) {
         int compProg = GLES31.glCreateProgram();
         String source = ShaderUtils.loadFromAssetsFile(csPath, context.getResources());
-        source = String.format(Locale.getDefault(), S_POOLING_SHADER_HEADER, pooling_area, xSize, ySize) + source;
+        source = String.format(Locale.getDefault(), S_POOLING_SHADER_HEADER, pooling_area, xSize, ySize, zSize) + source;
         ShaderUtils.vglAttachShaderSource(compProg, GL_COMPUTE_SHADER, source);
         glLinkProgram(compProg);
         return compProg;
