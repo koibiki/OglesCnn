@@ -43,7 +43,7 @@ public class NonLinearLayer extends Layer {
 
         int localSizeY = getCompShaderLocalSizeY(mOutputShape);
         mNumGroupsY = (int) Math.ceil(mOutputShape[1] * 1.0d / localSizeY);
-        mShaderPro = initCompPro(mContext, csPath, mOutputShape[0], localSizeY);
+        mShaderPro = initCompPro(mContext, csPath, mOutputShape[0], localSizeY, 1);
         mAttachID = AttachIDManager.getInstance().getDataAttachID();
         mOutTex = ComputeRender.createTexture();
     }

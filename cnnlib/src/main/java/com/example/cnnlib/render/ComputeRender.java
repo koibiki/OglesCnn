@@ -109,10 +109,10 @@ public class ComputeRender {
         return compProg;
     }
 
-    public static int initCompPro(Context context, String csPath, int xSize, int ySize) {
+    public static int initCompPro(Context context, String csPath, int xSize, int ySize, int zSize) {
         int compProg = GLES31.glCreateProgram();
         String source = ShaderUtils.loadFromAssetsFile(csPath, context.getResources());
-        source = String.format(Locale.getDefault(), S_COMMON_SHADER_HEADER, xSize, ySize) + source;
+        source = String.format(Locale.getDefault(), S_COMMON_SHADER_HEADER, xSize, ySize, zSize) + source;
         ShaderUtils.vglAttachShaderSource(compProg, GL_COMPUTE_SHADER, source);
         glLinkProgram(compProg);
         return compProg;
@@ -234,7 +234,7 @@ public class ComputeRender {
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }
 
-    public static void performWithIntParams(int compProg, int[] params, int inputTexture, int outputTexture, int numGroupsY) {
+    public static void performWithIntParams(int compProg, int[] params, int inputTexture, int outputTexture, int numGroupsY, int numGroupZ) {
         glUseProgram(compProg);
 
         glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
@@ -242,23 +242,23 @@ public class ComputeRender {
         glBindImageTexture(0, inputTexture, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
         glBindImageTexture(1, outputTexture, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
-        glDispatchCompute(1, numGroupsY, 1);
+        glDispatchCompute(1, numGroupsY, numGroupZ);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }
 
-    public static int getCompShaderLocalSizeY(int[] outputShape) {
-        int maxLoaclSizeY = Constants.S_MAX_COMPUTE_SIZE / outputShape[0];
-        if (maxLoaclSizeY > outputShape[1]) {
-            return outputShape[1];
+    public static int getCompShaderLocalSizeY(int[] shape) {
+        int maxLoaclSizeY = Constants.S_MAX_COMPUTE_SIZE / shape[0];
+        if (maxLoaclSizeY > shape[1]) {
+            return shape[1];
         } else {
             return (int) Math.pow(2, MathUtils.getPowerBy2(maxLoaclSizeY));
         }
     }
 
-    public static int getCompShaderLocalSizeZ(int[] outputShape) {
-        int maxLoaclSizeZ = Constants.S_MAX_COMPUTE_SIZE / (outputShape[0] * outputShape[1]);
-        if (maxLoaclSizeZ > outputShape[2]) {
-            return outputShape[2];
+    public static int getCompShaderLocalSizeZ(int[] shape) {
+        int maxLoaclSizeZ = Constants.S_MAX_COMPUTE_SIZE / (shape[0] * shape[1]);
+        if (maxLoaclSizeZ > shape[2]) {
+            return shape[2];
         } else {
             return (int) Math.pow(2, MathUtils.getPowerBy2(maxLoaclSizeZ));
         }

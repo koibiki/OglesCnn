@@ -56,7 +56,7 @@ public class PoolingLayer extends Layer {
 
     @Override
     protected void actualForwardProc() {
-        ComputeRender.performWithIntParams(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mNumGroupsY);
+        ComputeRender.performWithIntParams(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mNumGroupsY, 1);
     }
 
 }

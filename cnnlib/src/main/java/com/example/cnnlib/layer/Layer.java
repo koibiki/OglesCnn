@@ -19,7 +19,26 @@ public abstract class Layer {
     public Layer(Context context, int[] shape, Layer preLayer) {
         this.mContext = context;
         this.mPreLayer = preLayer;
-        this.mOutputShape = shape;
+        if (this instanceof FlatLayer) {
+            this.mOutputShape = calculateFlatShape();
+        } else {
+            this.mOutputShape = shape;
+        }
+    }
+
+    private int[] calculateFlatShape() {
+        int[] inputShape = mPreLayer.getOutputShape();
+        if (inputShape[2] % 4!=0) {
+            try {
+                throw new Exception("通道数必须为4的倍数");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        int channel = 4;
+        int height = inputShape[0] * inputShape[1];
+        int width = inputShape[2] / 4;
+        return new int[]{width, height, channel};
     }
 
     public int getAttachID() {
