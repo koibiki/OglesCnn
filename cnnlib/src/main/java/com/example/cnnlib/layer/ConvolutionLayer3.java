@@ -45,7 +45,7 @@ public class ConvolutionLayer3 extends Layer {
     private void initConv() {
         int localSizeY = getCompShaderLocalSizeY(mOutputShape);
         mNumGroupsY = (int) Math.ceil(mOutputShape[1] * 1.0d / localSizeY);
-        int localSizeZ = getCompShaderLocalSizeZ(mOutputShape);
+        int localSizeZ = getCompShaderLocalSizeZ(mOutputShape, 1);
         mNumGroupsZ = (int) Math.ceil(mOutputShape[2] * 1.0d / localSizeZ);
 
         mShaderPro = initConvolute3Pro(mContext, "conv3.comp", mKennelShape, mOutputShape[2], mOutputShape[0], localSizeY, localSizeZ);

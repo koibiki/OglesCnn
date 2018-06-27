@@ -255,10 +255,10 @@ public class ComputeRender {
         }
     }
 
-    public static int getCompShaderLocalSizeZ(int[] shape) {
+    public static int getCompShaderLocalSizeZ(int[] shape, int count) {
         int maxLoaclSizeZ = Constants.S_MAX_COMPUTE_SIZE / (shape[0] * shape[1]);
-        if (maxLoaclSizeZ > shape[2]) {
-            return shape[2];
+        if (maxLoaclSizeZ > shape[2] / count) {
+            return shape[2] / count;
         } else {
             return (int) Math.pow(2, MathUtils.getPowerBy2(maxLoaclSizeZ));
         }

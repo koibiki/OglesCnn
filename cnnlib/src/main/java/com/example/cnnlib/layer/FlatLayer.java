@@ -37,8 +37,8 @@ public class FlatLayer extends Layer {
         int[] inputShape = mPreLayer.getOutputShape();
         int localSizeY = getCompShaderLocalSizeY(inputShape);
         mNumGroupsY = (int) Math.ceil(inputShape[1] * 1.0d / localSizeY);
-        int localSizeZ = getCompShaderLocalSizeZ(inputShape);
-        mNumGroupsZ = (int) Math.ceil(inputShape[2] * 1.0d / (localSizeZ * 4));
+        int localSizeZ = getCompShaderLocalSizeZ(inputShape, 1);
+        mNumGroupsZ = (int) Math.ceil(inputShape[2] * 1.0d / localSizeZ);
 
 
         mShaderPro = initCompPro(mContext, "flat.comp", mOutputShape[0], localSizeY, localSizeZ);
