@@ -4,53 +4,38 @@ uniform int params[6];  // input_shape[3] output_shape[3]
 layout(binding = 0, rgba32f) readonly uniform  image2D input_image;
 layout(binding = 1, rgba32f) writeonly uniform  image2D output_image;
 
-ivec2 getInIndexOnFeatureMap(ivec2 pos, int[3] input_shape);
-ivec2 getComputeCount(int[3] input_shape);
+ivec2 getInIndexOnFeatureMap(ivec3 pos, int[3] input_shape);
 ivec2 getFeatureMapIndexOnTexture(int num, int width);
 ivec2 getInIndexOnTexture(ivec2 fea_map_index, ivec2 index_on_fea_map, int[3] input_shape);
 
-
+// 计算工作组坐标 x, y, z  x为输入特征图的x y为输入特征图的y z为输入特征图在输入纹理上的编号
 void main(void)
 {
-    ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
+    ivec3 pos = ivec3(gl_GlobalInvocationID.xyz);
 
     int input_shape[3] = int[3](params[0], params[1], params[2]);
     int output_shape[3] = int[3](params[3], params[4], params[5]);
 
+    if (pos.z > output_shape[2]) {
+        return;
+    }
+
     ivec2 index_on_fea_map = getInIndexOnFeatureMap(pos, input_shape);
 
-    ivec2 count_shape = getComputeCount(input_shape);
+    ivec2 fea_map_index = getFeatureMapIndexOnTexture(pos.z, input_shape[0]);
+    ivec2 index_on_tex = getInIndexOnTexture(fea_map_index,index_on_fea_map, input_shape);
+    vec4 data = imageLoad(input_image, index_on_tex);
 
-    for (int i =0; i < count_shape[0]; i++){
-        ivec2 fea_map_index = getFeatureMapIndexOnTexture(i, input_shape[0]);
-        ivec2 index_on_tex = getInIndexOnTexture(fea_map_index,index_on_fea_map, input_shape);
-        vec4 data = imageLoad(input_image, index_on_tex);
-        for (int ii=0; ii < 4; ii++) {
-            if(i*4 + ii < input_shape[2]){
-                vec4 out_data = vec4(data[ii], 0, 0 ,0);
-                int y = i * 4 + ii;
-                ivec2 restore_pos = ivec2(pos.x, y);
-                imageStore(output_image, restore_pos, out_data);
-            }
-        }
-    }
+    int y = pos.y * input_shape[0] + pos.x;
+    ivec2 restore_pos = ivec2(pos.z, y);
+    imageStore(output_image, restore_pos, data);
 }
 
-// 获得本次计算在 特征图上的位置
-ivec2 getInIndexOnFeatureMap(ivec2 pos, int[3] input_shape) {
+// 获得本次计算在输入 特征图上的位置
+ivec2 getInIndexOnFeatureMap(ivec3 pos, int[3] input_shape) {
     int x = pos.x % input_shape[0];
     int y = pos.x / input_shape[0];
     return ivec2(x, y);
-}
-
-// count 表示总的计算次数 remain 表示最后一次计算需要的通道数
-ivec2 getComputeCount(int[3] input_shape){
-    int count = input_shape[2] / 4;
-    int remain = input_shape[2] % 4;
-    if (remain != 0) {
-        count = count + 1;
-    }
-    return ivec2(count, remain);
 }
 
 ivec2 getFeatureMapIndexOnTexture(int num, int width) {
