@@ -30,7 +30,7 @@ public class FlatLayer extends Layer {
     private int mNumGroupsZ;
 
     public FlatLayer(Context context, Layer preLayer) {
-        super(context, null, preLayer);
+        super(context, preLayer);
     }
 
     private void initFlat() {

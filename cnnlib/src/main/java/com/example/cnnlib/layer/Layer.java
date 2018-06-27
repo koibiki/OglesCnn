@@ -19,16 +19,31 @@ public abstract class Layer {
     public Layer(Context context, int[] shape, Layer preLayer) {
         this.mContext = context;
         this.mPreLayer = preLayer;
-        if (this instanceof FlatLayer) {
-            this.mOutputShape = calculateFlatShape();
-        } else {
-            this.mOutputShape = shape;
-        }
+        this.mOutputShape = shape;
+    }
+
+    public Layer(Context context, Layer preLayer) {
+        this.mContext = context;
+        this.mPreLayer = preLayer;
+        this.mOutputShape = calculateFlatShape();
+    }
+
+    public Layer(Context context, int kennelAmount, Layer preLayer) {
+        this.mContext = context;
+        this.mPreLayer = preLayer;
+        this.mOutputShape = calculateFullShape(kennelAmount);
+    }
+
+    private int[] calculateFullShape(int kennelAmount) {
+        int width = (int) Math.ceil(kennelAmount * 1.0f / 4);
+        int height = 1;
+        int channel = 4;
+        return new int[]{width, height, channel};
     }
 
     private int[] calculateFlatShape() {
         int[] inputShape = mPreLayer.getOutputShape();
-        if (inputShape[2] % 4!=0) {
+        if (inputShape[2] % 4 != 0) {
             try {
                 throw new Exception("通道数必须为4的倍数");
             } catch (Exception e) {

@@ -1,49 +1,51 @@
 layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = 1) in;
 
-uniform int params[10];  // input_shape[3] output_shape[3] kennel_shape[3] active_type
+uniform int params[7];  // input_shape[3] output_shape[3] active_type
 layout(binding = 0, rgba32f) readonly uniform image2D input_image;
-layout(binding = 1, rgba32f) readonly uniform image2D kennel_image;
-layout(binding = 2, rgba32f) writeonly uniform image2D output_image;
+layout(binding = 1, rgba32f) writeonly uniform image2D output_image;
 
+layout(std430, binding = 0) buffer BufferObject {
+    float kennel_data[(KENNEL_SIZE + 1) * KENNEL_AMOUNT];
+};
+
+vec4 getKennelValue(int start_index);
 float relu(float i);
 float sigmoid(float i);
 float activeValue(int type, float v);
 
-// 全连接上一层只能是已拉平的数据，即只在第一个通道有数据
 void main(void)
 {
     ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
 
     int input_shape[3] = int[3](params[0], params[1], params[2]);
     int output_shape[3] = int[3](params[3], params[4], params[5]);
-    int kennel_shape[3] = int[3](params[6], params[7], params[8]);
-    int active_type = params[9];
+    int active_type = params[6];
 
     // 获得当前计算器坐标
-    int index = pos.y * 1024 + pos.x;
-
-    float output_value = 0.0;
-    for (int x = 0; x < input_shape[0];x++) {
-        for (int y=0; y < input_shape[1]; y++) {
-            vec4 data = imageLoad(input_image, ivec2(x,y));
-            int kennel_index= y*input_shape[0] + x;
-            int kennel_x = kennel_index/4;
-            int kennel_y = index;
-            int kennel_z = kennel_index % 4;
-            vec4 k = imageLoad(kennel_image, ivec2(kennel_x,kennel_y));
-            output_value += data[0] * k[kennel_z];
+    vec4 output_vec = vec4(0.0);
+    int offset = pos.x * KENNEL_SIZE;
+    for (int i = 0; i < 4; i++) {
+        if (pos.x * 4 + i < KENNEL_AMOUNT) {
+            for (int x = 0; x < input_shape[0];x++) {
+                for (int y=0; y < input_shape[1]; y++) {
+                    vec4 data = imageLoad(input_image, ivec2(x,y));
+                    int kennel_start_index= y*input_shape[0] + x + offset;
+                    vec4 k_v = getKennelValue(kennel_start_index);
+                    output_vec[i] += dot(data, k_v);
+                }
+            }
+            int bias_index = (pos.x + 1) * KENNEL_SIZE - 1;
+            output_vec[i] += kennel_data[bias_index];
+            output_vec[i] = activeValue(active_type, output_vec[i]);
+        } else {
+            output_vec[i] = 0.0;
         }
     }
+    imageStore(output_image, pos.xy, output_vec);
+}
 
-    int bias_x = kennel_shape[0] - 1;
-    int bias_y = index;
-    vec4 bias = imageLoad(kennel_image, ivec2(bias_x, bias_y));
-
-    output_value += bias[kennel_shape[2]];
-
-    output_value = activeValue(active_type, output_value);
-
-    imageStore(output_image, pos.xy, vec4(output_value, 0.0, 0.0, 0.0));
+vec4 getKennelValue(int start_index) {
+    return vec4(kennel_data[start_index], kennel_data[start_index + 1], kennel_data[start_index + 2], kennel_data[start_index + 3]);
 }
 
 float relu(float i){

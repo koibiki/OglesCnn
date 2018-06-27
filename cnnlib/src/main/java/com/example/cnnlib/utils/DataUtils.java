@@ -50,12 +50,12 @@ public class DataUtils {
         return array;
     }
 
-    public static float[] createFullConnKennel(int size, int index) {
-        float[] kennel = new float[size];       // 最后一位是bias
-        for (int i = 0; i < size - 1; i++) {
+    public static float[] createFullConnKennel(int alignSize, int kennelSize, int index) {
+        float[] kennel = new float[alignSize];       // 最后一位是bias
+        for (int i = 0; i < kennelSize - 1; i++) {
             kennel[i] = 1f;
         }
-        kennel[size - 1] = 0;
+        kennel[alignSize - 1] = 0;
         return kennel;
     }
 
@@ -72,7 +72,7 @@ public class DataUtils {
 
     /**
      * channel需要4对齐, 依次排满通道后再排下一个值, 最后4个值为 bias, 0, 0, 0
-     * */
+     */
     public static float[] createConvKennel2(int num, int width, int height, int channel, float bias) {
         int alignChannel = NetUtils.alignBy4(channel);
         float[] data = new float[width * height * alignChannel + 4];
