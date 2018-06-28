@@ -1,20 +1,24 @@
 layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = 1) in;
 
-uniform float k[KENNEL_SIZE + 1];
-uniform int params[14];  // kennel_shape[3] input_shape[3] output_shape[3] strides[2] padding active_type kennel_index
-layout(binding = 0, rgba32f) readonly uniform image2D input_image1;
+uniform int params[13];  // kennel_shape[3] input_shape[3] output_shape[3] strides[2] padding active_type kennelRestoreShape[3]
+layout(binding = 0, rgba32f) readonly uniform image2D input_image;
 layout(binding = 1, rgba32f) readonly uniform image2D input_image2; //input_image2 == output_image
 layout(binding = 2, rgba32f) writeonly uniform image2D output_image;
-
+layout(std430, binding = 0) buffer BufferObject {
+    float kennel_data[(KENNEL_SIZE + 1) * KENNEL_AMOUNT];
+};
 bool isZero(ivec2 index, int[3] input_shape);
-ivec2[KENNEL_AREA] getInIndexInFeatureMap(ivec2 pos, int[3] kennel_shape, int padding, int[2] strides);
-float performConvolute(int num, ivec2 [KENNEL_AREA] input_data_index, int[3] input_shape);
-ivec3 getRealStoreIndex(ivec2 pos, int[3] output_shape, int kennel_index);
+ivec2[KENNEL_AREA] getInIndexInFeatureMap(ivec3 pos, int[3] kennel_shape, int padding, int[2] strides);
+float performConvolute(int num, ivec2[KENNEL_AREA] input_data_index, int[3] input_shape, int kennel_index);
+ivec3 getRealStoreIndex(ivec3 pos, int[3] output_shape, int kennel_index);
 ivec2 getFeatureMapIndexInTexture(int num, int width);
+vec4 getKennelValue(int num, int kennel_value_index, int kennel_index, int[3] input_shape);
 int getComputeCount(int[3] kennel_shape);
 float relu(float i);
 float sigmoid(float i);
 float activeValue(int type, float v);
+
+bool is_zero[KENNEL_AREA];
 
 void main(void)
 {
@@ -25,27 +29,36 @@ void main(void)
     int strides[2] = int[2](params[9], params[10]);
     int padding = params[11];
     int active_type = params[12];
-    int kennel_index = params[13];
 
-    ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
-
-    ivec3 real_pos = getRealStoreIndex(pos, output_shape, kennel_index);
-
-    vec4 data_origin = imageLoad(input_image2, real_pos.xy);
-
+    ivec3 pos = ivec3(gl_GlobalInvocationID.xyz);
+    int kennel_index = pos.z * 4;
+    if (kennel_index >= output_shape[2]) {
+        return;
+    }
+    ivec3 restore_pos = getRealStoreIndex(pos, output_shape, kennel_index);
     ivec2 input_data_index[KENNEL_AREA] = getInIndexInFeatureMap(pos, kennel_shape, padding, strides);
-
-    float output_value = 0.0;
-
     int count = getComputeCount(kennel_shape);
+    vec4 output_vec = vec4(0.0);
 
-    for (int i=0; i < count; i++) {
-        output_value += performConvolute(i, input_data_index, input_shape);
+    for (int i = 0; i < KENNEL_AREA; i++) {
+        ivec2 index = input_data_index[i];
+        is_zero[i] = isZero(index, input_shape);
     }
 
-    output_value = output_value + k[KENNEL_SIZE];
-    data_origin[real_pos.z] = activeValue(active_type,output_value);
-    imageStore(output_image, real_pos.xy, data_origin);
+    for (int ii =kennel_index ; ii < kennel_index + 4; ii++) {
+        if (ii < output_shape[2]) {
+            float output_value = 0.0;
+            for (int i=0; i < count; i++) {
+                output_value += performConvolute(i, input_data_index, input_shape, ii);
+            }
+            int bias_index = (ii + 1) * (KENNEL_SIZE + 1) - 1;
+            output_value += kennel_data[bias_index];
+            output_vec[ii - kennel_index] = activeValue(active_type, output_value);
+        } else {
+            output_vec[ii - kennel_index] = 0.0;
+        }
+    }
+    imageStore(output_image, restore_pos.xy, output_vec);
 }
 
 ivec2 getFeatureMapIndexInTexture(int num, int width) {
@@ -62,7 +75,7 @@ ivec2 getFeatureMapIndexInTexture(int num, int width) {
 }
 
 // 获得实际存储位置 x,y表示在特征图上的坐标，z表示是第几张特征图
-ivec3 getRealStoreIndex(ivec2 pos, int[3] output_shape, int kennel_index) {
+ivec3 getRealStoreIndex(ivec3 pos, int[3] output_shape, int kennel_index) {
     int count = kennel_index/4;
     int remain = kennel_index % 4;
     ivec2 relative_pos = pos.xy;
@@ -83,7 +96,7 @@ bool isZero(ivec2 index, int[3] input_shape) {
 }
 
 // 获得本次卷积 在特征图上的坐标
-ivec2[KENNEL_AREA] getInIndexInFeatureMap(ivec2 pos, int[3] kennel_shape, int padding, int[2] strides) {
+ivec2[KENNEL_AREA] getInIndexInFeatureMap(ivec3 pos, int[3] kennel_shape, int padding, int[2] strides) {
     ivec2 input_data_index[KENNEL_AREA];
     for (int y=0; y < kennel_shape[1]; y++){
         for (int x=0;x < kennel_shape[0]; x++){
@@ -94,24 +107,38 @@ ivec2[KENNEL_AREA] getInIndexInFeatureMap(ivec2 pos, int[3] kennel_shape, int pa
 }
 
 // 在一组特征图上继续卷积运算
-float performConvolute(int num, ivec2[KENNEL_AREA] input_data_index, int[3] input_shape) {
+float performConvolute(int num, ivec2[KENNEL_AREA] input_data_index, int[3] input_shape, int kennel_index) {
     ivec2 feature_map_index_in_texture = getFeatureMapIndexInTexture(num, input_shape[0]);
 
-    float output_value = 0.0;
+    float output_value;
     for (int i = 0; i < KENNEL_AREA;i++){
         ivec2 index = input_data_index[i];
-        if (!isZero(index, input_shape)) {
+        if (is_zero[i]) {
             ivec2 index_in_texture = index + ivec2(feature_map_index_in_texture[0]*input_shape[0],feature_map_index_in_texture[1]*input_shape[1]);
-            vec4 data = imageLoad(input_image1, index_in_texture);
-            for (int ii = 0;ii < 4; ii++) {
-                int kennel_value_index = (num * 4 + ii) * KENNEL_AREA + i;
-                if (kennel_value_index < KENNEL_SIZE) {
-                    output_value += data[ii] * k[kennel_value_index];
-                }
-            }
+            vec4 data = imageLoad(input_image, index_in_texture);
+            vec4 k_v = getKennelValue(num, i, kennel_index, input_shape);
+            output_value += dot(data, k_v);
         }
     }
     return output_value;
+}
+
+// 获得第 i~i+4 特征图 对应的kennel值
+vec4 getKennelValue(int num, int kennel_value_index, int kennel_index, int[3] input_shape) {
+    int start_index = kennel_index * (KENNEL_SIZE + 1) + kennel_value_index * input_shape[2] + 4 * num;
+    if (num * 4 + 4 <= input_shape[2]) {
+        return vec4(kennel_data[start_index], kennel_data[start_index + 1], kennel_data[start_index + 2], kennel_data[start_index + 3]);
+    } else {
+        vec4 data = vec4(0.0);
+        for (int i = 0; i < 4; i++) {
+            if (num * 4 + i < input_shape[2]) {
+               data[i] = kennel_data[start_index + i];
+            } else {
+               data[i] = 0.0;
+            }
+        }
+        return data;
+    }
 }
 
 int getComputeCount(int[3] kennel_shape){

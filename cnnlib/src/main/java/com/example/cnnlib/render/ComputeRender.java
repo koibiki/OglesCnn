@@ -64,8 +64,6 @@ public class ComputeRender {
 
     private static final String TAG = "ComputeRender";
 
-    private static int sConvTexId = -1;
-
     public static int getMaxDrawBuffers() {
         int[] maxBuffer = new int[1];
         glGetIntegerv(GL_MAX_DRAW_BUFFERS, maxBuffer, 0);
@@ -80,18 +78,7 @@ public class ComputeRender {
         return fFrame[0];
     }
 
-    public static int initConvolutePro(Context context, String csPath, int[] kennelShape, int xSize, int ySize) {
-        int compProg = GLES31.glCreateProgram();
-        String source = ShaderUtils.loadFromAssetsFile(csPath, context.getResources());
-        int kennelArea = kennelShape[0] * kennelShape[1];
-        int kennelSize = kennelArea * kennelShape[2];
-        source = String.format(Locale.getDefault(), S_CONV_SHADER_HEADER, kennelArea, kennelSize, xSize, ySize) + source;
-        ShaderUtils.vglAttachShaderSource(compProg, GL_COMPUTE_SHADER, source);
-        glLinkProgram(compProg);
-        return compProg;
-    }
-
-    public static int initConvolute3Pro(Context context, String csPath, int[] kennelShape, int kennel_amount, int xSize, int ySize, int zSize) {
+    public static int initConvolutePro(Context context, String csPath, int[] kennelShape, int kennel_amount, int xSize, int ySize, int zSize) {
         int compProg = GLES31.glCreateProgram();
         String source = ShaderUtils.loadFromAssetsFile(csPath, context.getResources());
         int kennelArea = kennelShape[0] * kennelShape[1];
@@ -164,22 +151,6 @@ public class ComputeRender {
         return texture[0];
     }
 
-    public static int createConvKennelTexture() {
-        if (sConvTexId == -1) {
-            int[] texture = new int[1];
-            glGenTextures(1, texture, 0);
-            glBindTexture(GL_TEXTURE_2D, texture[0]);
-            glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, S_CONV_KENNEL_TEXTURE_SIZE, S_CONV_KENNEL_TEXTURE_SIZE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            GLES31.glBindTexture(GL_TEXTURE_2D, 0);
-            sConvTexId = texture[0];
-        }
-        return sConvTexId;
-    }
-
     public static void bindTextureAndBuffer(int texID, int attachID) {
         int attachment = GL_COLOR_ATTACHMENT0 + attachID;
         glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texID, 0);
@@ -191,34 +162,7 @@ public class ComputeRender {
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, bufferId);
     }
 
-    public static void performConvolute(int compProg, float[] kennel, int[] params, int inTex, int outTex, int numGroupsY) {
-        glUseProgram(compProg);
-        glUniform1fv(glGetUniformLocation(compProg, "k"), kennel.length, kennel, 0);
-        glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
-
-        glBindImageTexture(0, inTex, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
-        glBindImageTexture(1, outTex, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
-        glBindImageTexture(2, outTex, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
-
-        glDispatchCompute(1, numGroupsY, 1);
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-    }
-
-    public static void performConvolute(int compProg, int[] params, int inTex, int outTex, int kennelTex, int numGroupsY, int numGroupsZ) {
-        glUseProgram(compProg);
-        glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
-
-        glBindImageTexture(0, inTex, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
-        glBindImageTexture(1, kennelTex, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
-        glBindImageTexture(2, outTex, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
-        glBindImageTexture(3, outTex, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
-
-        glDispatchCompute(1, numGroupsY, numGroupsZ);
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-    }
-
-
-    public static void performConvolute3(int compProg, int[] params, int inTex, int outTex, int buffer, int numGroupsY, int numGroupsZ) {
+    public static void performConvolute(int compProg, int[] params, int inTex, int outTex, int buffer, int numGroupsY, int numGroupsZ) {
         glUseProgram(compProg);
         glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
 
