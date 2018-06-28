@@ -3,7 +3,6 @@ package com.example.cnnlib.layer;
 import android.content.Context;
 
 import com.example.cnnlib.render.ComputeRender;
-import com.example.cnnlib.utils.AttachIDManager;
 
 import static com.example.cnnlib.render.ComputeRender.getCompShaderLocalSizeY;
 import static com.example.cnnlib.render.ComputeRender.getCompShaderLocalSizeZ;
@@ -42,7 +41,7 @@ public class FlatLayer extends Layer {
 
 
         mShaderPro = initCompPro(mContext, "flat.comp", mOutputShape[0], localSizeY, localSizeZ);
-        mAttachID = AttachIDManager.getInstance().getDataAttachID();
+        mAttachID = Layer.getDataAttachID();
         mOutTex = ComputeRender.createTexture(mOutputShape[0], mOutputShape[1]);
 
         mParams = new int[10];

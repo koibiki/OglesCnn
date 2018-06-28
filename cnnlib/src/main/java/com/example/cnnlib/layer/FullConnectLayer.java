@@ -3,7 +3,6 @@ package com.example.cnnlib.layer;
 import android.content.Context;
 
 import com.example.cnnlib.render.ComputeRender;
-import com.example.cnnlib.utils.AttachIDManager;
 import com.example.cnnlib.utils.DataUtils;
 import com.example.cnnlib.utils.NetUtils;
 
@@ -11,10 +10,7 @@ import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.cnnlib.render.ComputeRender.getCompShaderLocalSizeY;
 import static com.example.cnnlib.render.ComputeRender.initFullConnPro;
-import static com.example.cnnlib.render.ComputeRender.initPoolingPro;
-import static com.example.cnnlib.render.ComputeRender.performWithIntParams;
 
 /**
  * 全连接前接 flat 或 全连接层  kennel 个数不超过4096
@@ -50,7 +46,7 @@ public class FullConnectLayer extends Layer {
         int alignKennelSize =
                 NetUtils.alignBy4(inputShape[0] * inputShape[1] * inputShape[2]) + 1;
         mShaderPro = initFullConnPro(mContext, "full_connect.comp", alignKennelSize, mKennelAmount, mOutputShape[0], 1, 1);
-        mAttachID = AttachIDManager.getInstance().getDataAttachID();
+        mAttachID = Layer.getDataAttachID();
         mOutTex = ComputeRender.createTexture();
 
 

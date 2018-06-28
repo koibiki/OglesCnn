@@ -3,7 +3,6 @@ package com.example.cnnlib.layer;
 import android.content.Context;
 
 import com.example.cnnlib.render.ComputeRender;
-import com.example.cnnlib.utils.AttachIDManager;
 import com.example.cnnlib.utils.Constants;
 import com.example.cnnlib.utils.NetUtils;
 
@@ -21,7 +20,7 @@ public class InputLayer extends Layer {
 
     @Override
     public void initialize() {
-        mAttachID = AttachIDManager.getInstance().getDataAttachID();
+        mAttachID = Layer.getDataAttachID();
         mOutTex = ComputeRender.createTexture();
         initInput();
     }

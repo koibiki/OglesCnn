@@ -16,6 +16,13 @@ public abstract class Layer {
     protected int mAttachID;
     private List<float[]> mResult;
 
+    private static int mCurrentDataId = 7;
+
+    protected static int getDataAttachID() {
+        mCurrentDataId++;
+        return mCurrentDataId % 8;
+    }
+
     public Layer(Context context, int[] shape, Layer preLayer) {
         this.mContext = context;
         this.mPreLayer = preLayer;

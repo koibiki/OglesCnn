@@ -3,7 +3,6 @@ package com.example.cnnlib.layer;
 import android.content.Context;
 
 import com.example.cnnlib.render.ComputeRender;
-import com.example.cnnlib.utils.AttachIDManager;
 
 import static com.example.cnnlib.render.ComputeRender.getCompShaderLocalSizeY;
 import static com.example.cnnlib.render.ComputeRender.getCompShaderLocalSizeZ;
@@ -32,7 +31,7 @@ public class PoolingLayer extends Layer {
         mNumGroupsZ = (int) Math.ceil(mOutputShape[2] * 1.0d / localSizeZ);
 
         mShaderPro = initPoolingPro(mContext, "pooling.comp", mKsize[0] * mKsize[1], mOutputShape[0], localSizeY, localSizeZ);
-        mAttachID = AttachIDManager.getInstance().getDataAttachID();
+        mAttachID = Layer.getDataAttachID();
         mOutTex = ComputeRender.createTexture();
 
         int[] inputShape = mPreLayer.getOutputShape();

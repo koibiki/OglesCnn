@@ -3,7 +3,6 @@ package com.example.cnnlib.layer;
 import android.content.Context;
 
 import com.example.cnnlib.render.ComputeRender;
-import com.example.cnnlib.utils.AttachIDManager;
 import com.example.cnnlib.utils.DataUtils;
 
 import java.nio.FloatBuffer;
@@ -50,7 +49,7 @@ public class ConvolutionLayer extends Layer {
         mNumGroupsZ = (int) Math.ceil(mOutputShape[2] * 1.0d / (localSizeZ * 4));
 
         mShaderPro = initConvolutePro(mContext, "conv.comp", mKennelShape, mOutputShape[2], mOutputShape[0], localSizeY, localSizeZ);
-        mAttachID = AttachIDManager.getInstance().getDataAttachID();
+        mAttachID = Layer.getDataAttachID();
         mOutTex = ComputeRender.createTexture();
 
         int kennelBufSize = (mKennelShape[0] * mKennelShape[1] * mKennelShape[2] + 1) * mOutputShape[2];

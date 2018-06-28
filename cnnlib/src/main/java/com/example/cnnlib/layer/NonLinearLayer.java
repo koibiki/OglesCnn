@@ -3,7 +3,6 @@ package com.example.cnnlib.layer;
 import android.content.Context;
 
 import com.example.cnnlib.render.ComputeRender;
-import com.example.cnnlib.utils.AttachIDManager;
 
 import static com.example.cnnlib.render.ComputeRender.getCompShaderLocalSizeY;
 import static com.example.cnnlib.render.ComputeRender.initCompPro;
@@ -44,7 +43,7 @@ public class NonLinearLayer extends Layer {
         int localSizeY = getCompShaderLocalSizeY(mOutputShape);
         mNumGroupsY = (int) Math.ceil(mOutputShape[1] * 1.0d / localSizeY);
         mShaderPro = initCompPro(mContext, csPath, mOutputShape[0], localSizeY, 1);
-        mAttachID = AttachIDManager.getInstance().getDataAttachID();
+        mAttachID = Layer.getDataAttachID();
         mOutTex = ComputeRender.createTexture();
     }
 
