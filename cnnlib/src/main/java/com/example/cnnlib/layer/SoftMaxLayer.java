@@ -6,26 +6,25 @@ import com.example.cnnlib.render.ComputeRender;
 import com.example.cnnlib.utils.AttachIDManager;
 
 import static com.example.cnnlib.render.ComputeRender.getCompShaderLocalSizeY;
-import static com.example.cnnlib.render.ComputeRender.initPoolingPro;
+import static com.example.cnnlib.render.ComputeRender.initSoftPro;
 
-/**
- * softmax 种类不能超过 1024 前接全连接
- */
 public class SoftMaxLayer extends Layer {
 
     private static final String TAG = "SoftMaxLayer";
 
     private int mShaderPro;
     private int mNumGroupsY;
+    private int mAmount;
 
-    public SoftMaxLayer(Context context, Layer preLayer, int[] shape) {
-        super(context, shape, preLayer);
+    public SoftMaxLayer(Context context, Layer preLayer, int amount) {
+        super(context, amount, preLayer);
+        this.mAmount = amount;
     }
 
     private void initSoftmax() {
         int localSizeY = getCompShaderLocalSizeY(mOutputShape);
         mNumGroupsY = (int) Math.ceil(mOutputShape[1] * 1.0d / localSizeY);
-        mShaderPro = initPoolingPro(mContext, "softmax.comp", mOutputShape[0] * mOutputShape[1], mOutputShape[0], localSizeY, 1);
+        mShaderPro = initSoftPro(mContext, "softmax.comp", mAmount, mOutputShape[0], localSizeY, 1);
         mAttachID = AttachIDManager.getInstance().getDataAttachID();
         mOutTex = ComputeRender.createTexture();
     }

@@ -1,9 +1,10 @@
-layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = 1) in;
+layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = Z_SIZE) in;
 
 layout(binding = 0, rgba32f) readonly uniform  image2D input_image;
 layout(binding = 1, rgba32f) writeonly uniform  image2D output_image;
 
-shared float scanline[KENNEL_AREA];
+shared float scanline[AMOUNT];
+float softmax[AMOUNT];
 
 vec2 getExtremum();
 float getSoftmaxValue(int index, vec2 extremun);
@@ -12,23 +13,33 @@ void main(void)
 {
     ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
     vec4 data = imageLoad(input_image, pos);
-    int index = pos.y * X_SIZE + pos.x;
-    scanline[index] = data.r;
+    int startIndex = (pos.y * X_SIZE + pos.x) * 4;
+    for (int i = 0; i < 4; i++) {
+        if (startIndex + i < AMOUNT) {
+            scanline[startIndex + i] = data[i];
+        }
+    }
     barrier();
     vec2 extremun = getExtremum();
     float softmax = 0.0;
+    vec4 result = vec4(0.0);
     if (extremun[0] != extremun[1]) {
-        softmax = getSoftmaxValue(index, extremun);
+        for (int i = 0; i < 4; i++) {
+            if (startIndex + i < AMOUNT) {
+                result[i] = getSoftmaxValue(startIndex + i, extremun);
+            }
+        }
     } else {
-        softmax = 1.0 / float(KENNEL_AREA);
+        softmax = 1.0 / float(AMOUNT);
+        result = vec4(softmax);
     }
-    imageStore(output_image, pos.xy, vec4(softmax, 0.0, 0.0, 0.0));
+    imageStore(output_image, pos.xy, result);
 }
 
 vec2 getExtremum(){
     float max_v = scanline[0];
     float min_v = scanline[0];
-    for (int i=0; i< KENNEL_AREA; i++) {
+    for (int i=0; i< AMOUNT; i++) {
         if (max_v < scanline[i]) {
             max_v = scanline[i];
         }
@@ -39,15 +50,15 @@ vec2 getExtremum(){
     return vec2(max_v, min_v);
 }
 
-float getSoftmaxValue(int index, vec2 extremun){
-    for (int i = 0; i < KENNEL_AREA; i++){
+float getSoftmaxValue(int index, vec2 extremun) {
+    for (int i = 0; i < AMOUNT; i++){
         float v = (scanline[i] - extremun[1]) * 10.0 / (extremun[0] - extremun[1]);
-        scanline[i] = exp(v);
+        softmax[i] = exp(v);
     }
 
     float sum = 0.0;
-    for (int i=0; i < KENNEL_AREA; i++){
-        sum += scanline[i];
+    for (int i=0; i < AMOUNT; i++){
+        sum += softmax[i];
     }
-    return scanline[index] / sum;
+    return softmax[index] / sum;
 }

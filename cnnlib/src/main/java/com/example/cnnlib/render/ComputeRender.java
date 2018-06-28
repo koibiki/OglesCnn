@@ -57,6 +57,7 @@ import static com.example.cnnlib.utils.Constants.S_CONV_KENNEL_TEXTURE_SIZE;
 import static com.example.cnnlib.utils.Constants.S_CONV_SHADER_HEADER;
 import static com.example.cnnlib.utils.Constants.S_FULL_CONN_SHADER_HEADER;
 import static com.example.cnnlib.utils.Constants.S_POOLING_SHADER_HEADER;
+import static com.example.cnnlib.utils.Constants.S_SOFTMAX_SHADER_HEADER;
 import static com.example.cnnlib.utils.Constants.S_TEXTURE_SIZE;
 
 public class ComputeRender {
@@ -114,6 +115,15 @@ public class ComputeRender {
         int compProg = GLES31.glCreateProgram();
         String source = ShaderUtils.loadFromAssetsFile(csPath, context.getResources());
         source = String.format(Locale.getDefault(), S_FULL_CONN_SHADER_HEADER, kennel_size, kennel_amount, xSize, ySize, zSize) + source;
+        ShaderUtils.vglAttachShaderSource(compProg, GL_COMPUTE_SHADER, source);
+        glLinkProgram(compProg);
+        return compProg;
+    }
+
+    public static int initSoftPro(Context context, String csPath, int amount, int xSize, int ySize, int zSize) {
+        int compProg = GLES31.glCreateProgram();
+        String source = ShaderUtils.loadFromAssetsFile(csPath, context.getResources());
+        source = String.format(Locale.getDefault(), S_SOFTMAX_SHADER_HEADER, amount, xSize, ySize, zSize) + source;
         ShaderUtils.vglAttachShaderSource(compProg, GL_COMPUTE_SHADER, source);
         glLinkProgram(compProg);
         return compProg;
