@@ -15,12 +15,11 @@ public class DataUtils {
     public static float[][] createInputBuffer(int[] shape) {
         int channel = shape[2];
 
-        int r = new Random().nextInt(10);
         int areaCapacity = shape[0] * shape[1];
         float input[][] = new float[channel][areaCapacity];
         for (int j = 0; j < channel; j++) {
             for (int i = 0; i < areaCapacity; i++) {
-                input[j][i] = i * r * 0.0001f;
+                input[j][i] = i % shape[0];
             }
         }
         return input;
@@ -59,29 +58,18 @@ public class DataUtils {
         return kennel;
     }
 
-    public static float[] createConvKennel(int num, int width, int height, int channel, float bias) {
-        float[] data = new float[width * height * channel + 1];
-        for (int i = 0; i < width * height; i++) {
-            for (int ii = 0; ii < channel; ii++) {
-                data[i] = i + 0.00001f * ii;
-            }
-        }
-        data[width * height * channel] = bias;
-        return data;
-    }
-
     /**
      * channel需要4对齐, 依次排满通道后再排下一个值, 最后4个值为 bias, 0, 0, 0
-     */
-    public static float[] createConvKennel2(int num, int width, int height, int channel, float bias) {
+     * */
+    public static float[] createConvKennel(int num, int width, int height, int channel, float bias) {
         int alignChannel = NetUtils.alignBy4(channel);
         float[] data = new float[width * height * alignChannel + 4];
         for (int i = 0; i < width * height; i++) {
             for (int ii = 0; ii < channel; ii++) {
-                data[i * alignChannel + ii] = i + 0.00001f * ii;
+                data[i * alignChannel + ii] = i % width;
             }
         }
-        data[width * height * channel] = bias;
+        data[width * height * alignChannel] = bias;
         return data;
     }
 

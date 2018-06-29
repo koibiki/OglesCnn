@@ -5,6 +5,7 @@ import android.opengl.GLES31;
 
 import com.example.cnnlib.utils.Constants;
 import com.example.cnnlib.utils.MathUtils;
+import com.example.cnnlib.utils.NetUtils;
 import com.example.cnnlib.utils.ShaderUtils;
 
 import java.nio.Buffer;
@@ -49,11 +50,8 @@ import static android.opengl.GLES31.glMemoryBarrier;
 import static android.opengl.GLES31.glTexParameteri;
 import static android.opengl.GLES31.glTexStorage2D;
 import static android.opengl.GLES31.glTexSubImage2D;
-import static android.opengl.GLES31.glUniform1fv;
 import static android.opengl.GLES31.glUseProgram;
 import static com.example.cnnlib.utils.Constants.S_COMMON_SHADER_HEADER;
-import static com.example.cnnlib.utils.Constants.S_CONV3_SHADER_HEADER;
-import static com.example.cnnlib.utils.Constants.S_CONV_KENNEL_TEXTURE_SIZE;
 import static com.example.cnnlib.utils.Constants.S_CONV_SHADER_HEADER;
 import static com.example.cnnlib.utils.Constants.S_FULL_CONN_SHADER_HEADER;
 import static com.example.cnnlib.utils.Constants.S_POOLING_SHADER_HEADER;
@@ -82,8 +80,8 @@ public class ComputeRender {
         int compProg = GLES31.glCreateProgram();
         String source = ShaderUtils.loadFromAssetsFile(csPath, context.getResources());
         int kennelArea = kennelShape[0] * kennelShape[1];
-        int kennelSize = kennelArea * kennelShape[2];
-        source = String.format(Locale.getDefault(), S_CONV3_SHADER_HEADER, kennelArea, kennel_amount, kennelSize, xSize, ySize, zSize) + source;
+        int kennelSize = kennelArea * NetUtils.alignBy4(kennelShape[2]);
+        source = String.format(Locale.getDefault(), S_CONV_SHADER_HEADER, kennelArea, kennel_amount, kennelSize, xSize, ySize, zSize) + source;
         ShaderUtils.vglAttachShaderSource(compProg, GL_COMPUTE_SHADER, source);
         glLinkProgram(compProg);
         return compProg;
@@ -159,8 +157,7 @@ public class ComputeRender {
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffer);
         glBindImageTexture(0, inTex, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
-        glBindImageTexture(1, outTex, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
-        glBindImageTexture(2, outTex, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
+        glBindImageTexture(1, outTex, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
         glDispatchCompute(1, numGroupsY, numGroupsZ);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);

@@ -1,11 +1,10 @@
 layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = 1) in;
 
-uniform int params[13];  // kennel_shape[3] input_shape[3] output_shape[3] strides[2] padding active_type kennelRestoreShape[3]
+uniform int params[13];  // kennel_shape[3] input_shape[3] output_shape[3] strides[2] padding active_type
 layout(binding = 0, rgba32f) readonly uniform image2D input_image;
-layout(binding = 1, rgba32f) readonly uniform image2D input_image2; //input_image2 == output_image
-layout(binding = 2, rgba32f) writeonly uniform image2D output_image;
+layout(binding = 1, rgba32f) writeonly uniform image2D output_image;
 layout(std430, binding = 0) buffer BufferObject {
-    float kennel_data[(KENNEL_SIZE + 1) * KENNEL_AMOUNT];
+    float kennel_data[(KENNEL_SIZE + 4) * KENNEL_AMOUNT];
 };
 bool isZero(ivec2 index, int[3] input_shape);
 ivec2[KENNEL_AREA] getInIndexInFeatureMap(ivec3 pos, int[3] kennel_shape, int padding, int[2] strides);
@@ -13,7 +12,6 @@ float performConvolute(int num, ivec2[KENNEL_AREA] input_data_index, int[3] inpu
 ivec3 getRealStoreIndex(ivec3 pos, int[3] output_shape, int kennel_index);
 ivec2 getFeatureMapIndexInTexture(int num, int width);
 vec4 getKennelValue(int num, int kennel_value_index, int kennel_index, int[3] input_shape);
-int getComputeCount(int[3] kennel_shape);
 float relu(float i);
 float sigmoid(float i);
 float activeValue(int type, float v);
@@ -37,7 +35,7 @@ void main(void)
     }
     ivec3 restore_pos = getRealStoreIndex(pos, output_shape, kennel_index);
     ivec2 input_data_index[KENNEL_AREA] = getInIndexInFeatureMap(pos, kennel_shape, padding, strides);
-    int count = getComputeCount(kennel_shape);
+    int count = kennel_shape[2] / 4;
     vec4 output_vec = vec4(0.0);
 
     for (int i = 0; i < KENNEL_AREA; i++) {
@@ -45,20 +43,22 @@ void main(void)
         is_zero[i] = isZero(index, input_shape);
     }
 
-    for (int ii =kennel_index ; ii < kennel_index + 4; ii++) {
+    for (int ii = kennel_index ; ii < kennel_index + 4; ii++) {
         if (ii < output_shape[2]) {
             float output_value = 0.0;
             for (int i=0; i < count; i++) {
                 output_value += performConvolute(i, input_data_index, input_shape, ii);
             }
-            int bias_index = (ii + 1) * (KENNEL_SIZE + 1) - 1;
+            int bias_index = (ii + 1) * (KENNEL_SIZE + 4) - 4;
             output_value += kennel_data[bias_index];
             output_vec[ii - kennel_index] = activeValue(active_type, output_value);
         } else {
             output_vec[ii - kennel_index] = 0.0;
         }
     }
-    imageStore(output_image, restore_pos.xy, output_vec);
+
+
+    imageStore(output_image, restore_pos.xy,  output_vec);
 }
 
 ivec2 getFeatureMapIndexInTexture(int num, int width) {
@@ -86,7 +86,6 @@ ivec3 getRealStoreIndex(ivec3 pos, int[3] output_shape, int kennel_index) {
 
 // 判断是否处于padding区域
 bool isZero(ivec2 index, int[3] input_shape) {
-    ivec2 index = ivec2(index.x % input_shape[0], index.y % input_shape[1]);
     if (index.x < 0 || index.x >= input_shape[0]) {
         return true;
     } else if (index.y < 0 || index.y >= input_shape[1]) {
@@ -113,11 +112,13 @@ float performConvolute(int num, ivec2[KENNEL_AREA] input_data_index, int[3] inpu
     float output_value;
     for (int i = 0; i < KENNEL_AREA;i++){
         ivec2 index = input_data_index[i];
-        if (is_zero[i]) {
+        if (!is_zero[i]) {
             ivec2 index_in_texture = index + ivec2(feature_map_index_in_texture[0]*input_shape[0],feature_map_index_in_texture[1]*input_shape[1]);
             vec4 data = imageLoad(input_image, index_in_texture);
             vec4 k_v = getKennelValue(num, i, kennel_index, input_shape);
             output_value += dot(data, k_v);
+        } else {
+            output_value += 0.001 * float(i);
         }
     }
     return output_value;
@@ -125,29 +126,9 @@ float performConvolute(int num, ivec2[KENNEL_AREA] input_data_index, int[3] inpu
 
 // 获得第 i~i+4 特征图 对应的kennel值
 vec4 getKennelValue(int num, int kennel_value_index, int kennel_index, int[3] input_shape) {
-    int start_index = kennel_index * (KENNEL_SIZE + 1) + kennel_value_index * input_shape[2] + 4 * num;
-    if (num * 4 + 4 <= input_shape[2]) {
-        return vec4(kennel_data[start_index], kennel_data[start_index + 1], kennel_data[start_index + 2], kennel_data[start_index + 3]);
-    } else {
-        vec4 data = vec4(0.0);
-        for (int i = 0; i < 4; i++) {
-            if (num * 4 + i < input_shape[2]) {
-               data[i] = kennel_data[start_index + i];
-            } else {
-               data[i] = 0.0;
-            }
-        }
-        return data;
-    }
-}
+    int start_index = kennel_index * (KENNEL_SIZE + 4) * num + kennel_value_index * input_shape[2];
+    return vec4(kennel_data[start_index], kennel_data[start_index + 1], kennel_data[start_index + 2], kennel_data[start_index + 3]);
 
-int getComputeCount(int[3] kennel_shape){
-    int count = kennel_shape[2]/4;
-    int remain = kennel_shape[2] % 4;
-    if (remain != 0) {
-        count = count + 1;
-    }
-    return count;
 }
 
 float relu(float i){
