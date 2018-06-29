@@ -92,11 +92,7 @@ vec4 performMaxPooling(int num, ivec2[KENNEL_AREA] input_data_index, int[3] inpu
             ivec2 index_in_texture = index + ivec2(feature_map_index_in_texture[0]*input_shape[0],feature_map_index_in_texture[1]*input_shape[1]);
             vec4 data = imageLoad(input_image, index_in_texture);
             if (i != 0) {
-                for (int ii = 0;ii < 4; ii++) {
-                    if (output_value[ii] < data[ii]) {
-                        output_value[ii] = data[ii];
-                    }
-                }
+                output_value = max(output_value, data);
             } else {
                 output_value = data;
             }
