@@ -4,7 +4,6 @@ uniform int params[6];  // input_shape[3] output_shape[3]
 layout(binding = 0, rgba32f) readonly uniform  image2D input_image;
 layout(binding = 1, rgba32f) writeonly uniform  image2D output_image;
 
-ivec2 getInIndexOnFeatureMap(ivec3 pos, int[3] input_shape);
 ivec2 getFeatureMapIndexOnTexture(int num, int width);
 ivec2 getInIndexOnTexture(ivec2 fea_map_index, ivec2 index_on_fea_map, int[3] input_shape);
 
@@ -20,22 +19,13 @@ void main(void)
         return;
     }
 
-    ivec2 index_on_fea_map = getInIndexOnFeatureMap(pos, input_shape);
-
     ivec2 fea_map_index = getFeatureMapIndexOnTexture(pos.z, input_shape[0]);
-    ivec2 index_on_tex = getInIndexOnTexture(fea_map_index,index_on_fea_map, input_shape);
+    ivec2 index_on_tex = getInIndexOnTexture(fea_map_index, pos.xy, input_shape);
     vec4 data = imageLoad(input_image, index_on_tex);
 
     int y = pos.y * input_shape[0] + pos.x;
     ivec2 restore_pos = ivec2(pos.z, y);
     imageStore(output_image, restore_pos, data);
-}
-
-// 获得本次计算在输入 特征图上的位置
-ivec2 getInIndexOnFeatureMap(ivec3 pos, int[3] input_shape) {
-    int x = pos.x % input_shape[0];
-    int y = pos.x / input_shape[0];
-    return ivec2(x, y);
 }
 
 ivec2 getFeatureMapIndexOnTexture(int num, int width) {
