@@ -74,7 +74,7 @@ public class ComputeRender {
         int[] fFrame = new int[1];
         glGenBuffers(1, fFrame, 0);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, fFrame[0]);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, size, null, GL_DYNAMIC_COPY);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, size * 4, null, GL_DYNAMIC_COPY);
         return fFrame[0];
     }
 
@@ -241,8 +241,7 @@ public class ComputeRender {
 
     public static void transferToBuffer(Buffer data, int bufferId, int offset) {
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, bufferId);
-        glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, data.capacity(), data);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+        glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset * 4, data.capacity() * 4, data);
     }
 
 }
