@@ -1,6 +1,7 @@
 package com.example.cnnlib.layer;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.example.cnnlib.render.ComputeRender;
 import com.example.cnnlib.utils.DataUtils;
@@ -13,7 +14,7 @@ import java.util.List;
 import static com.example.cnnlib.render.ComputeRender.initFullConnPro;
 
 /**
- * 全连接前接 flat 或 全连接层  kennel 个数不超过4096
+ * 全连接前接 flat 或 全连接层 kennel 个数不超过4096
  * 全连接层的 输出 和 kennel 都需要 4 对齐
  */
 public class FullConnectLayer extends Layer {
@@ -22,7 +23,7 @@ public class FullConnectLayer extends Layer {
 
     private List<float[]> mKennels;
     private int mShaderPro;
-    private int mKennelAmount;                      // kennel组 个数
+    private int mKennelAmount;                      // kennel 个数
 
     private int[] mParams;
 
@@ -41,6 +42,7 @@ public class FullConnectLayer extends Layer {
     }
 
     private void initFullConnect() {
+        Log.w(TAG,"initFullConnect");
         int[] inputShape = mPreLayer.getOutputShape();
         int kennelSize = inputShape[0] * inputShape[1] * inputShape[2] + 1;
         int alignKennelSize =
@@ -54,7 +56,7 @@ public class FullConnectLayer extends Layer {
         mKennels = createKennels(alignKennelSize, kennelSize);
 
         mKennelBuffer[0] = ComputeRender.initKennelBuffer(kennelBufSize);
-        transferKennelToBuffer(kennelSize);
+        transferKennelToBuffer();
 
         mParams = new int[7];
         mParams[0] = inputShape[0];
@@ -66,10 +68,11 @@ public class FullConnectLayer extends Layer {
         mParams[6] = mType.index;
     }
 
-    private void transferKennelToBuffer(int alignSize) {
+    private void transferKennelToBuffer() {
         for (int i = 0; i < mKennels.size(); i++) {
-            int offset = i * alignSize;
-            ComputeRender.transferToBuffer(FloatBuffer.wrap(mKennels.get(i)), mKennelBuffer[0], offset);
+            float[] kennel = mKennels.get(i);
+            int offset = i * kennel.length;
+            ComputeRender.transferToBuffer(FloatBuffer.wrap(kennel), mKennelBuffer[0], offset);
         }
     }
 

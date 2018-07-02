@@ -1,11 +1,11 @@
-layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = 1) in;
+layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = Z_SIZE) in;
 
 uniform int params[7];  // input_shape[3] output_shape[3] active_type
 layout(binding = 0, rgba32f) readonly uniform image2D input_image;
 layout(binding = 1, rgba32f) writeonly uniform image2D output_image;
 
 layout(std430, binding = 0) buffer BufferObject {
-    float kennel_data[(KENNEL_SIZE + 1) * KENNEL_AMOUNT];
+    float kennel_data[KENNEL_SIZE * KENNEL_AMOUNT];
 };
 
 vec4 getKennelValue(int start_index);
@@ -23,18 +23,19 @@ void main(void)
 
     // 获得当前计算器坐标
     vec4 output_vec = vec4(0.0);
-    int offset = pos.x * KENNEL_SIZE;
+
     for (int i = 0; i < 4; i++) {
         if (pos.x * 4 + i < KENNEL_AMOUNT) {
+        int offset = (pos.x * 4 + i) * KENNEL_SIZE;
             for (int x = 0; x < input_shape[0];x++) {
                 for (int y=0; y < input_shape[1]; y++) {
                     vec4 data = imageLoad(input_image, ivec2(x,y));
-                    int kennel_start_index= y*input_shape[0] + x + offset;
+                    int kennel_start_index= (y * input_shape[0] + x) * 4 + offset;
                     vec4 k_v = getKennelValue(kennel_start_index);
                     output_vec[i] += dot(data, k_v);
                 }
             }
-            int bias_index = (pos.x + 1) * KENNEL_SIZE - 1;
+            int bias_index = offset + KENNEL_SIZE - 1;
             output_vec[i] += kennel_data[bias_index];
             output_vec[i] = activeValue(active_type, output_vec[i]);
         } else {
