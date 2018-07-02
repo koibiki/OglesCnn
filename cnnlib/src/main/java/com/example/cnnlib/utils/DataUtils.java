@@ -12,14 +12,16 @@ public class DataUtils {
 
     private static final String TAG = "DataUtils";
 
-    public static float[][] createInputBuffer(int[] shape) {
+    public static float[][][] createInputBuffer(int[] shape) {
         int channel = shape[2];
-
-        int areaCapacity = shape[0] * shape[1];
-        float input[][] = new float[channel][areaCapacity];
-        for (int j = 0; j < channel; j++) {
-            for (int i = 0; i < areaCapacity; i++) {
-                input[j][i] = i % shape[0];
+        int width = shape[0];
+        int height = shape[1];
+        float input[][][] = new float[channel][width][height];
+        for (int c = 0; c < channel; c++) {
+            for (int w = 0; w < width; w++) {
+                for (int h = 0; h < height; h++) {
+                    input[c][w][h] = w;
+                }
             }
         }
         return input;
@@ -28,8 +30,8 @@ public class DataUtils {
     public static List<float[]> readOutput(Layer layer) {
         List<float[]> results = new ArrayList<>();
         int channel = layer.getOutputShape()[2];
-        int[] count = NetUtils.getCount(channel);
-        for (int i = 0; i < count[0]; i++) {
+        int count = NetUtils.alignBy4(channel);
+        for (int i = 0; i < count/4; i++) {
             results.add(readOutput(layer, i));
         }
         return results;
@@ -52,15 +54,15 @@ public class DataUtils {
     public static float[] createFullConnKennel(int alignSize, int kennelSize, int index) {
         float[] kennel = new float[alignSize];       // 最后一位是bias
         for (int i = 0; i < kennelSize - 1; i++) {
-            kennel[i] = 1f;
+            kennel[i] = i / 4;
         }
-        kennel[alignSize - 1] = 0;
+        kennel[alignSize - 1] = 1;
         return kennel;
     }
 
     /**
      * channel需要4对齐, 依次排满通道后再排下一个值, 最后4个值为 bias, 0, 0, 0
-     * */
+     */
     public static float[] createConvKennel(int num, int width, int height, int channel, float bias) {
         int alignChannel = NetUtils.alignBy4(channel);
         float[] data = new float[width * height * alignChannel + 4];

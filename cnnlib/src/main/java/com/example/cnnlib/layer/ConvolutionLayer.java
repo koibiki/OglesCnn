@@ -104,7 +104,7 @@ public class ConvolutionLayer extends Layer {
     }
 
     @Override
-    protected void actualForwardProc() {
+    protected void actualForwardProc(float[][][] input) {
         ComputeRender.performConvolute(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mKennelBuffer[0], mNumGroupsY, mNumGroupsZ);
     }
 

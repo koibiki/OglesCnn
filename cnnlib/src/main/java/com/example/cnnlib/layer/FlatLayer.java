@@ -65,7 +65,7 @@ public class FlatLayer extends Layer {
     }
 
     @Override
-    protected void actualForwardProc() {
+    protected void actualForwardProc(float[][][] input) {
         ComputeRender.performWithIntParams(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mNumGroupsY, mNumGroupsZ);
     }
 

@@ -39,7 +39,7 @@ public class SoftMaxLayer extends Layer {
     }
 
     @Override
-    protected void actualForwardProc() {
+    protected void actualForwardProc(float[][][] input) {
         ComputeRender.performWithoutParams(mShaderPro, mPreLayer.getOutTex(), mOutTex, mNumGroupsY);
     }
 

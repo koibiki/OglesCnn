@@ -91,7 +91,7 @@ public class FullConnectLayer extends Layer {
     }
 
     @Override
-    protected void actualForwardProc() {
+    protected void actualForwardProc(float[][][] input) {
         ComputeRender.performFullConnect(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mKennelBuffer[0]);
     }
 

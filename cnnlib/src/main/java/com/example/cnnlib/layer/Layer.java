@@ -2,8 +2,6 @@ package com.example.cnnlib.layer;
 
 import android.content.Context;
 
-import com.example.cnnlib.utils.DataUtils;
-
 import java.util.List;
 
 public abstract class Layer {
@@ -79,18 +77,14 @@ public abstract class Layer {
 
     protected abstract void bindTextureAndBuffer();
 
-    protected abstract void actualForwardProc();
+    protected abstract void actualForwardProc(float[][][] input);
 
-    public void forwardProc(boolean restore) {
-        bindTextureAndBuffer();
-        actualForwardProc();
-        if (restore) {
-            restoreResult();
+    public void forwardProc(float[][][] input) {
+        if (mPreLayer != null) {
+            mPreLayer.forwardProc(input);
         }
-    }
-
-    private void restoreResult() {
-        mResult = DataUtils.readOutput(this);
+        bindTextureAndBuffer();
+        actualForwardProc(input);
     }
 
 }

@@ -1,5 +1,6 @@
 package com.example.cnnlib;
 
+import android.opengl.GLES31;
 import android.util.Log;
 
 import com.example.cnnlib.eglenv.GLES31BackEnv;
@@ -19,7 +20,7 @@ public class CnnNetwork {
 
     private ArrayList<Layer> mLayers;
 
-    private boolean mIsInit;
+    private volatile boolean mIsInit = false;
     private GLES31BackEnv mGLes31BackEnv;
 
     public CnnNetwork() {
@@ -39,6 +40,16 @@ public class CnnNetwork {
         mGLes31BackEnv.post(this::actualInitialize);
     }
 
+    public void predict(float[][][] input) {
+        mGLes31BackEnv.post(() -> actualPredict(input));
+    }
+
+
+    private void actualPredict(float[][][] input) {
+        runNet(input);
+        actualReadOutput();
+    }
+
     private void actualInitialize() {
         if (!mIsInit) {
             mIsInit = true;
@@ -52,22 +63,21 @@ public class CnnNetwork {
         mLayers.remove(layer);
     }
 
-    public void run() {
-        mGLes31BackEnv.post(this::actualRun);
-    }
 
-    private void actualRun() {
-        StringBuilder sb = new StringBuilder();
+    private void runNet(float[][][] input) {
         long begin = System.currentTimeMillis();
-        for (int i = 0; i < mLayers.size(); i++) {
-            long begin1 = System.currentTimeMillis();
-            mLayers.get(i).forwardProc(false);
-            sb.append(i).append(":").append(System.currentTimeMillis() - begin1).append("; ");
-        }
-        Log.d(TAG, sb.toString());
-        Log.w(TAG, "----- total spent:" + (System.currentTimeMillis() - begin));
+        int count = 1000;
+        for (int ii = 0; ii < count; ii++) {
 
-        actualReadOutput();
+            long begin1 = System.currentTimeMillis();
+            for (int i = 0; i < mLayers.size(); i++) {
+                mLayers.get(i).forwardProc(input);
+                GLES31.glFlush();
+            }
+            actualReadOutput();
+            Log.w(TAG, "spent:" + (System.currentTimeMillis() - begin1));
+        }
+        Log.w(TAG, "ave spent:" + (System.currentTimeMillis() - begin) / count);
     }
 
     public void readOutput() {
@@ -75,10 +85,8 @@ public class CnnNetwork {
     }
 
     private void actualReadOutput() {
-        long begin = System.currentTimeMillis();
         Layer layer = mLayers.get(mLayers.size() - 1);
         DataUtils.readOutput(layer);
-        Log.w(TAG, "read spent:" + (System.currentTimeMillis() - begin));
     }
 
 
