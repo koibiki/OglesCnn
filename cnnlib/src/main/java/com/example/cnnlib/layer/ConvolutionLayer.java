@@ -36,13 +36,26 @@ public class ConvolutionLayer extends Layer {
     private int[] mKennelBuffer = new int[1];
 
 
-    public ConvolutionLayer(Context context, Layer preLayer, int[] shape, int[] kennelShape, int padding, int[] strides, NonLinearLayer.NonLinearType type) {
-        super(context, shape, preLayer);
+    public ConvolutionLayer(Context context, Layer preLayer, int kennelAmount, int[] kennelShape, int padding, int[] strides, NonLinearLayer.NonLinearType type, String paramPath) {
+        super(context, preLayer);
         this.mKennelShape = kennelShape;
         this.mPadding = padding;
         this.mStrides = strides;
         this.mType = type;
+        this.mOutputShape = calculateConvShape(kennelAmount);
     }
+
+    private int[] calculateConvShape(int kennelAmount) {
+        int[] inShape = mPreLayer.getOutputShape();
+        int width = calculateLength(inShape[0], mKennelShape[0], mStrides[0]);
+        int height = calculateLength(inShape[1], mKennelShape[1], mStrides[1]);
+        return new int[]{width, height, kennelAmount};
+    }
+
+    private int calculateLength(int length, int kennelLen, int stride) {
+        return (length + 2 * mPadding - kennelLen) / stride + 1;
+    }
+
 
     private void initConv() {
         int localSizeY = getCompShaderLocalSizeY(mOutputShape);

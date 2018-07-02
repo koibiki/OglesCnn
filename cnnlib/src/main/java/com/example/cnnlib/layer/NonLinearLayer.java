@@ -26,8 +26,9 @@ public class NonLinearLayer extends Layer {
 
 
     public NonLinearLayer(Context context, Layer preLayer, NonLinearType type) {
-        super(context, preLayer.getOutputShape(), preLayer);
+        super(context, preLayer);
         this.mType = type;
+        this.mOutputShape = preLayer.getOutputShape();
     }
 
     private void initNonlinear() {

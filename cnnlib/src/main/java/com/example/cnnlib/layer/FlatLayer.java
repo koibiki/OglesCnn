@@ -30,6 +30,22 @@ public class FlatLayer extends Layer {
 
     public FlatLayer(Context context, Layer preLayer) {
         super(context, preLayer);
+        this.mOutputShape = calculateFlatShape();
+    }
+
+    private int[] calculateFlatShape() {
+        int[] inputShape = mPreLayer.getOutputShape();
+        if (inputShape[2] % 4 != 0) {
+            try {
+                throw new Exception("通道数必须为4的倍数");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        int channel = 4;
+        int height = inputShape[0] * inputShape[1];
+        int width = inputShape[2] / 4;
+        return new int[]{width, height, channel};
     }
 
     private void initFlat() {

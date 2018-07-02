@@ -10,18 +10,26 @@ import static com.example.cnnlib.render.ComputeRender.initPoolingPro;
 
 public class PoolingLayer extends Layer {
 
-    private final int[] mKsize;
-    private final int[] mStrides;
+    private int[] mKsize;
+    private int[] mStrides;
     private int mNumGroupsY;
     private int mShaderPro;
     private int[] mParams;
     private int mNumGroupsZ;
 
 
-    public PoolingLayer(Context context, Layer preLayer, int[] shape, int[] ksize, int[] strides) {
-        super(context, shape, preLayer);
+    public PoolingLayer(Context context, Layer preLayer, int[] ksize, int[] strides) {
+        super(context, preLayer);
         this.mKsize = ksize;
         this.mStrides = strides;
+        this.mOutputShape = calculatePoolingShape();
+    }
+
+    private int[] calculatePoolingShape() {
+        int[] inShape = mPreLayer.getOutputShape();
+        int width = (int) Math.ceil(inShape[0] * 1.0f / mStrides[0]);
+        int height = (int) Math.ceil(inShape[1] * 1.0f / mStrides[1]);
+        return new int[]{width, height, inShape[2]};
     }
 
     private void initPooling() {

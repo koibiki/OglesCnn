@@ -2,8 +2,6 @@ package com.example.cnnlib.layer;
 
 import android.content.Context;
 
-import java.util.List;
-
 public abstract class Layer {
 
     protected Context mContext;
@@ -12,7 +10,6 @@ public abstract class Layer {
 
     protected int mOutTex;
     protected int mAttachID;
-    private List<float[]> mResult;
 
     private static int mCurrentDataId = 7;
 
@@ -21,45 +18,13 @@ public abstract class Layer {
         return mCurrentDataId % 8;
     }
 
-    public Layer(Context context, int[] shape, Layer preLayer) {
-        this.mContext = context;
-        this.mPreLayer = preLayer;
-        this.mOutputShape = shape;
-    }
-
     public Layer(Context context, Layer preLayer) {
         this.mContext = context;
         this.mPreLayer = preLayer;
-        this.mOutputShape = calculateFlatShape();
     }
 
-    public Layer(Context context, int kennelAmount, Layer preLayer) {
-        this.mContext = context;
-        this.mPreLayer = preLayer;
-        this.mOutputShape = calculateFullShape(kennelAmount);
-    }
 
-    private int[] calculateFullShape(int kennelAmount) {
-        int width = (int) Math.ceil(kennelAmount * 1.0f / 4);
-        int height = 1;
-        int channel = 4;
-        return new int[]{width, height, channel};
-    }
 
-    private int[] calculateFlatShape() {
-        int[] inputShape = mPreLayer.getOutputShape();
-        if (inputShape[2] % 4 != 0) {
-            try {
-                throw new Exception("通道数必须为4的倍数");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        int channel = 4;
-        int height = inputShape[0] * inputShape[1];
-        int width = inputShape[2] / 4;
-        return new int[]{width, height, channel};
-    }
 
     public int getAttachID() {
         return mAttachID;
@@ -80,9 +45,6 @@ public abstract class Layer {
     protected abstract void actualForwardProc(float[][][] input);
 
     public void forwardProc(float[][][] input) {
-        if (mPreLayer != null) {
-            mPreLayer.forwardProc(input);
-        }
         bindTextureAndBuffer();
         actualForwardProc(input);
     }

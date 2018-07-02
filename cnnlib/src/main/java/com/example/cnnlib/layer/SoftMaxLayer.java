@@ -16,8 +16,16 @@ public class SoftMaxLayer extends Layer {
     private int mAmount;
 
     public SoftMaxLayer(Context context, Layer preLayer, int amount) {
-        super(context, amount, preLayer);
+        super(context, preLayer);
         this.mAmount = amount;
+        this.mOutputShape = calculateSoftShape(amount);
+    }
+
+    private int[] calculateSoftShape(int amount) {
+        int width = (int) Math.ceil(amount * 1.0f / 4);
+        int height = 1;
+        int channel = 4;
+        return new int[]{width, height, channel};
     }
 
     private void initSoftmax() {

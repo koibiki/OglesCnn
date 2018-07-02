@@ -30,10 +30,18 @@ public class FullConnectLayer extends Layer {
     private NonLinearLayer.NonLinearType mType;
     private int[] mKennelBuffer = new int[1];
 
-    public FullConnectLayer(Context context, Layer preLayer, int kennelAmount, NonLinearLayer.NonLinearType type) {
-        super(context, kennelAmount, preLayer);
+    public FullConnectLayer(Context context, Layer preLayer, int kennelAmount, NonLinearLayer.NonLinearType type, String paramPath) {
+        super(context, preLayer);
         this.mKennelAmount = kennelAmount;
         this.mType = type;
+        this.mOutputShape = calculateFullShape(kennelAmount);
+    }
+
+    private int[] calculateFullShape(int kennelAmount) {
+        int width = (int) Math.ceil(kennelAmount * 1.0f / 4);
+        int height = 1;
+        int channel = 4;
+        return new int[]{width, height, channel};
     }
 
     @Override
@@ -42,7 +50,6 @@ public class FullConnectLayer extends Layer {
     }
 
     private void initFullConnect() {
-        Log.w(TAG,"initFullConnect");
         int[] inputShape = mPreLayer.getOutputShape();
         int kennelSize = inputShape[0] * inputShape[1] * inputShape[2] + 1;
         int alignKennelSize =

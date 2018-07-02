@@ -11,7 +11,8 @@ import java.nio.FloatBuffer;
 public class InputLayer extends Layer {
 
     public InputLayer(Context context, int[] shape) {
-        super(context, shape, null);
+        super(context,null);
+        this.mOutputShape = shape;
     }
 
     @Override
