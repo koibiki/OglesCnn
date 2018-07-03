@@ -47,7 +47,7 @@ public class InputLayer extends Layer {
             for (int h = 0; h < height; h++) {
                 for (int ii = 0; ii < 4; ii++) {
                     if (index * 4 + ii < channel) {
-                        localInput[(h * width + w) * 4 + ii] = input[index * 4 + ii][w][h];
+                        localInput[(h * width + w) * 4 + ii] = input[index * 4 + ii][h][w];
                     } else {
                         localInput[(h * width + w) * 4 + ii] = 0;
 
