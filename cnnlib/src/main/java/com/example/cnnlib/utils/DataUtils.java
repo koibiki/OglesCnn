@@ -6,7 +6,6 @@ import com.example.cnnlib.render.ComputeRender;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public class DataUtils {
 
@@ -16,39 +15,49 @@ public class DataUtils {
         int channel = shape[2];
         int width = shape[0];
         int height = shape[1];
-        float input[][][] = new float[channel][width][height];
+        float input[][][] = new float[channel][height][width];
         for (int c = 0; c < channel; c++) {
             for (int w = 0; w < width; w++) {
                 for (int h = 0; h < height; h++) {
-                    input[c][w][h] = w;
+                    input[c][h][w] = 1;
                 }
             }
         }
         return input;
     }
 
-    public static List<float[]> readOutput(Layer layer) {
-        List<float[]> results = new ArrayList<>();
-        int channel = layer.getOutputShape()[2];
-        int count = NetUtils.alignBy4(channel);
-        for (int i = 0; i < count/4; i++) {
-            results.add(readOutput(layer, i));
-        }
-        return results;
-    }
-
-    private static float[] readOutput(Layer layer, int index) {
+    public static float[][][] readOutput(Layer layer) {
         int[] outputShape = layer.getOutputShape();
         int width = outputShape[0];
-        int[] indexes = NetUtils.getXYIndex(width, index, Constants.S_TEXTURE_SIZE);
         int height = outputShape[1];
-        int startX = indexes[0] * width;
-        int startY = indexes[1] * height;
-        FloatBuffer allocate = FloatBuffer.allocate(width * height * 4);
-        allocate = (FloatBuffer) ComputeRender.transferFromTexture(allocate, layer.getAttachID(), startX, startY, width, height);
-        float[] array = allocate.array();
-//        LogUtils.printf(array, width, "output" + indexes[0] + "_" + indexes[1] + ".txt");
-        return array;
+        int channel = outputShape[2];
+        float[][][] out = new float[channel][height][width];
+
+        int count = NetUtils.alignBy4(channel);
+        for (int i = 0; i < count / 4; i++) {
+            int[] indexes = NetUtils.getXYIndex(width, i, Constants.S_TEXTURE_SIZE);
+            int startX = indexes[0] * width;
+            int startY = indexes[1] * height;
+            FloatBuffer allocate = FloatBuffer.allocate(width * height * 4);
+            allocate = (FloatBuffer) ComputeRender.transferFromTexture(allocate, layer.getAttachID(), startX, startY, width, height);
+            float[] array = allocate.array();
+            out = transform(out, array, width, height, i, channel);
+        }
+        return out;
+    }
+
+
+    private static float[][][] transform(float[][][] out, float[] array, int width, int height, int index, int channel) {
+        for (int c = 0; c < 4; c++) {
+            if (4 * index + c < channel) {
+                for (int h = 0; h < height; h++) {
+                    for (int w = 0; w < width; w++) {
+                        out[4 * index + c][h][w] = array[4 * (width * h + w) + c];
+                    }
+                }
+            }
+        }
+        return out;
     }
 
     public static float[] createFullConnKennel(int alignSize, int kennelSize, int index) {
@@ -68,7 +77,7 @@ public class DataUtils {
         float[] data = new float[width * height * alignChannel + 4];
         for (int i = 0; i < width * height; i++) {
             for (int ii = 0; ii < channel; ii++) {
-                data[i * alignChannel + ii] = i % width;
+                data[i * alignChannel + ii] = 1;
             }
         }
         data[width * height * alignChannel] = bias;
