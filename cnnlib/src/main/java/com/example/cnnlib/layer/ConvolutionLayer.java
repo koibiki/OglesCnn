@@ -5,6 +5,7 @@ import android.content.Context;
 import com.example.cnnlib.render.ComputeRender;
 import com.example.cnnlib.utils.DataUtils;
 import com.example.cnnlib.utils.NetUtils;
+import com.example.cnnlib.utils.ParamUnpacker;
 
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
@@ -32,17 +33,19 @@ public class ConvolutionLayer extends Layer {
     private int mNumGroupsZ;
     private int[] mParams;
     private NonLinearLayer.NonLinearType mType;
+    private String mKennelFilePath;
 
     private int[] mKennelBuffer = new int[1];
 
 
-    public ConvolutionLayer(Context context, Layer preLayer, int kennelAmount, int[] kennelShape, int padding, int[] strides, NonLinearLayer.NonLinearType type, String paramPath) {
+    public ConvolutionLayer(Context context, Layer preLayer, int kennelAmount, int[] kennelShape, int padding, int[] strides, NonLinearLayer.NonLinearType type, String kennelFilePath) {
         super(context, preLayer);
         this.mKennelShape = kennelShape;
         this.mPadding = padding;
         this.mStrides = strides;
         this.mType = type;
         this.mOutputShape = calculateConvShape(kennelAmount);
+        this.mKennelFilePath = kennelFilePath;
     }
 
     private int[] calculateConvShape(int kennelAmount) {
@@ -67,7 +70,8 @@ public class ConvolutionLayer extends Layer {
         mAttachID = Layer.getDataAttachID();
         mOutTex = ComputeRender.createTexture();
 
-        mKennels = createKennels();
+//        mKennels = loadKennels();
+        mKennels = createTestKennels();
         int kennelBufSize = mKennels.get(0).length * mOutputShape[2];
         mKennelBuffer[0] = ComputeRender.initKennelBuffer(kennelBufSize);
         transferKennelToBuffer();
@@ -89,10 +93,36 @@ public class ConvolutionLayer extends Layer {
         mParams[12] = mType.index;
     }
 
-    private List<float[]> createKennels() {
+    private List<float[]> createTestKennels() {
         List<float[]> kennels = new ArrayList<>();
         for (int i = 0; i < mOutputShape[2]; i++) {
             kennels.add(DataUtils.createConvKennel(i + 1, mKennelShape[0], mKennelShape[1], mKennelShape[2], 1));
+        }
+        return kennels;
+    }
+
+    /**
+     * channel需要4对齐, 依次排满一个通道后再排下一个通道的值, 最后4个值为 bias, 0, 0, 0
+     */
+    private List<float[]> loadKennels() {
+        ParamUnpacker paramUnpacker = new ParamUnpacker();
+        Object[] objects = paramUnpacker.unpackerFunction(mKennelFilePath, new Class[]{float[][][][].class, float[].class});
+        float[][][][] localWeight = (float[][][][]) objects[0];
+        float[] localBias = (float[]) objects[1];
+
+        int alignChannel = NetUtils.alignBy4(mKennelShape[2]);
+        List<float[]> kennels = new ArrayList<>();
+        for (int i = 0; i < mOutputShape[2]; i++) {
+            float[] kennel = new float[mKennelShape[0] * mKennelShape[1] * alignChannel + 4];
+            for (int c = 0; c < mKennelShape[2]; c++) {
+                for (int w = 0; w < mKennelShape[0]; w++) {
+                    for (int h = 0; h < mKennelShape[1]; h++) {
+                        kennel[(h * mKennelShape[0] + w)* alignChannel + c] = localWeight[i][c][h][w];
+                    }
+                }
+            }
+            kennel[mKennelShape[0] * mKennelShape[1] * alignChannel] = localBias[i];
+            kennels.add(kennel);
         }
         return kennels;
     }
