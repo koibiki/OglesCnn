@@ -118,7 +118,7 @@ float performConvolute(int num, ivec2[KENNEL_AREA] input_data_index, int[3] inpu
             vec4 k_v = getKennelValue(num, i, kennel_index, input_shape);
             output_value += dot(data, k_v);
         } else {
-            output_value += 0.001 * float(i);
+            output_value += 0.0;
         }
     }
     return output_value;
@@ -126,7 +126,7 @@ float performConvolute(int num, ivec2[KENNEL_AREA] input_data_index, int[3] inpu
 
 // 获得第 i~i+4 特征图 对应的kennel值
 vec4 getKennelValue(int num, int kennel_value_index, int kennel_index, int[3] input_shape) {
-    int start_index = kennel_index * (KENNEL_SIZE + 4) * num + kennel_value_index * input_shape[2];
+    int start_index = kennel_index * (KENNEL_SIZE + 4) + kennel_value_index * input_shape[2] + num * 4;
     return vec4(kennel_data[start_index], kennel_data[start_index + 1], kennel_data[start_index + 2], kennel_data[start_index + 3]);
 
 }
