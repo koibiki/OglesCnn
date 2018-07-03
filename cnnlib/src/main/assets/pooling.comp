@@ -64,7 +64,6 @@ int getComputeCount(int[3] input_shape) {
 
 // 判断是否处于输入区域
 bool isInInputShape(ivec2 index, int[3] input_shape) {
-    ivec2 index = ivec2(index.x % input_shape[0], index.y % input_shape[1]);
     if (index.x < 0 || index.x >= input_shape[0]) {
         return false;
     } else if (index.y < 0 || index.y >= input_shape[1]) {
