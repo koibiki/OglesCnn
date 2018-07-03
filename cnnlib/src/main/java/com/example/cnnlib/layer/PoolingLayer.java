@@ -36,7 +36,7 @@ public class PoolingLayer extends Layer {
         int localSizeY = getCompShaderLocalSizeY(mOutputShape);
         mNumGroupsY = (int) Math.ceil(mOutputShape[1] * 1.0d / localSizeY);
         int localSizeZ = getCompShaderLocalSizeZ(mOutputShape, 4);
-        mNumGroupsZ = (int) Math.ceil(mOutputShape[2] * 1.0d / localSizeZ);
+        mNumGroupsZ = (int) Math.ceil(mOutputShape[2] * 1.0d / (localSizeZ * 4));
 
         mShaderPro = initPoolingPro(mContext, "pooling.comp", mKsize[0] * mKsize[1], mOutputShape[0], localSizeY, localSizeZ);
         mAttachID = Layer.getDataAttachID();
