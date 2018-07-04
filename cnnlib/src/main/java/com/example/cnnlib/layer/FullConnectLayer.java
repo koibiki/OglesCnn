@@ -6,6 +6,7 @@ import android.util.Log;
 import com.example.cnnlib.render.ComputeRender;
 import com.example.cnnlib.utils.DataUtils;
 import com.example.cnnlib.utils.NetUtils;
+import com.example.cnnlib.utils.ParamUnpacker;
 
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ import static com.example.cnnlib.render.ComputeRender.initFullConnPro;
 
 /**
  * 全连接前接 flat 或 全连接层 kennel 个数不超过4096
- * 全连接层的 输出 和 kennel 都需要 4 对齐
+ * 全连接层的 输入 输出 的channel 和 kennel 都需要 4 对齐
  */
 public class FullConnectLayer extends Layer {
 
@@ -24,17 +25,19 @@ public class FullConnectLayer extends Layer {
     private List<float[]> mKennels;
     private int mShaderPro;
     private int mKennelAmount;                      // kennel 个数
+    private String mParamFilePath;
 
     private int[] mParams;
 
     private NonLinearLayer.NonLinearType mType;
     private int[] mKennelBuffer = new int[1];
 
-    public FullConnectLayer(Context context, Layer preLayer, int kennelAmount, NonLinearLayer.NonLinearType type, String paramPath) {
+    public FullConnectLayer(Context context, Layer preLayer, int kennelAmount, NonLinearLayer.NonLinearType type, String paramFilePath) {
         super(context, preLayer);
         this.mKennelAmount = kennelAmount;
         this.mType = type;
         this.mOutputShape = calculateFullShape(kennelAmount);
+        this.mParamFilePath = paramFilePath;
     }
 
     private int[] calculateFullShape(int kennelAmount) {
@@ -60,12 +63,13 @@ public class FullConnectLayer extends Layer {
 
 
         int kennelBufSize = alignKennelSize * mKennelAmount;
-        mKennels = createKennels(alignKennelSize, kennelSize);
+//        mKennels = createKennels(alignKennelSize, kennelSize);
+        mKennels = loadKennels(kennelSize, alignKennelSize);
 
         mKennelBuffer[0] = ComputeRender.initKennelBuffer(kennelBufSize);
         transferKennelToBuffer();
 
-        mParams = new int[7];
+        mParams = new int[8];
         mParams[0] = inputShape[0];
         mParams[1] = inputShape[1];
         mParams[2] = inputShape[2];
@@ -73,6 +77,32 @@ public class FullConnectLayer extends Layer {
         mParams[4] = mOutputShape[1];
         mParams[5] = mOutputShape[2];
         mParams[6] = mType.index;
+        if (mPreLayer instanceof FullConnectLayer) {
+            mParams[7] = 0;
+        } else {
+            mParams[7] = 1;
+        }
+    }
+
+    private List<float[]> loadKennels(int kennelSize, int alignKennelSize) {
+        ParamUnpacker paramUnpacker = new ParamUnpacker();
+        Object[] objects = paramUnpacker.unpackerFunction(mParamFilePath, new Class[]{float[].class, float[].class});
+        float[] weight = (float[]) objects[0];
+        float[] bias = (float[]) objects[1];
+
+        int wSize = kennelSize - 1;
+
+        List<float[]> kennels = new ArrayList<>();
+        for (int i = 0; i < mKennelAmount; i++) {
+            float[] kennel = new float[alignKennelSize];
+            for (int s = 0; s < wSize; s++) {
+                int wIndex = i * wSize + s;
+                kennel[s] = weight[wIndex];
+            }
+            kennel[alignKennelSize - 1] = bias[i];
+            kennels.add(kennel);
+        }
+        return kennels;
     }
 
     private void transferKennelToBuffer() {
