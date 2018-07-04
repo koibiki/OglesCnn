@@ -70,8 +70,8 @@ public class ConvolutionLayer extends Layer {
         mAttachID = Layer.getDataAttachID();
         mOutTex = ComputeRender.createTexture();
 
-//        mKennels = loadKennels();
-        mKennels = createTestKennels();
+        mKennels = loadKennels();
+//        mKennels = createTestKennels();
         int kennelBufSize = mKennels.get(0).length * mOutputShape[2];
         mKennelBuffer[0] = ComputeRender.initKennelBuffer(kennelBufSize);
         transferKennelToBuffer();
