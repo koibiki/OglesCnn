@@ -52,7 +52,7 @@ vec2 getExtremum(){
 
 float getSoftmaxValue(int index, vec2 extremun) {
     for (int i = 0; i < AMOUNT; i++){
-        float v = (scanline[i] - extremun[1]) * 10.0 / (extremun[0] - extremun[1]);
+        float v = (scanline[i] - extremun[1]) * 100.0 / (extremun[0] - extremun[1]) - 50.0;
         softmax[i] = exp(v);
     }
 
