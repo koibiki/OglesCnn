@@ -7,7 +7,6 @@ import android.util.Log;
 
 import com.example.cnnlib.eglenv.GLES31BackEnv;
 import com.example.cnnlib.layer.ConvolutionLayer;
-import com.example.cnnlib.layer.FlatLayer;
 import com.example.cnnlib.layer.FullConnectLayer;
 import com.example.cnnlib.layer.InputLayer;
 import com.example.cnnlib.layer.Layer;
@@ -370,14 +369,6 @@ public class CnnNetwork {
                 FullConnectLayer fc = new FullConnectLayer(mContext, preLayer, kennel_amount, nonLinearType, mRootDir + parametersFile);
                 mLayers.add(fc);
                 return fc;
-            }
-        } else if (type.equalsIgnoreCase("Flat")) {
-            if (args.size() != 0) {
-                return null;
-            } else {
-                FlatLayer fl = new FlatLayer(mContext, preLayer);
-                mLayers.add(fl);
-                return fl;
             }
         } else if (type.equalsIgnoreCase("Softmax")) {
             int amount = -1;
