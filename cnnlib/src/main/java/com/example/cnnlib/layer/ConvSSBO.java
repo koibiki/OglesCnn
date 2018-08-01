@@ -1,8 +1,9 @@
 package com.example.cnnlib.layer;
 
 import android.content.Context;
+import android.text.TextUtils;
 
-import com.example.cnnlib.render.ComputeRender;
+import com.example.cnnlib.render.Render;
 import com.example.cnnlib.utils.DataUtils;
 import com.example.cnnlib.utils.NetUtils;
 import com.example.cnnlib.utils.ParamUnpacker;
@@ -11,18 +12,18 @@ import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.cnnlib.render.ComputeRender.getCompShaderLocalSizeY;
-import static com.example.cnnlib.render.ComputeRender.getCompShaderLocalSizeZ;
-import static com.example.cnnlib.render.ComputeRender.initConvolutePro;
+import static com.example.cnnlib.render.Render.getCompShaderLocalSizeY;
+import static com.example.cnnlib.render.Render.getCompShaderLocalSizeZ;
+import static com.example.cnnlib.render.Render.initConvolutePro;
 
 /**
  * 使用 ssbo 存储kennel
  * 每个计算器同时计算出输出的4个通道上的数据  17.9 ~ 19.1
  * 注意：输入,输出,kennel的通道都必须4对齐
  */
-public class ConvolutionLayer extends Layer {
+public class ConvSSBO extends Layer {
 
-    private static final String TAG = "ConvolutionLayer";
+    private static final String TAG = "ConvSSBO";
 
     private List<float[]> mKennels;
     private int[] mStrides;
@@ -32,13 +33,13 @@ public class ConvolutionLayer extends Layer {
     private int mNumGroupsY;
     private int mNumGroupsZ;
     private int[] mParams;
-    private NonLinearLayer.NonLinearType mType;
+    private NonLinear.NonLinearType mType;
     private String mKennelFilePath;
 
     private int[] mKennelBuffer = new int[1];
 
 
-    public ConvolutionLayer(Context context, Layer preLayer, int kennelAmount, int[] kennelShape, int padding, int[] strides, NonLinearLayer.NonLinearType type, String kennelFilePath) {
+    public ConvSSBO(Context context, Layer preLayer, int kennelAmount, int[] kennelShape, int padding, int[] strides, NonLinear.NonLinearType type, String kennelFilePath) {
         super(context, preLayer);
         this.mKennelShape = kennelShape;
         this.mPadding = padding;
@@ -68,12 +69,15 @@ public class ConvolutionLayer extends Layer {
 
         mShaderPro = initConvolutePro(mContext, "conv.comp", mKennelShape, mOutputShape[2], mOutputShape[0], localSizeY, localSizeZ);
         mAttachID = Layer.getDataAttachID();
-        mOutTex = ComputeRender.createTexture();
+        mOutTex = Render.createTexture();
 
-        mKennels = loadKennels();
-//        mKennels = createTestKennels();
+        if (TextUtils.isEmpty(mKennelFilePath)) {
+            mKennels = createTestKennels();
+        } else {
+            mKennels = loadKennels();
+        }
         int kennelBufSize = mKennels.get(0).length * mOutputShape[2];
-        mKennelBuffer[0] = ComputeRender.initKennelBuffer(kennelBufSize);
+        mKennelBuffer[0] = Render.initKennelBuffer(kennelBufSize);
         transferKennelToBuffer();
 
         mParams = new int[13];
@@ -117,7 +121,7 @@ public class ConvolutionLayer extends Layer {
             for (int c = 0; c < mKennelShape[2]; c++) {
                 for (int w = 0; w < mKennelShape[0]; w++) {
                     for (int h = 0; h < mKennelShape[1]; h++) {
-                        kennel[(h * mKennelShape[0] + w)* alignChannel + c] = localWeight[i][c][h][w];
+                        kennel[(h * mKennelShape[0] + w) * alignChannel + c] = localWeight[i][c][h][w];
                     }
                 }
             }
@@ -132,7 +136,7 @@ public class ConvolutionLayer extends Layer {
         for (int i = 0; i < mKennels.size(); i++) {
             float[] kennel = mKennels.get(i);
             int offset = i * kennel.length;
-            ComputeRender.transferToBuffer(FloatBuffer.wrap(kennel), mKennelBuffer[0], offset);
+            Render.transferToBuffer(FloatBuffer.wrap(kennel), mKennelBuffer[0], offset);
         }
     }
 
@@ -143,12 +147,12 @@ public class ConvolutionLayer extends Layer {
 
     @Override
     protected void bindTextureAndBuffer() {
-        ComputeRender.bindTextureAndBuffer(mOutTex, mAttachID, mKennelBuffer[0]);
+        Render.bindTextureAndBuffer(mOutTex, mAttachID, mKennelBuffer[0]);
     }
 
     @Override
     protected void actualForwardProc(float[][][] input) {
-        ComputeRender.performConvolute(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mKennelBuffer[0], mNumGroupsY, mNumGroupsZ);
+        Render.performConvolute(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mKennelBuffer[0], mNumGroupsY, mNumGroupsZ);
     }
 
 }

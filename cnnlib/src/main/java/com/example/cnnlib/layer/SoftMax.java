@@ -2,20 +2,20 @@ package com.example.cnnlib.layer;
 
 import android.content.Context;
 
-import com.example.cnnlib.render.ComputeRender;
+import com.example.cnnlib.render.Render;
 
-import static com.example.cnnlib.render.ComputeRender.getCompShaderLocalSizeY;
-import static com.example.cnnlib.render.ComputeRender.initSoftPro;
+import static com.example.cnnlib.render.Render.getCompShaderLocalSizeY;
+import static com.example.cnnlib.render.Render.initSoftPro;
 
-public class SoftMaxLayer extends Layer {
+public class SoftMax extends Layer {
 
-    private static final String TAG = "SoftMaxLayer";
+    private static final String TAG = "SoftMax";
 
     private int mShaderPro;
     private int mNumGroupsY;
     private int mAmount;
 
-    public SoftMaxLayer(Context context, Layer preLayer, int amount) {
+    public SoftMax(Context context, Layer preLayer, int amount) {
         super(context, preLayer);
         this.mAmount = amount;
         this.mOutputShape = calculateSoftShape(amount);
@@ -33,7 +33,7 @@ public class SoftMaxLayer extends Layer {
         mNumGroupsY = (int) Math.ceil(mOutputShape[1] * 1.0d / localSizeY);
         mShaderPro = initSoftPro(mContext, "softmax.comp", mAmount, mOutputShape[0], localSizeY, 1);
         mAttachID = Layer.getDataAttachID();
-        mOutTex = ComputeRender.createTexture();
+        mOutTex = Render.createTexture();
     }
 
     @Override
@@ -43,12 +43,12 @@ public class SoftMaxLayer extends Layer {
 
     @Override
     protected void bindTextureAndBuffer() {
-        ComputeRender.bindTextureAndBuffer(mOutTex, mAttachID);
+        Render.bindTextureAndBuffer(mOutTex, mAttachID);
     }
 
     @Override
     protected void actualForwardProc(float[][][] input) {
-        ComputeRender.performWithoutParams(mShaderPro, mPreLayer.getOutTex(), mOutTex, mNumGroupsY);
+        Render.performWithoutParams(mShaderPro, mPreLayer.getOutTex(), mOutTex, mNumGroupsY);
     }
 
 }

@@ -2,12 +2,12 @@ package com.example.cnnlib.layer;
 
 import android.content.Context;
 
-import com.example.cnnlib.render.ComputeRender;
+import com.example.cnnlib.render.Render;
 
-import static com.example.cnnlib.render.ComputeRender.getCompShaderLocalSizeY;
-import static com.example.cnnlib.render.ComputeRender.initCompPro;
+import static com.example.cnnlib.render.Render.getCompShaderLocalSizeY;
+import static com.example.cnnlib.render.Render.initCompPro;
 
-public class NonLinearLayer extends Layer {
+public class NonLinear extends Layer {
 
     private NonLinearType mType;
     private int mNumGroupsY;
@@ -25,7 +25,7 @@ public class NonLinearLayer extends Layer {
     }
 
 
-    public NonLinearLayer(Context context, Layer preLayer, NonLinearType type) {
+    public NonLinear(Context context, Layer preLayer, NonLinearType type) {
         super(context, preLayer);
         this.mType = type;
         this.mOutputShape = preLayer.getOutputShape();
@@ -45,7 +45,7 @@ public class NonLinearLayer extends Layer {
         mNumGroupsY = (int) Math.ceil(mOutputShape[1] * 1.0d / localSizeY);
         mShaderPro = initCompPro(mContext, csPath, mOutputShape[0], localSizeY, 1);
         mAttachID = Layer.getDataAttachID();
-        mOutTex = ComputeRender.createTexture();
+        mOutTex = Render.createTexture();
     }
 
     @Override
@@ -55,12 +55,12 @@ public class NonLinearLayer extends Layer {
 
     @Override
     protected void bindTextureAndBuffer() {
-        ComputeRender.bindTextureAndBuffer(mOutTex, mAttachID);
+        Render.bindTextureAndBuffer(mOutTex, mAttachID);
     }
 
     @Override
     protected void actualForwardProc(float[][][] input) {
-        ComputeRender.performWithoutParams(mShaderPro, mPreLayer.getOutTex(), mOutTex, mNumGroupsY);
+        Render.performWithoutParams(mShaderPro, mPreLayer.getOutTex(), mOutTex, mNumGroupsY);
     }
 
 }

@@ -2,15 +2,15 @@ package com.example.cnnlib.layer;
 
 import android.content.Context;
 
-import com.example.cnnlib.render.ComputeRender;
+import com.example.cnnlib.render.Render;
 import com.example.cnnlib.utils.Constants;
 import com.example.cnnlib.utils.NetUtils;
 
 import java.nio.FloatBuffer;
 
-public class InputLayer extends Layer {
+public class Input extends Layer {
 
-    public InputLayer(Context context, int[] shape) {
+    public Input(Context context, int[] shape) {
         super(context,null);
         this.mOutputShape = shape;
     }
@@ -18,12 +18,12 @@ public class InputLayer extends Layer {
     @Override
     public void initialize() {
         mAttachID = Layer.getDataAttachID();
-        mOutTex = ComputeRender.createTexture();
+        mOutTex = Render.createTexture();
     }
 
     @Override
     protected void bindTextureAndBuffer() {
-        ComputeRender.bindTextureAndBuffer(mOutTex, mAttachID);
+        Render.bindTextureAndBuffer(mOutTex, mAttachID);
     }
 
     @Override
@@ -55,7 +55,7 @@ public class InputLayer extends Layer {
                 }
             }
         }
-        ComputeRender.transferToTexture(FloatBuffer.wrap(localInput), texID, startX, startY, width, height);
+        Render.transferToTexture(FloatBuffer.wrap(localInput), texID, startX, startY, width, height);
     }
 
 }

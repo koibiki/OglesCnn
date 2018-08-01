@@ -58,9 +58,9 @@ import static com.example.cnnlib.utils.Constants.S_POOLING_SHADER_HEADER;
 import static com.example.cnnlib.utils.Constants.S_SOFTMAX_SHADER_HEADER;
 import static com.example.cnnlib.utils.Constants.S_TEXTURE_SIZE;
 
-public class ComputeRender {
+public class Render {
 
-    private static final String TAG = "ComputeRender";
+    private static final String TAG = "Render";
 
     private static int sConTex = -1;
 

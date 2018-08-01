@@ -1,11 +1,9 @@
 package com.example.cnnlib.utils;
 
 import com.example.cnnlib.layer.Layer;
-import com.example.cnnlib.render.ComputeRender;
+import com.example.cnnlib.render.Render;
 
 import java.nio.FloatBuffer;
-import java.util.ArrayList;
-import java.util.List;
 
 public class DataUtils {
 
@@ -42,7 +40,7 @@ public class DataUtils {
             int startX = indexes[0] * width;
             int startY = indexes[1] * height;
             FloatBuffer allocate = FloatBuffer.allocate(width * height * 4);
-            allocate = (FloatBuffer) ComputeRender.transferFromTexture(allocate, layer.getAttachID(), startX, startY, width, height);
+            allocate = (FloatBuffer) Render.transferFromTexture(allocate, layer.getAttachID(), startX, startY, width, height);
             float[] array = allocate.array();
             out = transform(out, array, width, height, i, channel);
         }

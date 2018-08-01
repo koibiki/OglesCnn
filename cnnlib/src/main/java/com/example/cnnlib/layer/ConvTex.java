@@ -2,9 +2,8 @@ package com.example.cnnlib.layer;
 
 import android.content.Context;
 import android.text.TextUtils;
-import android.view.TextureView;
 
-import com.example.cnnlib.render.ComputeRender;
+import com.example.cnnlib.render.Render;
 import com.example.cnnlib.utils.DataUtils;
 import com.example.cnnlib.utils.NetUtils;
 import com.example.cnnlib.utils.ParamUnpacker;
@@ -13,9 +12,9 @@ import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.cnnlib.render.ComputeRender.getCompShaderLocalSizeY;
-import static com.example.cnnlib.render.ComputeRender.getCompShaderLocalSizeZ;
-import static com.example.cnnlib.render.ComputeRender.initConvolutePro;
+import static com.example.cnnlib.render.Render.getCompShaderLocalSizeY;
+import static com.example.cnnlib.render.Render.getCompShaderLocalSizeZ;
+import static com.example.cnnlib.render.Render.initConvolutePro;
 
 /**
  * 使用 texture 存储kennel
@@ -34,7 +33,7 @@ public class ConvTex extends Layer {
     private int mNumGroupsY;
     private int mNumGroupsZ;
     private int[] mParams;
-    private NonLinearLayer.NonLinearType mType;
+    private NonLinear.NonLinearType mType;
     private String mKennelFilePath;
 
     private int mKennelTex;
@@ -43,7 +42,7 @@ public class ConvTex extends Layer {
     private int mStartY;
 
 
-    public ConvTex(Context context, Layer preLayer, int kennelAmount, int[] kennelShape, int padding, int[] strides, NonLinearLayer.NonLinearType type, String kennelFilePath) {
+    public ConvTex(Context context, Layer preLayer, int kennelAmount, int[] kennelShape, int padding, int[] strides, NonLinear.NonLinearType type, String kennelFilePath) {
         super(context, preLayer);
         this.mKennelShape = kennelShape;
         this.mPadding = padding;
@@ -73,10 +72,10 @@ public class ConvTex extends Layer {
 
         mShaderPro = initConvolutePro(mContext, "conv_tex.comp", mKennelShape, mOutputShape[2], mOutputShape[0], localSizeY, localSizeZ);
         mAttachID = Layer.getDataAttachID();
-        mOutTex = ComputeRender.createTexture();
+        mOutTex = Render.createTexture();
 
         mKennelAttachId = Layer.getConvKennelAttachID();
-        mKennelTex = ComputeRender.getConvKennelTexture();
+        mKennelTex = Render.getConvKennelTexture();
 
         mStartY = Layer.getConvStartY(mOutputShape[1]);
         if (TextUtils.isEmpty(mKennelFilePath)) {
@@ -139,11 +138,11 @@ public class ConvTex extends Layer {
     }
 
     private void transferKennelToTex() {
-        ComputeRender.bindTextureAndBuffer(mKennelTex, mKennelAttachId);
+        Render.bindTextureAndBuffer(mKennelTex, mKennelAttachId);
         for (int i = 0; i < mKennels.size(); i++) {
             float[] kennel = mKennels.get(i);
             int width = kennel.length / 4;
-            ComputeRender.transferToTexture(FloatBuffer.wrap(kennel), mKennelTex, 0, mStartY + i, width, 1);
+            Render.transferToTexture(FloatBuffer.wrap(kennel), mKennelTex, 0, mStartY + i, width, 1);
         }
     }
 
@@ -154,12 +153,12 @@ public class ConvTex extends Layer {
 
     @Override
     protected void bindTextureAndBuffer() {
-        ComputeRender.bindTextureAndBuffer(mOutTex, mAttachID);
+        Render.bindTextureAndBuffer(mOutTex, mAttachID);
     }
 
     @Override
     protected void actualForwardProc(float[][][] input) {
-        ComputeRender.performConvolute(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mKennelTex, mNumGroupsY, mNumGroupsZ);
+        Render.performConvolute(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mKennelTex, mNumGroupsY, mNumGroupsZ);
     }
 
 }

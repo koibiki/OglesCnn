@@ -6,13 +6,13 @@ import android.os.Environment;
 import android.util.Log;
 
 import com.example.cnnlib.eglenv.GLES31BackEnv;
-import com.example.cnnlib.layer.ConvolutionLayer;
-import com.example.cnnlib.layer.FullConnectLayer;
-import com.example.cnnlib.layer.InputLayer;
+import com.example.cnnlib.layer.ConvSSBO;
+import com.example.cnnlib.layer.FullConnSSBO;
+import com.example.cnnlib.layer.Input;
 import com.example.cnnlib.layer.Layer;
-import com.example.cnnlib.layer.NonLinearLayer;
-import com.example.cnnlib.layer.PoolingLayer;
-import com.example.cnnlib.layer.SoftMaxLayer;
+import com.example.cnnlib.layer.NonLinear;
+import com.example.cnnlib.layer.Pooling;
+import com.example.cnnlib.layer.SoftMax;
 import com.example.cnnlib.utils.DataUtils;
 
 import java.io.File;
@@ -268,7 +268,7 @@ public class CnnNetwork {
             if (width == -1 || height == -1 || channel == -1) {
                 return null;
             } else {
-                InputLayer in = new InputLayer(mContext, new int[]{width, height, channel});
+                Input in = new Input(mContext, new int[]{width, height, channel});
                 mLayers.add(in);
                 return in;
             }
@@ -280,7 +280,7 @@ public class CnnNetwork {
             int kennel_width = -1;
             int kennel_height = -1;
             int kennel_channel = -1;
-            NonLinearLayer.NonLinearType nonLinearType = NonLinearLayer.NonLinearType.NONE;
+            NonLinear.NonLinearType nonLinearType = NonLinear.NonLinearType.NONE;
             for (int i = 0; i < args.size(); ++i) {
                 String tempArg = args.get(i);
                 String tempValue = values.get(i);
@@ -300,7 +300,7 @@ public class CnnNetwork {
                     kennel_channel = Integer.parseInt(tempValue);
                 } else if (tempArg.equalsIgnoreCase("active")) {
                     if ("ReLU".equalsIgnoreCase(tempValue)) {
-                        nonLinearType = NonLinearLayer.NonLinearType.RELU;
+                        nonLinearType = NonLinear.NonLinearType.RELU;
                     }
                 } else {
                     return null;
@@ -310,7 +310,7 @@ public class CnnNetwork {
                     kennel_width == -1 || kennel_height == -1 || kennel_channel == -1) {
                 return null;
             } else {
-                ConvolutionLayer c = new ConvolutionLayer(mContext, preLayer, kennel_amount, new int[]{kennel_width, kennel_height, kennel_channel}, pad, new int[]{stride, stride},
+                ConvSSBO c = new ConvSSBO(mContext, preLayer, kennel_amount, new int[]{kennel_width, kennel_height, kennel_channel}, pad, new int[]{stride, stride},
                         nonLinearType, mRootDir + parametersFile);
                 mLayers.add(c);
                 return c;
@@ -338,7 +338,7 @@ public class CnnNetwork {
             if (pool == null || pad == -1 || stride == -1 || kernelSize == -1) {
                 return null;
             } else {
-                PoolingLayer p = new PoolingLayer(mContext, preLayer, new int[]{kernelSize, kernelSize},
+                Pooling p = new Pooling(mContext, preLayer, new int[]{kernelSize, kernelSize},
                         new int[]{stride, stride});
                 mLayers.add(p);
                 return p;
@@ -346,7 +346,7 @@ public class CnnNetwork {
         } else if (type.equalsIgnoreCase("FullyConnected")) {
             String parametersFile = null;
             int kennel_amount = -1;
-            NonLinearLayer.NonLinearType nonLinearType = NonLinearLayer.NonLinearType.NONE;
+            NonLinear.NonLinearType nonLinearType = NonLinear.NonLinearType.NONE;
             for (int i = 0; i < args.size(); ++i) {
                 String tempArg = args.get(i);
                 String tempValue = values.get(i);
@@ -357,7 +357,7 @@ public class CnnNetwork {
 
                 } else if (tempArg.equalsIgnoreCase("active")) {
                     if ("ReLU".equalsIgnoreCase(tempValue)) {
-                        nonLinearType = NonLinearLayer.NonLinearType.RELU;
+                        nonLinearType = NonLinear.NonLinearType.RELU;
                     } else {
                         return null;
                     }
@@ -366,7 +366,7 @@ public class CnnNetwork {
             if (parametersFile == null || kennel_amount == -1) {
                 return null;
             } else {
-                FullConnectLayer fc = new FullConnectLayer(mContext, preLayer, kennel_amount, nonLinearType, mRootDir + parametersFile);
+                FullConnSSBO fc = new FullConnSSBO(mContext, preLayer, kennel_amount, nonLinearType, mRootDir + parametersFile);
                 mLayers.add(fc);
                 return fc;
             }
@@ -382,7 +382,7 @@ public class CnnNetwork {
             if (amount == -1) {
                 return null;
             } else {
-                SoftMaxLayer sm = new SoftMaxLayer(mContext, preLayer, amount);
+                SoftMax sm = new SoftMax(mContext, preLayer, amount);
                 mLayers.add(sm);
                 return sm;
             }

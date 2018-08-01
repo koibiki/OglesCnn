@@ -2,11 +2,11 @@ package com.example.cnnlib.layer;
 
 import android.content.Context;
 
-import com.example.cnnlib.render.ComputeRender;
+import com.example.cnnlib.render.Render;
 
-import static com.example.cnnlib.render.ComputeRender.getCompShaderLocalSizeY;
-import static com.example.cnnlib.render.ComputeRender.getCompShaderLocalSizeZ;
-import static com.example.cnnlib.render.ComputeRender.initCompPro;
+import static com.example.cnnlib.render.Render.getCompShaderLocalSizeY;
+import static com.example.cnnlib.render.Render.getCompShaderLocalSizeZ;
+import static com.example.cnnlib.render.Render.initCompPro;
 
 /**
  * 输出维度的channel 需要 4 对齐
@@ -21,14 +21,14 @@ import static com.example.cnnlib.render.ComputeRender.initCompPro;
  * t.y = pos.y
  * t.index = pos.z
  */
-public class FlatLayer extends Layer {
+public class Flat extends Layer {
 
     private int mShaderPro;
     private int[] mParams;
     private int mNumGroupsY;
     private int mNumGroupsZ;
 
-    public FlatLayer(Context context, Layer preLayer) {
+    public Flat(Context context, Layer preLayer) {
         super(context, preLayer);
         this.mOutputShape = calculateFlatShape();
     }
@@ -58,7 +58,7 @@ public class FlatLayer extends Layer {
 
         mShaderPro = initCompPro(mContext, "flat.comp", inputShape[0], localSizeY, localSizeZ);
         mAttachID = Layer.getDataAttachID();
-        mOutTex = ComputeRender.createTexture();
+        mOutTex = Render.createTexture();
 
         mParams = new int[10];
         mParams[0] = inputShape[0];
@@ -77,12 +77,12 @@ public class FlatLayer extends Layer {
 
     @Override
     protected void bindTextureAndBuffer() {
-        ComputeRender.bindTextureAndBuffer(mOutTex, mAttachID);
+        Render.bindTextureAndBuffer(mOutTex, mAttachID);
     }
 
     @Override
     protected void actualForwardProc(float[][][] input) {
-        ComputeRender.performWithIntParams(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mNumGroupsY, mNumGroupsZ);
+        Render.performWithIntParams(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mNumGroupsY, mNumGroupsZ);
     }
 
 }
