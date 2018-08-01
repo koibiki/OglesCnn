@@ -62,6 +62,8 @@ public class ComputeRender {
 
     private static final String TAG = "ComputeRender";
 
+    private static int sConTex = -1;
+
     public static int getMaxDrawBuffers() {
         int[] maxBuffer = new int[1];
         glGetIntegerv(GL_MAX_DRAW_BUFFERS, maxBuffer, 0);
@@ -124,7 +126,14 @@ public class ComputeRender {
     }
 
     public static int createTexture() {
-        return createTexture(S_TEXTURE_SIZE,S_TEXTURE_SIZE);
+        return createTexture(S_TEXTURE_SIZE, S_TEXTURE_SIZE);
+    }
+
+    public static int getConvKennelTexture() {
+        if (sConTex == -1) {
+            sConTex = createTexture(8192, 8192);
+        }
+        return sConTex;
     }
 
     public static int createTexture(int width, int height) {
@@ -155,9 +164,10 @@ public class ComputeRender {
         glUseProgram(compProg);
         glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
 
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffer);
+//        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffer);
         glBindImageTexture(0, inTex, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
         glBindImageTexture(1, outTex, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
+        glBindImageTexture(2, buffer, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
 
         glDispatchCompute(1, numGroupsY, numGroupsZ);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);

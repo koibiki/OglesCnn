@@ -11,19 +11,30 @@ public abstract class Layer {
     protected int mOutTex;
     protected int mAttachID;
 
-    private static int mCurrentDataId = 7;
+    private static int sStartY = 0;
+
+    private static int mCurrentDataId = 6;
 
     protected static int getDataAttachID() {
         mCurrentDataId++;
-        return mCurrentDataId % 8;
+        return mCurrentDataId % 7;
     }
+
+    public static int getConvKennelAttachID() {
+        return 7;
+    }
+
+    public static int getConvStartY(int ySize) {
+        int startY = sStartY;
+        sStartY += ySize;
+        return startY;
+    }
+
 
     public Layer(Context context, Layer preLayer) {
         this.mContext = context;
         this.mPreLayer = preLayer;
     }
-
-
 
 
     public int getAttachID() {
