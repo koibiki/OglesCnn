@@ -29,10 +29,10 @@ public class FullConnSSBO extends Layer {
 
     private int[] mParams;
 
-    private NonLinear.NonLinearType mType;
+    private NonLinear.Type mType;
     private int[] mKennelBuffer = new int[1];
 
-    public FullConnSSBO(Context context, Layer preLayer, int kennelAmount, NonLinear.NonLinearType type, String paramFilePath) {
+    public FullConnSSBO(Context context, Layer preLayer, int kennelAmount, NonLinear.Type type, String paramFilePath) {
         super(context, preLayer);
         this.mKennelAmount = kennelAmount;
         this.mType = type;

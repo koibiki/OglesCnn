@@ -33,13 +33,13 @@ public class ConvSSBO extends Layer {
     private int mNumGroupsY;
     private int mNumGroupsZ;
     private int[] mParams;
-    private NonLinear.NonLinearType mType;
+    private NonLinear.Type mType;
     private String mKennelFilePath;
 
     private int[] mKennelBuffer = new int[1];
 
 
-    public ConvSSBO(Context context, Layer preLayer, int kAmount, int k_w, int k_h, int pad, int stride_w, int stride_h, NonLinear.NonLinearType type, String kennelFilePath) {
+    public ConvSSBO(Context context, Layer preLayer, int kAmount, int k_w, int k_h, int pad, int stride_w, int stride_h, NonLinear.Type type, String kennelFilePath) {
         super(context, preLayer);
         this.mKennelShape = new int[]{k_w, k_h, preLayer.getOutputShape()[2]};
         this.mPadding = pad;

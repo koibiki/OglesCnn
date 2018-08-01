@@ -33,7 +33,7 @@ public class ConvTex extends Layer {
     private int mNumGroupsY;
     private int mNumGroupsZ;
     private int[] mParams;
-    private NonLinear.NonLinearType mType;
+    private NonLinear.Type mType;
     private String mKennelFilePath;
 
     private int mKennelTex;
@@ -42,7 +42,7 @@ public class ConvTex extends Layer {
     private int mStartY;
 
 
-    public ConvTex(Context context, Layer preLayer, int kennelAmount, int[] kennelShape, int pad, int[] strides, NonLinear.NonLinearType type, String kennelFilePath) {
+    public ConvTex(Context context, Layer preLayer, int kennelAmount, int[] kennelShape, int pad, int[] strides, NonLinear.Type type, String kennelFilePath) {
         super(context, preLayer);
         this.mKennelShape = kennelShape;
         this.mPadding = pad;

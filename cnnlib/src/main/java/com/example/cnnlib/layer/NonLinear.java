@@ -9,23 +9,23 @@ import static com.example.cnnlib.render.Render.initCompPro;
 
 public class NonLinear extends Layer {
 
-    private NonLinearType mType;
+    private Type mType;
     private int mNumGroupsY;
     private int mShaderPro;
 
-    public enum NonLinearType {
+    public enum Type {
         RELU(0), SIGMOID(1), TANH(2), NONE(-1);
 
         public int index;
 
-        NonLinearType(int index) {
+        Type(int index) {
             this.index = index;
         }
 
     }
 
 
-    public NonLinear(Context context, Layer preLayer, NonLinearType type) {
+    public NonLinear(Context context, Layer preLayer, Type type) {
         super(context, preLayer);
         this.mType = type;
         this.mOutputShape = preLayer.getOutputShape();
@@ -33,11 +33,11 @@ public class NonLinear extends Layer {
 
     private void initNonlinear() {
         String csPath = null;
-        if (mType == NonLinearType.RELU) {
+        if (mType == Type.RELU) {
             csPath = "relu.comp";
-        } else if (mType == NonLinearType.SIGMOID) {
+        } else if (mType == Type.SIGMOID) {
             csPath = "sigmoid.comp";
-        } else if (mType == NonLinearType.TANH) {
+        } else if (mType == Type.TANH) {
             csPath = "tanh.comp";
         }
 

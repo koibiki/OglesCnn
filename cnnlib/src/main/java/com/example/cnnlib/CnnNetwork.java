@@ -280,7 +280,7 @@ public class CnnNetwork {
             int kennel_width = -1;
             int kennel_height = -1;
             int kennel_channel = -1;
-            NonLinear.NonLinearType nonLinearType = NonLinear.NonLinearType.NONE;
+            NonLinear.Type nonLinearType = NonLinear.Type.NONE;
             for (int i = 0; i < args.size(); ++i) {
                 String tempArg = args.get(i);
                 String tempValue = values.get(i);
@@ -300,7 +300,7 @@ public class CnnNetwork {
                     kennel_channel = Integer.parseInt(tempValue);
                 } else if (tempArg.equalsIgnoreCase("active")) {
                     if ("ReLU".equalsIgnoreCase(tempValue)) {
-                        nonLinearType = NonLinear.NonLinearType.RELU;
+                        nonLinearType = NonLinear.Type.RELU;
                     }
                 } else {
                     return null;
@@ -345,7 +345,7 @@ public class CnnNetwork {
         } else if (type.equalsIgnoreCase("FullyConnected")) {
             String parametersFile = null;
             int kennel_amount = -1;
-            NonLinear.NonLinearType nonLinearType = NonLinear.NonLinearType.NONE;
+            NonLinear.Type nonLinearType = NonLinear.Type.NONE;
             for (int i = 0; i < args.size(); ++i) {
                 String tempArg = args.get(i);
                 String tempValue = values.get(i);
@@ -356,7 +356,7 @@ public class CnnNetwork {
 
                 } else if (tempArg.equalsIgnoreCase("active")) {
                     if ("ReLU".equalsIgnoreCase(tempValue)) {
-                        nonLinearType = NonLinear.NonLinearType.RELU;
+                        nonLinearType = NonLinear.Type.RELU;
                     } else {
                         return null;
                     }

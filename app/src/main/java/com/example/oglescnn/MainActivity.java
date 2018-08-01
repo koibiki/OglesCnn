@@ -39,13 +39,13 @@ public class MainActivity extends AppCompatActivity {
         Layer in = new Input(this, 32, 32, 3);
         mCnnNetwork.addLayer(in);
 
-        Layer conv1 = new ConvSSBO(this, in, 6, 5, 5, 2, 1, 1, NonLinear.NonLinearType.RELU, "");
+        Layer conv1 = new ConvSSBO(this, in, 6, 5, 5, 2, 1, 1, NonLinear.Type.RELU, "");
         mCnnNetwork.addLayer(conv1);
 
         Layer pool1 = new Pooling(this, conv1, 2, 2, 2, 2);
         mCnnNetwork.addLayer(pool1);
 
-        Layer conv2 = new ConvSSBO(this, pool1, 16, 5, 5, 2, 1, 1, NonLinear.NonLinearType.RELU, "");
+        Layer conv2 = new ConvSSBO(this, pool1, 16, 5, 5, 2, 1, 1, NonLinear.Type.RELU, "");
         mCnnNetwork.addLayer(conv2);
 
         mCnnNetwork.initialize();
@@ -58,13 +58,13 @@ public class MainActivity extends AppCompatActivity {
         Layer in = new Input(this, 32, 32, 1);
         mCnnNetwork.addLayer(in);
 
-        Layer conv1 = new ConvSSBO(this, in, 6, 5, 5, 0, 1, 1, NonLinear.NonLinearType.RELU, "");
+        Layer conv1 = new ConvSSBO(this, in, 6, 5, 5, 0, 1, 1, NonLinear.Type.RELU, "");
         mCnnNetwork.addLayer(conv1);
 
         Layer pool1 = new Pooling(this, conv1, 2, 2, 2, 2);
         mCnnNetwork.addLayer(pool1);
 
-        Layer conv2 = new ConvSSBO(this, pool1, 16, 5, 5, 0, 1, 1, NonLinear.NonLinearType.RELU, "");
+        Layer conv2 = new ConvSSBO(this, pool1, 16, 5, 5, 0, 1, 1, NonLinear.Type.RELU, "");
         mCnnNetwork.addLayer(conv2);
 
         Layer pool2 = new Pooling(this, conv2, 2, 2, 2, 2);
@@ -73,10 +73,10 @@ public class MainActivity extends AppCompatActivity {
         Layer flat = new Flat(this, pool2);
         mCnnNetwork.addLayer(flat);
 
-        Layer full1 = new FullConnSSBO(this, flat, 120, NonLinear.NonLinearType.RELU, "");
+        Layer full1 = new FullConnSSBO(this, flat, 120, NonLinear.Type.RELU, "");
         mCnnNetwork.addLayer(full1);
 
-        Layer full2 = new FullConnSSBO(this, full1, 10, NonLinear.NonLinearType.RELU, "");
+        Layer full2 = new FullConnSSBO(this, full1, 10, NonLinear.Type.RELU, "");
         mCnnNetwork.addLayer(full2);
 
         Layer softmax = new SoftMax(this, full2, 10);
