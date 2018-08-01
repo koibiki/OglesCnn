@@ -24,7 +24,7 @@ public class FullConnSSBO extends Layer {
 
     private List<float[]> mKennels;
     private int mShaderPro;
-    private int mKennelAmount;                      // kennel 个数
+    private int mKennelAmount;
     private String mParamFilePath;
 
     private int[] mParams;
@@ -54,9 +54,9 @@ public class FullConnSSBO extends Layer {
 
     private void initFullConnect() {
         int[] inputShape = mPreLayer.getOutputShape();
-        int kennelSize = inputShape[0] * inputShape[1] * inputShape[2] + 1;
+        int kennelSize = inputShape[0] * inputShape[1] * inputShape[2];
         int alignKennelSize =
-                NetUtils.alignBy4(inputShape[0] * inputShape[1] * inputShape[2]) + 1;
+                inputShape[0] * inputShape[1] * NetUtils.alignBy4(inputShape[2]) + 4;
         mShaderPro = initFullConnPro(mContext, "full_connect.comp", alignKennelSize, mKennelAmount, mOutputShape[0], 1, 1);
         mAttachID = Layer.getDataAttachID();
         mOutTex = Render.createTexture();
@@ -64,7 +64,7 @@ public class FullConnSSBO extends Layer {
 
         int kennelBufSize = alignKennelSize * mKennelAmount;
         if (TextUtils.isEmpty(mParamFilePath)) {
-            mKennels = createKennels(alignKennelSize, kennelSize);
+            mKennels = createKennels(alignKennelSize);
         } else {
             mKennels = loadKennels(kennelSize, alignKennelSize);
         }
@@ -72,7 +72,7 @@ public class FullConnSSBO extends Layer {
         mKennelBuffer[0] = Render.initKennelBuffer(kennelBufSize);
         transferKennelToBuffer();
 
-        mParams = new int[8];
+        mParams = new int[7];
         mParams[0] = inputShape[0];
         mParams[1] = inputShape[1];
         mParams[2] = inputShape[2];
@@ -80,11 +80,6 @@ public class FullConnSSBO extends Layer {
         mParams[4] = mOutputShape[1];
         mParams[5] = mOutputShape[2];
         mParams[6] = mType.index;
-        if (mPreLayer instanceof FullConnSSBO) {
-            mParams[7] = 0;
-        } else {
-            mParams[7] = 1;
-        }
     }
 
     private List<float[]> loadKennels(int kennelSize, int alignKennelSize) {
@@ -102,7 +97,7 @@ public class FullConnSSBO extends Layer {
                 int wIndex = i * wSize + s;
                 kennel[s] = weight[wIndex];
             }
-            kennel[alignKennelSize - 1] = bias[i];
+            kennel[alignKennelSize - 4] = bias[i];
             kennels.add(kennel);
         }
         return kennels;
@@ -116,10 +111,10 @@ public class FullConnSSBO extends Layer {
         }
     }
 
-    private List<float[]> createKennels(int alignSize, int kennelSize) {
+    private List<float[]> createKennels(int alignSize) {
         List<float[]> kennels = new ArrayList<>();
         for (int i = 0; i < mKennelAmount; i++) {
-            float[] kennel = DataUtils.createFullConnKennel(alignSize, kennelSize, i);
+            float[] kennel = DataUtils.createFullConnKennel(alignSize, mPreLayer.getOutputShape(), i);
             kennels.add(kennel);
         }
         return kennels;

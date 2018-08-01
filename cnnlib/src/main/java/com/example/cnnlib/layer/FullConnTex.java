@@ -23,8 +23,8 @@ public class FullConnTex extends Layer {
     private static final String TAG = "FullConnSSBO";
 
     private List<float[]> mKennels;
-    private int mShaderPro;
-    private int mKennelAmount;                      // kennel 个数
+    private int mPro;
+    private int mKennelAmount;
     private String mParamFilePath;
 
     private int[] mParams;
@@ -44,10 +44,7 @@ public class FullConnTex extends Layer {
     }
 
     private int[] calculateFullShape(int kennelAmount) {
-        int width = (int) Math.ceil(kennelAmount * 1.0f / 4);
-        int height = 1;
-        int channel = 4;
-        return new int[]{width, height, channel};
+        return new int[]{1, 1, kennelAmount};
     }
 
     @Override
@@ -59,8 +56,8 @@ public class FullConnTex extends Layer {
         int[] inputShape = mPreLayer.getOutputShape();
         int kennelSize = inputShape[0] * inputShape[1] * inputShape[2] + 1;
         int alignKennelSize =
-                NetUtils.alignBy4(inputShape[0] * inputShape[1] * inputShape[2]) + 1;
-        mShaderPro = initFullConnPro(mContext, "full_conn_tex.comp", alignKennelSize, mKennelAmount, mOutputShape[0], 1, 1);
+                NetUtils.alignBy4(inputShape[0] * inputShape[1] * inputShape[2]) + 4;
+        mPro = initFullConnPro(mContext, "full_conn_tex.comp", alignKennelSize, mKennelAmount, mOutputShape[0], 1, 1);
         mAttachID = Layer.getDataAttachID();
         mOutTex = Render.createTexture();
 
@@ -70,7 +67,7 @@ public class FullConnTex extends Layer {
 
         mStartY = Layer.getConvStartY(mKennelAmount);
         if (TextUtils.isEmpty(mParamFilePath)) {
-            mKennels = createKennels(alignKennelSize, kennelSize);
+            mKennels = createKennels(alignKennelSize);
         } else {
             mKennels = loadKennels(kennelSize, alignKennelSize);
         }
@@ -106,24 +103,24 @@ public class FullConnTex extends Layer {
                 int wIndex = i * wSize + s;
                 kennel[s] = weight[wIndex];
             }
-            kennel[alignKennelSize - 1] = bias[i];
+            kennel[alignKennelSize - 4] = bias[i];
             kennels.add(kennel);
         }
         return kennels;
     }
 
     private void transferKennelToTex() {
+        Render.bindTextureAndBuffer(mKennelTex, mKennelAttachId);
         for (int i = 0; i < mKennels.size(); i++) {
             float[] kennel = mKennels.get(i);
-            int offset = i * kennel.length;
-            Render.transferToBuffer(FloatBuffer.wrap(kennel), mKennelTex, offset);
+            Render.transferToTexture(FloatBuffer.wrap(kennel), mKennelTex, 0, mStartY + i, kennel.length / 4, 1);
         }
     }
 
-    private List<float[]> createKennels(int alignSize, int kennelSize) {
+    private List<float[]> createKennels(int alignSize) {
         List<float[]> kennels = new ArrayList<>();
         for (int i = 0; i < mKennelAmount; i++) {
-            float[] kennel = DataUtils.createFullConnKennel(alignSize, kennelSize, i);
+            float[] kennel = DataUtils.createFullConnKennel(alignSize, mPreLayer.getOutputShape(), i);
             kennels.add(kennel);
         }
         return kennels;
@@ -136,7 +133,7 @@ public class FullConnTex extends Layer {
 
     @Override
     protected void actualForwardProc(float[][][] input) {
-        Render.performFullConnectTex(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mKennelTex);
+        Render.performFullConnectTex(mPro, mParams, mPreLayer.getOutTex(), mOutTex, mKennelTex);
     }
 
 }

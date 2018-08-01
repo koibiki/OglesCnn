@@ -11,7 +11,7 @@ public class DataUtils {
 
     /**
      * 测试用输入数据
-     * */
+     */
     public static float[][][] createInputBuffer(int[] shape) {
         int channel = shape[2];
         int width = shape[0];
@@ -49,7 +49,7 @@ public class DataUtils {
 
     /**
      * 标准化输出
-     * */
+     */
     private static float[][][] transform(float[][][] out, float[] array, int width, int height, int index, int channel) {
         for (int c = 0; c < 4; c++) {
             if (4 * index + c < channel) {
@@ -65,13 +65,15 @@ public class DataUtils {
 
     /**
      * 测试用全连接 kennel
-     * */
-    public static float[] createFullConnKennel(int alignSize, int kennelSize, int index) {
+     */
+    public static float[] createFullConnKennel(int alignSize, int[] inputShape, int index) {
         float[] kennel = new float[alignSize];       // 最后一位是bias
-        for (int i = 0; i < kennelSize - 1; i++) {
-            kennel[i] = i ;
+        for (int i = 0; i < inputShape[0] * inputShape[1]; i++) {
+            for (int j = 0; j < inputShape[2]; j++) {
+                kennel[inputShape[0] * inputShape[1] * j + i] = j;
+            }
         }
-        kennel[alignSize - 1] = 1;
+        kennel[alignSize - 4] = 1;
         return kennel;
     }
 
