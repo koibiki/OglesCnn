@@ -18,10 +18,10 @@ public class Pooling extends Layer {
     private int mNumGroupsZ;
 
 
-    public Pooling(Context context, Layer preLayer, int[] ksize, int[] strides) {
+    public Pooling(Context context, Layer preLayer, int k_w, int k_h, int stride_w, int stride_h) {
         super(context, preLayer);
-        this.mKsize = ksize;
-        this.mStrides = strides;
+        this.mKsize = new int[]{k_w, k_h};
+        this.mStrides = new int[]{stride_w, stride_h};
         this.mOutputShape = calculatePoolingShape();
     }
 

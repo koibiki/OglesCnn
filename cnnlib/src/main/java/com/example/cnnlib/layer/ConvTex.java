@@ -42,10 +42,10 @@ public class ConvTex extends Layer {
     private int mStartY;
 
 
-    public ConvTex(Context context, Layer preLayer, int kennelAmount, int[] kennelShape, int padding, int[] strides, NonLinear.NonLinearType type, String kennelFilePath) {
+    public ConvTex(Context context, Layer preLayer, int kennelAmount, int[] kennelShape, int pad, int[] strides, NonLinear.NonLinearType type, String kennelFilePath) {
         super(context, preLayer);
         this.mKennelShape = kennelShape;
-        this.mPadding = padding;
+        this.mPadding = pad;
         this.mStrides = strides;
         this.mType = type;
         this.mOutputShape = calculateConvShape(kennelAmount);

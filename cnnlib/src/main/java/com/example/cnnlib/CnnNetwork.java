@@ -268,7 +268,7 @@ public class CnnNetwork {
             if (width == -1 || height == -1 || channel == -1) {
                 return null;
             } else {
-                Input in = new Input(mContext, new int[]{width, height, channel});
+                Input in = new Input(mContext, width, height, channel);
                 mLayers.add(in);
                 return in;
             }
@@ -310,7 +310,7 @@ public class CnnNetwork {
                     kennel_width == -1 || kennel_height == -1 || kennel_channel == -1) {
                 return null;
             } else {
-                ConvSSBO c = new ConvSSBO(mContext, preLayer, kennel_amount, new int[]{kennel_width, kennel_height, kennel_channel}, pad, new int[]{stride, stride},
+                ConvSSBO c = new ConvSSBO(mContext, preLayer, kennel_amount, kennel_width, kennel_height, pad, stride, stride,
                         nonLinearType, mRootDir + parametersFile);
                 mLayers.add(c);
                 return c;
@@ -338,8 +338,7 @@ public class CnnNetwork {
             if (pool == null || pad == -1 || stride == -1 || kernelSize == -1) {
                 return null;
             } else {
-                Pooling p = new Pooling(mContext, preLayer, new int[]{kernelSize, kernelSize},
-                        new int[]{stride, stride});
+                Pooling p = new Pooling(mContext, preLayer, kernelSize, kernelSize, stride, stride);
                 mLayers.add(p);
                 return p;
             }

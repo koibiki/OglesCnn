@@ -10,9 +10,9 @@ import java.nio.FloatBuffer;
 
 public class Input extends Layer {
 
-    public Input(Context context, int[] shape) {
-        super(context,null);
-        this.mOutputShape = shape;
+    public Input(Context context, int w, int h, int c) {
+        super(context, null);
+        this.mOutputShape = new int[]{w, h, c};
     }
 
     @Override
