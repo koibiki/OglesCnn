@@ -158,7 +158,7 @@ public class ConvTex extends Layer {
 
     @Override
     protected void actualForwardProc(float[][][] input) {
-        Render.performConvolute(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mKennelTex, mNumGroupsY, mNumGroupsZ);
+        Render.performConvoluteTex(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mKennelTex, mNumGroupsY, mNumGroupsZ);
     }
 
 }

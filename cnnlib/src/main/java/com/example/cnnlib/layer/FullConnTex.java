@@ -18,7 +18,7 @@ import static com.example.cnnlib.render.Render.initFullConnPro;
  * 全连接前接 flat 或 全连接层 kennel 个数不超过4096
  * 全连接层的 输入 输出 的channel 和 kennel 都需要 4 对齐
  */
-public class FullConnSSBO extends Layer {
+public class FullConnTex extends Layer {
 
     private static final String TAG = "FullConnSSBO";
 
@@ -30,9 +30,12 @@ public class FullConnSSBO extends Layer {
     private int[] mParams;
 
     private NonLinear.Type mType;
-    private int[] mKennelBuffer = new int[1];
 
-    public FullConnSSBO(Context context, Layer preLayer, int kennelAmount, NonLinear.Type type, String paramFilePath) {
+    private int mStartY;
+    private int mKennelAttachId;
+    private int mKennelTex;
+
+    public FullConnTex(Context context, Layer preLayer, int kennelAmount, NonLinear.Type type, String paramFilePath) {
         super(context, preLayer);
         this.mKennelAmount = kennelAmount;
         this.mType = type;
@@ -57,20 +60,21 @@ public class FullConnSSBO extends Layer {
         int kennelSize = inputShape[0] * inputShape[1] * inputShape[2] + 1;
         int alignKennelSize =
                 NetUtils.alignBy4(inputShape[0] * inputShape[1] * inputShape[2]) + 1;
-        mShaderPro = initFullConnPro(mContext, "full_connect.comp", alignKennelSize, mKennelAmount, mOutputShape[0], 1, 1);
+        mShaderPro = initFullConnPro(mContext, "full_conn_tex.comp", alignKennelSize, mKennelAmount, mOutputShape[0], 1, 1);
         mAttachID = Layer.getDataAttachID();
         mOutTex = Render.createTexture();
 
+        mKennelAttachId = Layer.getConvKennelAttachID();
+        mKennelTex = Render.getConvKennelTexture();
 
-        int kennelBufSize = alignKennelSize * mKennelAmount;
+
+        mStartY = Layer.getConvStartY(mKennelAmount);
         if (TextUtils.isEmpty(mParamFilePath)) {
             mKennels = createKennels(alignKennelSize, kennelSize);
         } else {
             mKennels = loadKennels(kennelSize, alignKennelSize);
         }
-
-        mKennelBuffer[0] = Render.initKennelBuffer(kennelBufSize);
-        transferKennelToBuffer();
+        transferKennelToTex();
 
         mParams = new int[8];
         mParams[0] = inputShape[0];
@@ -80,7 +84,7 @@ public class FullConnSSBO extends Layer {
         mParams[4] = mOutputShape[1];
         mParams[5] = mOutputShape[2];
         mParams[6] = mType.index;
-        if (mPreLayer instanceof FullConnSSBO) {
+        if (mPreLayer instanceof FullConnTex) {
             mParams[7] = 0;
         } else {
             mParams[7] = 1;
@@ -108,11 +112,11 @@ public class FullConnSSBO extends Layer {
         return kennels;
     }
 
-    private void transferKennelToBuffer() {
+    private void transferKennelToTex() {
         for (int i = 0; i < mKennels.size(); i++) {
             float[] kennel = mKennels.get(i);
             int offset = i * kennel.length;
-            Render.transferToBuffer(FloatBuffer.wrap(kennel), mKennelBuffer[0], offset);
+            Render.transferToBuffer(FloatBuffer.wrap(kennel), mKennelTex, offset);
         }
     }
 
@@ -127,12 +131,12 @@ public class FullConnSSBO extends Layer {
 
     @Override
     protected void bindTextureAndBuffer() {
-        Render.bindTextureAndBuffer(mOutTex, mAttachID, mKennelBuffer[0]);
+        Render.bindTextureAndBuffer(mOutTex, mAttachID);
     }
 
     @Override
     protected void actualForwardProc(float[][][] input) {
-        Render.performFullConnectSSBO(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mKennelBuffer[0]);
+        Render.performFullConnectTex(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mKennelTex);
     }
 
 }

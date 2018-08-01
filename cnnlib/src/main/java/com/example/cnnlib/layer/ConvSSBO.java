@@ -152,7 +152,7 @@ public class ConvSSBO extends Layer {
 
     @Override
     protected void actualForwardProc(float[][][] input) {
-        Render.performConvolute(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mKennelBuffer[0], mNumGroupsY, mNumGroupsZ);
+        Render.performConvoluteSSBO(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mKennelBuffer[0], mNumGroupsY, mNumGroupsZ);
     }
 
 }
