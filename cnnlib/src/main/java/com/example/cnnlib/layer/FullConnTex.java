@@ -17,6 +17,7 @@ import static com.example.cnnlib.render.Render.initFullConnPro;
 /**
  * 全连接前接 flat 或 全连接层 kennel 个数不超过4096
  * 全连接层的 输入 输出 的channel 和 kennel 都需要 4 对齐
+ * kennel 存储次序为 按截面坐标顺序 依次填充channel
  */
 public class FullConnTex extends Layer {
 
@@ -56,8 +57,8 @@ public class FullConnTex extends Layer {
         int[] inputShape = mPreLayer.getOutputShape();
         int kennelSize = inputShape[0] * inputShape[1] * inputShape[2] + 1;
         int alignKennelSize =
-                NetUtils.alignBy4(inputShape[0] * inputShape[1] * inputShape[2]) + 4;
-        mPro = initFullConnPro(mContext, "full_conn_tex.comp", alignKennelSize, mKennelAmount, mOutputShape[0], 1, 1);
+                inputShape[0] * inputShape[1] * NetUtils.alignBy4(inputShape[2]) + 4;
+        mPro = initFullConnPro(mContext, "full_conn_tex.comp", alignKennelSize, mKennelAmount, 1, 1, NetUtils.alignBy4(mKennelAmount) / 4);
         mAttachID = Layer.getDataAttachID();
         mOutTex = Render.createTexture();
 
@@ -81,11 +82,8 @@ public class FullConnTex extends Layer {
         mParams[4] = mOutputShape[1];
         mParams[5] = mOutputShape[2];
         mParams[6] = mType.index;
-        if (mPreLayer instanceof FullConnTex) {
-            mParams[7] = 0;
-        } else {
-            mParams[7] = 1;
-        }
+        mParams[7] = mStartY;
+
     }
 
     private List<float[]> loadKennels(int kennelSize, int alignKennelSize) {

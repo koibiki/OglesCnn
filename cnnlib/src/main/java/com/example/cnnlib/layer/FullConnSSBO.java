@@ -41,10 +41,7 @@ public class FullConnSSBO extends Layer {
     }
 
     private int[] calculateFullShape(int kennelAmount) {
-        int width = (int) Math.ceil(kennelAmount * 1.0f / 4);
-        int height = 1;
-        int channel = 4;
-        return new int[]{width, height, channel};
+        return new int[]{1, 1, kennelAmount};
     }
 
     @Override
@@ -57,7 +54,7 @@ public class FullConnSSBO extends Layer {
         int kennelSize = inputShape[0] * inputShape[1] * inputShape[2];
         int alignKennelSize =
                 inputShape[0] * inputShape[1] * NetUtils.alignBy4(inputShape[2]) + 4;
-        mShaderPro = initFullConnPro(mContext, "full_connect.comp", alignKennelSize, mKennelAmount, mOutputShape[0], 1, 1);
+        mShaderPro = initFullConnPro(mContext, "full_connect.comp", alignKennelSize, mKennelAmount, 1, 1, NetUtils.alignBy4(mKennelAmount) / 4);
         mAttachID = Layer.getDataAttachID();
         mOutTex = Render.createTexture();
 

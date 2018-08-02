@@ -91,7 +91,7 @@ public class CnnNetwork {
             actualReadOutput();
             Log.w(TAG, "spent:" + (System.currentTimeMillis() - begin1));
         }
-        Log.w(TAG, "ave spent:" + (System.currentTimeMillis() - begin) / count);
+        Log.w(TAG, "ave spent:" + (System.currentTimeMillis() - begin) * 1.0f / count);
     }
 
     public void readOutput() {
@@ -370,21 +370,9 @@ public class CnnNetwork {
                 return fc;
             }
         } else if (type.equalsIgnoreCase("Softmax")) {
-            int amount = -1;
-            for (int i = 0; i < args.size(); ++i) {
-                String tempArg = args.get(i);
-                String tempValue = values.get(i);
-                if (tempArg.equalsIgnoreCase("amount"))
-                    amount = Integer.parseInt(tempValue);
-
-            }
-            if (amount == -1) {
-                return null;
-            } else {
-                SoftMax sm = new SoftMax(mContext, preLayer, amount);
-                mLayers.add(sm);
-                return sm;
-            }
+            SoftMax sm = new SoftMax(mContext, preLayer);
+            mLayers.add(sm);
+            return sm;
         } else
             return null;
     }

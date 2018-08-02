@@ -15,17 +15,10 @@ public class SoftMax extends Layer {
     private int mNumGroupsY;
     private int mAmount;
 
-    public SoftMax(Context context, Layer preLayer, int amount) {
+    public SoftMax(Context context, Layer preLayer) {
         super(context, preLayer);
-        this.mAmount = amount;
-        this.mOutputShape = calculateSoftShape(amount);
-    }
-
-    private int[] calculateSoftShape(int amount) {
-        int width = (int) Math.ceil(amount * 1.0f / 4);
-        int height = 1;
-        int channel = 4;
-        return new int[]{width, height, channel};
+        this.mAmount = preLayer.getOutputShape()[2];
+        this.mOutputShape = preLayer.getOutputShape();
     }
 
     private void initSoftmax() {

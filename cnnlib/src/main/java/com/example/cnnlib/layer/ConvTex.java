@@ -42,11 +42,11 @@ public class ConvTex extends Layer {
     private int mStartY;
 
 
-    public ConvTex(Context context, Layer preLayer, int kennelAmount, int[] kennelShape, int pad, int[] strides, NonLinear.Type type, String kennelFilePath) {
+    public ConvTex(Context context, Layer preLayer, int kennelAmount, int k_w, int k_h, int pad, int stride_w, int stride_h, NonLinear.Type type, String kennelFilePath) {
         super(context, preLayer);
-        this.mKennelShape = kennelShape;
+        this.mKennelShape = new int[]{k_w, k_h, preLayer.getOutputShape()[2]};
         this.mPadding = pad;
-        this.mStrides = strides;
+        this.mStrides = new int[]{stride_w, stride_h};
         this.mType = type;
         this.mOutputShape = calculateConvShape(kennelAmount);
         this.mKennelFilePath = kennelFilePath;
@@ -79,9 +79,9 @@ public class ConvTex extends Layer {
 
         mStartY = Layer.getConvStartY(mOutputShape[1]);
         if (TextUtils.isEmpty(mKennelFilePath)) {
-            mKennels = loadKennels();
-        } else {
             mKennels = createTestKennels();
+        } else {
+            mKennels = loadKennels();
         }
         transferKennelToTex();
 

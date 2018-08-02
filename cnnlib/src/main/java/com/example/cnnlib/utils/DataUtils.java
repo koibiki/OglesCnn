@@ -20,7 +20,7 @@ public class DataUtils {
         for (int c = 0; c < channel; c++) {
             for (int w = 0; w < width; w++) {
                 for (int h = 0; h < height; h++) {
-                    input[c][h][w] = channel * (h * width + w) + c;
+                    input[c][h][w] =  c;
                 }
             }
         }
@@ -70,7 +70,7 @@ public class DataUtils {
         float[] kennel = new float[alignSize];       // 最后一位是bias
         for (int i = 0; i < inputShape[0] * inputShape[1]; i++) {
             for (int j = 0; j < inputShape[2]; j++) {
-                kennel[inputShape[0] * inputShape[1] * j + i] = j;
+                kennel[inputShape[2] * i + j] = j;
             }
         }
         kennel[alignSize - 4] = 1;
