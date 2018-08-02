@@ -52,7 +52,7 @@ public class FullConnSSBO extends Layer {
 
     private void initFullConnect() {
         int[] inputShape = mPreLayer.getOutputShape();
-        int kennelSize = inputShape[0] * inputShape[1] * inputShape[2];
+        int kennelSize = inputShape[0] * inputShape[1] * inputShape[2] + 1;
         int alignKennelSize =
                 inputShape[0] * inputShape[1] * NetUtils.alignBy4(inputShape[2]) + 4;
 
