@@ -194,7 +194,7 @@ public class Render {
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }
 
-    public static void performFullConnectSSBO(int compProg, int[] params, int inTex, int outTex, int buffer) {
+    public static void performFullConnectSSBO(int compProg, int[] params, int inTex, int outTex, int buffer, int num_g_z) {
         glUseProgram(compProg);
 
         glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
@@ -203,11 +203,11 @@ public class Render {
         glBindImageTexture(1, outTex, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffer);
 
-        glDispatchCompute(1, 1, 1);
+        glDispatchCompute(1, 1, num_g_z);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }
 
-    public static void performFullConnectTex(int compProg, int[] params, int inTex, int outTex, int buffer) {
+    public static void performFullConnectTex(int compProg, int[] params, int inTex, int outTex, int buffer, int num_g_z) {
         glUseProgram(compProg);
 
         glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
@@ -217,7 +217,7 @@ public class Render {
         glBindImageTexture(2, buffer, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
 
 
-        glDispatchCompute(1, 1, 1);
+        glDispatchCompute(1, 1, num_g_z);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }
 

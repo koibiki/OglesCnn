@@ -31,6 +31,7 @@ public class FullConnSSBO extends Layer {
 
     private NonLinear.Type mType;
     private int[] mKennelBuffer = new int[1];
+    private int mNumGroupZ;
 
     public FullConnSSBO(Context context, Layer preLayer, int kennelAmount, NonLinear.Type type, String paramFilePath) {
         super(context, preLayer);
@@ -54,7 +55,17 @@ public class FullConnSSBO extends Layer {
         int kennelSize = inputShape[0] * inputShape[1] * inputShape[2];
         int alignKennelSize =
                 inputShape[0] * inputShape[1] * NetUtils.alignBy4(inputShape[2]) + 4;
-        mShaderPro = initFullConnPro(mContext, "full_connect.comp", alignKennelSize, mKennelAmount, 1, 1, NetUtils.alignBy4(mKennelAmount) / 4);
+
+        int local_size_z;
+        if (NetUtils.alignBy4(mKennelAmount) / 4 <= 64) {
+            local_size_z = NetUtils.alignBy4(mKennelAmount) / 4;
+            mNumGroupZ = 1;
+        } else {
+            local_size_z = 64;
+            mNumGroupZ = (int) Math.ceil(NetUtils.alignBy4(mKennelAmount) / 4 / 64);
+        }
+
+        mShaderPro = initFullConnPro(mContext, "full_connect.comp", alignKennelSize, mKennelAmount, 1, 1, local_size_z);
         mAttachID = Layer.getDataAttachID();
         mOutTex = Render.createTexture();
 
@@ -124,7 +135,7 @@ public class FullConnSSBO extends Layer {
 
     @Override
     protected void actualForwardProc(float[][][] input) {
-        Render.performFullConnectSSBO(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mKennelBuffer[0]);
+        Render.performFullConnectSSBO(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mKennelBuffer[0], mNumGroupZ);
     }
 
 }

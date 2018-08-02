@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
     private void buildTestNet() {
         mCnnNetwork = new CnnNetwork(this);
 
-        Layer in = new Input(this, 3, 3, 4);
+        Layer in = new Input(this, 32, 32, 4);
         mCnnNetwork.addLayer(in);
 
         Layer conv1 = new ConvTex(this, in, 64, 3, 3, 1, 1, 1, NonLinear.Type.RELU, "");
@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
 //        Flat flat = new Flat(this, pool3);
 //        mCnnNetwork.addLayer(flat);
 
-        Layer full1 = new FullConnSSBO(this, pool3, 256, NonLinear.Type.RELU, "");
+        Layer full1 = new FullConnTex(this, pool3, 512, NonLinear.Type.RELU, "");
         mCnnNetwork.addLayer(full1);
 
         Layer full2 = new FullConnTex(this, full1, 256, NonLinear.Type.RELU, "");
@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void performCNN(View view) {
-        float[][][] input = DataUtils.createInputBuffer(new int[]{3, 3, 4});
+        float[][][] input = DataUtils.createInputBuffer(new int[]{32, 32, 4});
 //        float[][][] input = testUtils.getTestImage(this);
         mCnnNetwork.predict(input);
     }
