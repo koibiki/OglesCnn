@@ -9,7 +9,6 @@ import com.example.eglnn.layer.ConvGEMM;
 import com.example.eglnn.layer.ConvGEMM2;
 import com.example.eglnn.layer.ConvGEMM3;
 import com.example.eglnn.layer.ConvGEMM4;
-import com.example.eglnn.layer.ConvTex;
 import com.example.eglnn.layer.Layer.PaddingType;
 import com.example.eglnn.layer.Input;
 import com.example.eglnn.layer.Layer;

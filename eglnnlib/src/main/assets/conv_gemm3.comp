@@ -1,0 +1,279 @@
+layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = Z_SIZE) in;
+
+uniform int params[15];  // kennel_shape[3] input_shape[3] output_shape[3] strides[2] padding active_type
+layout(binding = 0, rgba32f) readonly uniform image2DArray input_image;
+layout(binding = 1, rgba32f) writeonly uniform image2DArray output_image;
+layout(binding = 2, rgba32f) readonly uniform image2DArray kennel_image;
+
+layout(std430, binding = 0) buffer BufferObject0 {
+    ivec2 conv_indexes0[][KENNEL_AREA];
+};
+layout(std430, binding = 1) buffer BufferObject1 {
+    ivec2 conv_indexes1[][KENNEL_AREA];
+};
+layout(std430, binding = 2) buffer BufferObject2 {
+    ivec2 conv_indexes2[][KENNEL_AREA];
+};
+layout(std430, binding = 3) buffer BufferObject3 {
+    ivec2 conv_indexes3[][KENNEL_AREA];
+};
+
+float relu(float i);
+float sigmoid(float i);
+float activeValue(int type, float v);
+
+ivec2 getRelativeRestoreIndex(int pos, int offset, int out_width);
+
+void main(void)
+{
+    // 分解参数
+    int kennel_width = params[0];
+    int kennel_height = params[1];
+    int kennel_channel = params[2];
+
+    int in_width = params[3];
+    int in_height = params[4];
+    int in_channel = params[5];
+
+    int out_width = params[6];
+    int out_height = params[7];
+    int out_channel = params[8];
+
+    int strides[2] = int[2](params[9], params[10]);
+    int padding = params[11];
+
+    int active_type = params[12];
+    int align_channel = params[13];
+
+    int count = align_channel / 4;
+
+    int output_area = out_width * out_height;
+    int kennel_area = kennel_width * kennel_height;
+    ivec3 pos = ivec3(gl_GlobalInvocationID.xyz);
+
+    int start_x_index = pos.x * 4;
+    int start_z_index = pos.z * 4;
+
+    if (start_x_index >= output_area || start_z_index >= out_channel){
+        return;
+    }
+
+    int delta = output_area - start_x_index;
+
+    if (delta >= 4) {
+        mat4 result;
+        int start_conv_index = start_x_index * kennel_area;
+        int conv_index0;
+        int conv_index1;
+        int conv_index2;
+        int conv_index3;
+
+        ivec2 conv_index_on_tex0;
+        ivec2 conv_index_on_tex1;
+        ivec2 conv_index_on_tex2;
+        ivec2 conv_index_on_tex3;
+
+        vec4 data0;
+        vec4 data1;
+        vec4 data2;
+        vec4 data3;
+
+        mat4 data_mat0;
+        mat4 data_mat1;
+
+        mat4 kennel = mat4(1.0, 1.0, 1.0, 1.0,
+                            1.0, 1.0, 1.0, 1.0,
+                            1.0, 1.0, 1.0, 1.0,
+                            1.0 ,1.0, 1.0, 1.0);
+
+        for (int i = 0; i < kennel_area; i++) {
+            conv_index_on_tex0 = conv_indexes0[pos.x][i];
+            conv_index_on_tex1 = conv_indexes1[pos.x][i];
+            conv_index_on_tex2 = conv_indexes2[pos.x][i];
+            conv_index_on_tex3 = conv_indexes3[pos.x][i];
+
+            data0 = imageLoad(input_image, ivec3(conv_index_on_tex0, pos.z));
+            data1 = imageLoad(input_image, ivec3(conv_index_on_tex1, pos.z));
+            data2 = imageLoad(input_image, ivec3(conv_index_on_tex2, pos.z));
+            data3 = imageLoad(input_image, ivec3(conv_index_on_tex3, pos.z));
+
+//            data_mat0 = mat4(float(conv_index_on_tex0[0]), float(conv_index_on_tex0[1]),
+//                                float(conv_index_on_tex1[0]), float(conv_index_on_tex1[1]),
+//                               float(conv_index_on_tex2[0]), float(conv_index_on_tex2[1]),
+//                                float(conv_index_on_tex3[0]), float(conv_index_on_tex3[1]),
+//                                 vec4(0), vec4(0));
+            data_mat0 = mat4(data0, data1, data2, data3);
+
+            result += kennel *data_mat0;
+        }
+
+        ivec2 restore_index0 = getRelativeRestoreIndex(start_x_index, 0, out_width);
+        ivec2 restore_index1 = getRelativeRestoreIndex(start_x_index, 1, out_width);
+        ivec2 restore_index2 = getRelativeRestoreIndex(start_x_index, 2, out_width);
+        ivec2 restore_index3 = getRelativeRestoreIndex(start_x_index, 3, out_width);
+
+        imageStore(output_image, ivec3(restore_index0.xy, pos.z), result[0]);
+        imageStore(output_image, ivec3(restore_index1.xy, pos.z), result[1]);
+        imageStore(output_image, ivec3(restore_index2.xy, pos.z), result[2]);
+        imageStore(output_image, ivec3(restore_index3.xy, pos.z), result[3]);
+    }
+//    else if (delta == 3) {
+//        mat3x4 result;
+//        int start_conv_index = start_x_index * kennel_area;
+//        int conv_index0;
+//        int conv_index1;
+//        int conv_index2;
+//
+//        ivec2 conv_index_on_tex0;
+//        ivec2 conv_index_on_tex1;
+//        ivec2 conv_index_on_tex2;
+//
+//        vec4 data0;
+//        vec4 data1;
+//        vec4 data2;
+//
+//        mat3x4 data_mat0;
+//
+//        mat4 kennel = mat4(1.0, 1.0, 1.0, 1.0,
+//                            1.0, 1.0, 1.0, 1.0,
+//                            1.0, 1.0, 1.0, 1.0,
+//                            1.0 ,1.0, 1.0, 1.0);
+//
+//        for (int i = 0; i < kennel_area; i++) {
+//            conv_index0 = start_conv_index + i;
+//            conv_index1 = conv_index0 + kennel_area;
+//            conv_index2 = conv_index1 + kennel_area;
+//
+//            conv_index_on_tex0 = conv_indexes[conv_index0];
+//            conv_index_on_tex1 = conv_indexes[conv_index1];
+//            conv_index_on_tex2 = conv_indexes[conv_index2];
+//
+//            data0 = imageLoad(input_image, ivec3(conv_index_on_tex0, pos.z));
+//            data1 = imageLoad(input_image, ivec3(conv_index_on_tex1, pos.z));
+//            data2 = imageLoad(input_image, ivec3(conv_index_on_tex2, pos.z));
+//
+//            data_mat0 = mat3x4(data0, data1, data2);
+//
+//            result += kennel * data_mat0;
+//        }
+//
+//        ivec2 restore_index0 = getRelativeRestoreIndex(start_x_index, 0, out_width);
+//        ivec2 restore_index1 = getRelativeRestoreIndex(start_x_index, 1, out_width);
+//        ivec2 restore_index2 = getRelativeRestoreIndex(start_x_index, 2, out_width);
+//
+//        imageStore(output_image, ivec3(restore_index0.xy, pos.z), result[0]);
+//        imageStore(output_image, ivec3(restore_index1.xy, pos.z), result[1]);
+//        imageStore(output_image, ivec3(restore_index2.xy, pos.z), result[2]);
+//    } else if (delta == 2) {
+//        mat2x4 result;
+//        int start_conv_index = start_x_index * kennel_area;
+//        int conv_index0;
+//        int conv_index1;
+//        int conv_index2;
+//        int conv_index3;
+//
+//        ivec2 conv_index_on_tex0;
+//        ivec2 conv_index_on_tex1;
+//        ivec2 conv_index_on_tex2;
+//        ivec2 conv_index_on_tex3;
+//
+//        vec4 data0;
+//        vec4 data1;
+//
+//        mat2x4 data_mat0;
+//
+//        mat4 kennel = mat4(1.0, 1.0, 1.0, 1.0,
+//                            1.0, 1.0, 1.0, 1.0,
+//                            1.0, 1.0, 1.0, 1.0,
+//                            1.0 ,1.0, 1.0, 1.0);
+//
+//        for (int i = 0; i < kennel_area; i++) {
+//            conv_index0 = start_conv_index + i;
+//            conv_index1 = conv_index0 + kennel_area;
+//
+//            conv_index_on_tex0 = conv_indexes[conv_index0];
+//            conv_index_on_tex1 = conv_indexes[conv_index1];
+//
+//            data0 = imageLoad(input_image, ivec3(conv_index_on_tex0, pos.z));
+//            data1 = imageLoad(input_image, ivec3(conv_index_on_tex1, pos.z));
+//
+//            data_mat0 = mat2x4(data0, data1);
+//            result += kennel * data_mat0;
+//        }
+//        ivec2 restore_index0 = getRelativeRestoreIndex(start_x_index, 0, out_width);
+//        ivec2 restore_index1 = getRelativeRestoreIndex(start_x_index, 1, out_width);
+//
+//        imageStore(output_image, ivec3(restore_index0.xy, pos.z), result[0]);
+//        imageStore(output_image, ivec3(restore_index1.xy, pos.z), result[1]);
+//    } else {
+//        vec4 result;
+//        int start_conv_index = start_x_index * kennel_area;
+//        int conv_index0;
+//        int conv_index1;
+//        int conv_index2;
+//        int conv_index3;
+//
+//        ivec2 conv_index_on_tex0;
+//        ivec2 conv_index_on_tex1;
+//        ivec2 conv_index_on_tex2;
+//        ivec2 conv_index_on_tex3;
+//
+//        vec4 data0;
+//        vec4 data1;
+//        vec4 data2;
+//        vec4 data3;
+//
+//        mat4 data_mat0;
+//        mat4 data_mat1;
+//
+//        mat4 kennel = mat4(1.0, 1.0, 1.0, 1.0,
+//                            1.0, 1.0, 1.0, 1.0,
+//                            1.0, 1.0, 1.0, 1.0,
+//                            1.0 ,1.0, 1.0, 1.0);
+//
+//        for (int i = 0; i < kennel_area; i++) {
+//            conv_index0 = start_conv_index + i;
+//            conv_index_on_tex0 = conv_indexes[conv_index0];
+//            data0 = imageLoad(input_image, ivec3(conv_index_on_tex0, pos.z));
+//            result += kennel * data0;
+//        }
+//        ivec2 restore_index0 = getRelativeRestoreIndex(start_x_index, 0, out_width);
+//        imageStore(output_image, ivec3(restore_index0.xy, pos.z), result);
+//    }
+}
+
+int alignBy4(int channel) {
+    int align = 4;
+    return (channel + (align - 1)) & ~(align - 1);
+}
+
+ivec2 getRelativeRestoreIndex(int pos, int offset, int out_width) {
+    pos = pos + offset;
+    int x = pos % out_width;
+    int y = pos / out_width;
+    return ivec2(x, y);
+}
+
+float relu(float i){
+    if (i > 0.0){
+        return i;
+    } else {
+        return 0.0;
+    }
+}
+
+float sigmoid(float i){
+    return 1.0 / (1.0 + exp(-i));
+}
+
+float activeValue(int type, float v){
+    if (type == 0) {
+        return relu(v);
+    } else if (type == 1) {
+        return sigmoid(v);
+    } else if (type == 2){
+        return tanh(v);
+    } else {
+        return v;
+    }
+}
