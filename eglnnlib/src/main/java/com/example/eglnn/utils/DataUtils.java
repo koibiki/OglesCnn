@@ -32,16 +32,16 @@ public class DataUtils {
         int width = outputShape[0];
         int height = outputShape[1];
         int channel = outputShape[2];
-        float[][][] out = new float[channel][height][width];
+//        float[][][] out = new float[channel][height][width];
 
         int count = Utils.alignBy4(channel);
         for (int i = 0; i < 1; i++) {
             FloatBuffer allocate = FloatBuffer.allocate(width * height * 4);
             allocate = (FloatBuffer) Render.transferFromTexture(allocate, layer.getAttachID(), 0, 0, width, height);
             float[] array = allocate.array();
-            out = transform(out, array, width, height, i, channel);
+//            out = transform(out, array, width, height, i, channel);
         }
-        return out;
+        return null;
     }
 
     /**

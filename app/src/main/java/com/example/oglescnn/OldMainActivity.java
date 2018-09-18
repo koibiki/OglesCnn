@@ -6,7 +6,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
 import com.example.cnnlib.CnnNetwork;
-import com.example.cnnlib.layer.ConvSSBO;
 import com.example.cnnlib.layer.ConvTex;
 import com.example.cnnlib.layer.Flat;
 import com.example.cnnlib.layer.FullConnSSBO;
@@ -28,7 +27,7 @@ public class OldMainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main_old);
 
 //        buildNet();
 //        buildLetNet();

@@ -5,10 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.example.eglnn.NnNetwork;
-import com.example.eglnn.layer.ConvGEMM;
 import com.example.eglnn.layer.ConvGEMM2;
-import com.example.eglnn.layer.ConvGEMM3;
-import com.example.eglnn.layer.ConvGEMM4;
 import com.example.eglnn.layer.Layer.PaddingType;
 import com.example.eglnn.layer.Input;
 import com.example.eglnn.layer.Layer;
@@ -36,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
         Layer in = new Input(this, width, height, 4);
         mNnNetwork.addLayer(in);
 
-        Layer conv1 = new ConvGEMM2(this, in, 512, 3, 3, 0, PaddingType.SAME, 2, 2, 0, "");
+        Layer conv1 = new ConvGEMM2(this, in, 1024, 3, 3, 0, PaddingType.SAME, 2, 2, 0, "");
         mNnNetwork.addLayer(conv1);
 
         mNnNetwork.initialize();
