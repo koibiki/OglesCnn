@@ -44,7 +44,7 @@ public class HomeActivity extends Activity {
     }
 
     public void enterCNN(View view) {
-        startActivity(new Intent(this, MainActivity.class));
+        startActivity(new Intent(this, OldMainActivity.class));
     }
 
     private void initEnv() {
