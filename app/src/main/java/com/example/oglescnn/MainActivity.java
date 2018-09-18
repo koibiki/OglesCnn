@@ -26,11 +26,12 @@ public class MainActivity extends AppCompatActivity {
     }
     int width = 226;
     int height = width;
+    int channel = 4;
 
     private void buildNet() {
         mNnNetwork = new NnNetwork(this);
 
-        Layer in = new Input(this, width, height, 4);
+        Layer in = new Input(this, width, height, channel);
         mNnNetwork.addLayer(in);
 
         Layer conv1 = new ConvGEMM2(this, in, 512, 3, 3, 0, PaddingType.SAME, 2, 2, 0, "");
@@ -41,7 +42,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void runNn(View view) {
-        int channel = 4;
         float[][][] input = DataUtils.createInputBuffer(new int[]{width, height, channel});
         float[][] localInput = new float[Utils.alignBy4(channel) / 4][width * height * 4];
         for (int w = 0; w < width; w++) {
