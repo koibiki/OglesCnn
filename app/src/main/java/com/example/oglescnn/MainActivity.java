@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
         Layer in = new Input(this, width, height, 4);
         mNnNetwork.addLayer(in);
 
-        Layer conv1 = new ConvGEMM2(this, in, 1024, 3, 3, 0, PaddingType.SAME, 2, 2, 0, "");
+        Layer conv1 = new ConvGEMM2(this, in, 512, 3, 3, 0, PaddingType.SAME, 2, 2, 0, "");
         mNnNetwork.addLayer(conv1);
 
         mNnNetwork.initialize();
