@@ -1,6 +1,6 @@
 layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = Z_SIZE) in;
 
-uniform int params[15];  // kennel_shape[3] input_shape[3] output_shape[3] strides[2] padding active_type
+uniform int params[15];  // kennel_shape[3] input_shape[3] output_shape[3] strides[2] active_type pad_w pad_h
 layout(binding = 0, rgba32f) readonly uniform image2DArray input_image;
 layout(binding = 1, rgba32f) writeonly uniform image2DArray output_image;
 layout(binding = 2, rgba32f) readonly uniform image2DArray kennel_image;
@@ -28,10 +28,12 @@ void main(void)
     int out_channel = params[8];
 
     int strides[2] = int[2](params[9], params[10]);
-    int padding = params[11];
 
-    int active_type = params[12];
-    int align_channel = params[13];
+    int active_type = params[11];
+    int align_channel = params[12];
+
+    int pad_w = params[13];
+    int pad_h = params[14];
 
     int count = align_channel / 4;
 
@@ -78,16 +80,14 @@ void main(void)
     int x_3 = start_x % out_width;
     int y_3 = start_x / out_width;
 
-    int padding_offset = -1 * padding;
-
     for (int i = 0; i < kennel_area; i++) {
         mat4 data_mat;
         mat4 kennel;
         int k_x = i % kennel_width;
         int k_y = i / kennel_width;
 
-        int x_offset = padding_offset + k_x;
-        int y_offset = padding_offset + k_y;
+        int x_offset = pad_w + k_x;
+        int y_offset = pad_h + k_y;
 
         int w_0 = realIndex(x_offset + strides[0] * x_0, in_width);
         int h_0 = realIndex(y_offset + strides[1] * y_0, in_height);

@@ -4,13 +4,11 @@ import android.content.Context;
 import android.text.TextUtils;
 
 import com.example.eglnn.Render;
-import com.example.eglnn.utils.DataUtils;
 import com.example.eglnn.utils.ShaderUtils;
+import com.example.eglnn.utils.TestDataCreator;
 import com.example.eglnn.utils.Utils;
 
 import java.nio.FloatBuffer;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
 import static com.example.eglnn.Render.initCompPro;
@@ -30,41 +28,56 @@ public class ConvGEMM2 extends Layer {
     private float[][][] mKennels;
     private int[] mStrides;
     private int[] mKennelShape;
-    private int mPad;
     private int mShaderPro;
     private int mNumGroupsZ;
     private int[] mParams;
     private int mType;
     private String mKennelFilePath;
     private int mKennelTex;
+    private int mPadW, mPadH;
 
-    public ConvGEMM2(Context context, Layer preLayer, int kAmount, int k_w, int k_h, int pad, PaddingType padType, int stride_w, int stride_h, int type, String kennelFilePath) {
+    private ConvGEMM2(Context context, Layer preLayer, int kAmount, int k_w, int k_h, int stride_w, int stride_h, int type, String kennelFilePath) {
         super(context, preLayer);
         this.mKennelShape = new int[]{k_w, k_h, preLayer.getOutputShape()[2]};
         this.mKennelAmount = kAmount;
-        this.mPad = pad;
-        this.mPadType = padType;
         this.mStrides = new int[]{stride_w, stride_h};
         this.mType = type;
-        this.mOutShape = calculateConvShape(kAmount);
         this.mKennelFilePath = kennelFilePath;
     }
 
-    private int[] calculateConvShape(int kennelAmount) {
-        int[] inShape = mPreLayer.getOutputShape();
-        int width = calculateLength(inShape[0], mKennelShape[0], mStrides[0]);
-        int height = calculateLength(inShape[1], mKennelShape[1], mStrides[1]);
+    public ConvGEMM2(Context context, Layer preLayer, int kAmount, int k_w, int k_h, PaddingType padType, int stride_w, int stride_h, int type, String kennelFilePath) {
+        this(context, preLayer, kAmount, k_w, k_h, stride_w, stride_h, type, kennelFilePath);
+        this.mPadType = padType;
+        this.mOutShape = calculateConvShapeByType(kAmount);
+    }
+
+    public ConvGEMM2(Context context, Layer preLayer, int kAmount, int k_w, int k_h, int pad_w, int pad_h, int stride_w, int stride_h, int type, String kennelFilePath) {
+        this(context, preLayer, kAmount, k_w, k_h, stride_w, stride_h, type, kennelFilePath);
+        this.mPadW = pad_w;
+        this.mPadH = pad_h;
+        this.mOutShape = calculateConvShapeByPad(kAmount);
+    }
+
+    private int[] calculateConvShapeByType(int kennelAmount) {
+        int width, height;
+        if (mPadType == PaddingType.SAME) {
+            width = (int) Math.ceil(mInShape[0] * 1.0f / mStrides[0]);
+            mPadW = ((width - 1) * mStrides[0] + mKennelShape[0] - mInShape[0]) / 2;
+            height = (int) Math.ceil(mInShape[1] * 1.0f / mStrides[1]);
+            mPadH = ((height - 1) * mStrides[1] + mKennelShape[1] - mInShape[1]) / 2;
+        } else {
+            width = (int) Math.ceil((mInShape[0] - mKennelShape[0] + 1) * 1.0f / mStrides[0]);
+            height = (int) Math.ceil((mInShape[1] - mKennelShape[1] + 1) * 1.0f / mStrides[1]);
+        }
         return new int[]{width, height, kennelAmount};
     }
 
-    private int calculateLength(int length, int kennelLen, int stride) {
-        float out = (length + 2 * mPad - kennelLen) * 1.0f / stride;
-        if (mPadType == PaddingType.SAME) {
-            return (int) (Math.ceil(out) + 1);
-        } else {
-            return (int) (Math.floor(out) + 1);
-        }
+    private int[] calculateConvShapeByPad(int kennelAmount) {
+        int width = (int) Math.ceil((mInShape[0] + 2 * mPadW - mKennelShape[0]) * 1.0f / mStrides[0]);
+        int height = (int) Math.ceil((mInShape[1] + 2 * mPadH - mKennelShape[1]) * 1.0f / mStrides[1]);
+        return new int[]{width, height, kennelAmount};
     }
+
 
     private int getLocalSizeX(int[] outShape) {
         int outArea = outShape[0] * outShape[1];
@@ -133,7 +146,7 @@ public class ConvGEMM2 extends Layer {
 
 
     private void createShaderParams() {
-        mParams = new int[14];
+        mParams = new int[15];
         mParams[0] = mKennelShape[0];
         mParams[1] = mKennelShape[1];
         mParams[2] = mKennelShape[2];
@@ -145,13 +158,14 @@ public class ConvGEMM2 extends Layer {
         mParams[8] = mOutShape[2];
         mParams[9] = mStrides[0];
         mParams[10] = mStrides[1];
-        mParams[11] = mPad;
-        mParams[12] = mType;
-        mParams[13] = Utils.alignBy4(mInShape[2]);
+        mParams[11] = mType;
+        mParams[12] = Utils.alignBy4(mInShape[2]);
+        mParams[13] = -1 * mPadW;
+        mParams[14] = -1 * mPadH;
     }
 
     private float[][][] createTestKennels() {
-        return Render.createConvKennels(mKennelShape, mKennelAmount);
+        return TestDataCreator.createConvKennels(mKennelShape, mKennelAmount);
     }
 
     /**

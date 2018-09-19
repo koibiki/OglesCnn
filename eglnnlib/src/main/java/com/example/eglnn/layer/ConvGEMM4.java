@@ -7,6 +7,7 @@ import com.example.eglnn.Render;
 import com.example.eglnn.utils.Constants;
 import com.example.eglnn.utils.DataUtils;
 import com.example.eglnn.utils.ShaderUtils;
+import com.example.eglnn.utils.TestDataCreator;
 import com.example.eglnn.utils.Utils;
 
 import java.nio.FloatBuffer;
@@ -192,7 +193,7 @@ public class ConvGEMM4 extends Layer {
     }
 
     private float[][][] createTestKennels() {
-        return Render.createConvKennels(mKennelShape, mKennelAmount);
+        return TestDataCreator.createConvKennels(mKennelShape, mKennelAmount);
     }
 
     /**
