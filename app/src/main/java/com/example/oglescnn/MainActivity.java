@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    int width = 227;
+    int width = 112;
     int height = width;
     int channel = 8;
 
@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         Layer in = new Input(this, width, height, channel);
         mNnNetwork.addLayer(in);
 
-        Layer conv1 = new ConvGEMM2(this, in, 512, 4, 4, PaddingType.SAME, 2, 2, 0, "");
+        Layer conv1 = new ConvGEMM2(this, in, 512, 1, 1, PaddingType.SAME, 1, 1, Layer.ActiveType.RELU, "");
         mNnNetwork.addLayer(conv1);
 
 //        Pooling pooling = new Pooling(this, in, 3, 3, PaddingType.SAME, 2, 2);

@@ -31,12 +31,12 @@ public class ConvGEMM2 extends Layer {
     private int mShaderPro;
     private int mNumGroupsZ;
     private int[] mParams;
-    private int mType;
+    private ActiveType mType;
     private String mKennelFilePath;
     private int mKennelTex;
     private int mPadW, mPadH;
 
-    private ConvGEMM2(Context context, Layer preLayer, int kAmount, int k_w, int k_h, int stride_w, int stride_h, int type, String kennelFilePath) {
+    private ConvGEMM2(Context context, Layer preLayer, int kAmount, int k_w, int k_h, int stride_w, int stride_h, ActiveType type, String kennelFilePath) {
         super(context, preLayer);
         this.mKennelShape = new int[]{k_w, k_h, preLayer.getOutputShape()[2]};
         this.mKennelAmount = kAmount;
@@ -45,13 +45,13 @@ public class ConvGEMM2 extends Layer {
         this.mKennelFilePath = kennelFilePath;
     }
 
-    public ConvGEMM2(Context context, Layer preLayer, int kAmount, int k_w, int k_h, PaddingType padType, int stride_w, int stride_h, int type, String kennelFilePath) {
+    public ConvGEMM2(Context context, Layer preLayer, int kAmount, int k_w, int k_h, PaddingType padType, int stride_w, int stride_h, ActiveType type, String kennelFilePath) {
         this(context, preLayer, kAmount, k_w, k_h, stride_w, stride_h, type, kennelFilePath);
         this.mPadType = padType;
         this.mOutShape = calculateConvShapeByType(kAmount);
     }
 
-    public ConvGEMM2(Context context, Layer preLayer, int kAmount, int k_w, int k_h, int pad_w, int pad_h, int stride_w, int stride_h, int type, String kennelFilePath) {
+    public ConvGEMM2(Context context, Layer preLayer, int kAmount, int k_w, int k_h, int pad_w, int pad_h, int stride_w, int stride_h, ActiveType type, String kennelFilePath) {
         this(context, preLayer, kAmount, k_w, k_h, stride_w, stride_h, type, kennelFilePath);
         this.mPadW = pad_w;
         this.mPadH = pad_h;
@@ -158,7 +158,7 @@ public class ConvGEMM2 extends Layer {
         mParams[8] = mOutShape[2];
         mParams[9] = mStrides[0];
         mParams[10] = mStrides[1];
-        mParams[11] = mType;
+        mParams[11] = mType.index;
         mParams[12] = Utils.alignBy4(mInShape[2]);
         mParams[13] = -1 * mPadW;
         mParams[14] = -1 * mPadH;

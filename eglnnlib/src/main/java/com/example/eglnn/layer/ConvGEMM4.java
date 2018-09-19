@@ -36,7 +36,7 @@ public class ConvGEMM4 extends Layer {
     private int mShaderPro;
     private int mNumGroupsZ;
     private int[] mParams;
-    private int mType;
+    private ActiveType mType;
     private String mKennelFilePath;
     private int mConvTex;
     private int mKennelTex;
@@ -44,7 +44,7 @@ public class ConvGEMM4 extends Layer {
     // TODO VALID 未实现
     private PaddingType mPadType;
 
-    public ConvGEMM4(Context context, Layer preLayer, int kAmount, int k_w, int k_h, int pad, PaddingType padType, int stride_w, int stride_h, int type, String kennelFilePath) {
+    public ConvGEMM4(Context context, Layer preLayer, int kAmount, int k_w, int k_h, int pad, PaddingType padType, int stride_w, int stride_h, ActiveType type, String kennelFilePath) {
         super(context, preLayer);
         this.mKennelShape = new int[]{k_w, k_h, preLayer.getOutputShape()[2]};
         this.mKennelAmount = kAmount;
@@ -188,7 +188,7 @@ public class ConvGEMM4 extends Layer {
         mParams[9] = mStrides[0];
         mParams[10] = mStrides[1];
         mParams[11] = mPad;
-        mParams[12] = mType;
+        mParams[12] = mType.index;
         mParams[13] = Utils.alignBy4(mInShape[2]);
     }
 

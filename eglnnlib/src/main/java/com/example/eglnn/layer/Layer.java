@@ -26,6 +26,17 @@ public abstract class Layer {
         }
     }
 
+    public enum ActiveType {
+        RELU(0), SIGMOID(1), TANH(2), NONE(-1);
+
+        public int index;
+
+        ActiveType(int index) {
+            this.index = index;
+        }
+
+    }
+
     protected static int getDataAttachID() {
         mCurrentDataId++;
         return mCurrentDataId % 7;
