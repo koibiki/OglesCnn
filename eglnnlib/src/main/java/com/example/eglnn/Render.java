@@ -99,7 +99,7 @@ public class Render {
         return createTextureArray(width, height, depth, GL_RGBA32F);
     }
 
-    public static int createIntTextureArray(int width, int height,int depth) {
+    public static int createIntTextureArray(int width, int height, int depth) {
         return createTextureArray(width, height, depth, GL_RGBA32I);
     }
 
@@ -193,7 +193,7 @@ public class Render {
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }
 
-    public static void performConvoluteGEMM2(int compProg, int[] params, int inTex, int outTex, int kennelTex,int numGroupsX, int numGroupZ) {
+    public static void performConvoluteGEMM2(int compProg, int[] params, int inTex, int outTex, int kennelTex, int numGroupsX, int numGroupZ) {
         GLES20.glUseProgram(compProg);
         glUniform1iv(GLES20.glGetUniformLocation(compProg, "params"), params.length, params, 0);
 
@@ -205,20 +205,15 @@ public class Render {
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }
 
-    public static void performConvoluteGEMM3(int compProg, int[] params, int inTex, int outTex,
-                                             int buffer0, int buffer1, int buffer2, int buffer3,
-                                             int numGroupsX, int numGroupZ) {
-        GLES20.glUseProgram(compProg);
-        glUniform1iv(GLES20.glGetUniformLocation(compProg, "params"), params.length, params, 0);
+    public static void performWithIntParams(int compProg, int[] params, int inTex, int outTex, int numGroupsY, int numGroupZ) {
+        glUseProgram(compProg);
+
+        glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
 
         glBindImageTexture(0, inTex, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
         glBindImageTexture(1, outTex, 0, true, 0, GL_WRITE_ONLY, GL_RGBA32F);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffer0);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, buffer1);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, buffer2);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, buffer3);
 
-        glDispatchCompute(numGroupsX, 1, numGroupZ);
+        glDispatchCompute(1, numGroupsY, numGroupZ);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }
 
@@ -246,37 +241,6 @@ public class Render {
     public static void transferToBuffer(Buffer data, int bufferId, int offset) {
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, bufferId);
         glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset * 4, data.capacity() * 4, data);
-    }
-
-    public static void performConvoluteTex(int compProg, int[] params, int inTex, int outTex, int buffer, int numGroupsY, int numGroupsZ) {
-        glUseProgram(compProg);
-        glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
-
-        glBindImageTexture(0, inTex, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
-        glBindImageTexture(1, outTex, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
-        glBindImageTexture(2, buffer, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
-
-        glDispatchCompute(1, numGroupsY, numGroupsZ);
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-    }
-
-    public static float[][][] createConvKennels(int[] mKennelShape, int mKennelAmount) {
-        int k_w = mKennelShape[0];
-        int k_h = mKennelShape[1];
-        int k_c = mKennelShape[2];
-        int align_c = Utils.alignBy4(k_c);
-        float[][][] kennenls = new float[mKennelAmount][align_c / 4][(k_w * k_h + 1) * 4];
-        for (int a = 0; a < mKennelAmount; a++) {
-            for (int w = 0; w < k_w; w++) {
-                for (int h = 0; h < k_h; h++) {
-                    for (int c = 0; c < k_c; c++) {
-                        kennenls[a][c / 4][(w + h * k_w) * 4 + c % 4] = 1;
-                    }
-                }
-            }
-            kennenls[a][0][k_w * k_h * 4] = 0.00001f * a;       // bias
-        }
-        return kennenls;
     }
 
 }

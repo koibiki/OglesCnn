@@ -10,6 +10,7 @@ import com.example.eglnn.layer.Layer.PaddingType;
 import com.example.eglnn.layer.Input;
 import com.example.eglnn.layer.Layer;
 import com.example.eglnn.utils.DataUtils;
+import com.example.eglnn.utils.TestDataCreator;
 import com.example.eglnn.utils.Utils;
 
 public class MainActivity extends AppCompatActivity {
@@ -24,9 +25,9 @@ public class MainActivity extends AppCompatActivity {
         buildNet();
 
     }
-    int width = 226;
+    int width = 13;
     int height = width;
-    int channel = 4;
+    int channel = 256;
 
     private void buildNet() {
         mNnNetwork = new NnNetwork(this);
@@ -34,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
         Layer in = new Input(this, width, height, channel);
         mNnNetwork.addLayer(in);
 
-        Layer conv1 = new ConvGEMM2(this, in, 512, 3, 3, 0, PaddingType.SAME, 2, 2, 0, "");
+        Layer conv1 = new ConvGEMM2(this, in, 128, 6, 6, PaddingType.SAME, 5, 5, 0, "");
         mNnNetwork.addLayer(conv1);
 
         mNnNetwork.initialize();
@@ -42,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void runNn(View view) {
-        float[][][] input = DataUtils.createInputBuffer(new int[]{width, height, channel});
+        float[][][] input = TestDataCreator.createInputBuffer(new int[]{width, height, channel});
         float[][] localInput = new float[Utils.alignBy4(channel) / 4][width * height * 4];
         for (int w = 0; w < width; w++) {
             for (int h = 0; h < height; h++) {

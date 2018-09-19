@@ -1,0 +1,48 @@
+layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = Z_SIZE) in;
+
+uniform int params[13];     // input_shape[3], output_shape[3], ksize[2], stride[2]
+layout(binding = 0, rgba32f) readonly uniform  image2D input_image;
+layout(binding = 1, rgba32f) writeonly uniform  image2D output_image;
+
+bool isInInputShape(ivec2 index, int[3] input_shape);
+
+// 计算工作组坐标 x, y, z  x为输出特征图的x y为输入特征图的y z为输出特征图在输出纹理上的深度
+void main(void)
+{
+    ivec3 pos = ivec3(gl_GlobalInvocationID.xyz);
+    int input_shape[3] = int[3](params[0], params[1], params[2]);
+    int output_shape[3] = int[3](params[3], params[4], params[5]);
+    int kennel_shape[2] = int[2](params[6], params[7]);
+    int strides[2] = int[2](params[8], params[9]);
+    int align_channel = params[10];
+    int pad_w = params[11];
+    int pad_h = params[12];
+
+    if (pos.y > output_shape[1] || pos.z > align_channel / 4) {
+        return;
+    }
+    ivec2 start_index = ivec2(pad_w + strides[0] * pos.x, pad_h + strides[1] * pos.y);
+    vec4 output_value = vec4(0.0);
+    if (isInInputShape(start_index, input_shape)) {
+        output_value = imageLoad(input_image, ivec3(start_index, pos.z));
+    }
+    for (int y=0; y < kennel_shape[1]; y++){
+        for (int x=0;x < kennel_shape[0]; x++){
+            ivec2 pool_index = ivec2(x + strides[0] * pos.x, y + strides[1] * pos.y);
+            if (isInInputShape(pool_index, input_shape)) {
+                vec4 data = imageLoad(input_image, ivec3(pool_index, pos.z));
+                output_value = max(output_value, data);
+            }
+        }
+    }
+    imageStore(output_image, pos, output_value);
+}
+
+// 判断是否处于输入区域
+bool isInInputShape(ivec2 index, int[3] input_shape) {
+    if (index.x < 0 || index.x >= input_shape[0] || index.y < 0 || index.y >= input_shape[1]) {
+        return false;
+    } else {
+        return true;
+    }
+}

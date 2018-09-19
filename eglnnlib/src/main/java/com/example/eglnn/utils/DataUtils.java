@@ -9,24 +9,6 @@ public class DataUtils {
 
     private static final String TAG = "DataUtils";
 
-    /**
-     * 测试用输入数据
-     */
-    public static float[][][] createInputBuffer(int[] shape) {
-        int channel = shape[2];
-        int width = shape[0];
-        int height = shape[1];
-        float input[][][] = new float[channel][height][width];
-        for (int c = 0; c < channel; c++) {
-            for (int w = 0; w < width; w++) {
-                for (int h = 0; h < height; h++) {
-                    input[c][h][w] =  1;
-                }
-            }
-        }
-        return input;
-    }
-
     public static float[][][] readOutput(Layer layer) {
         int[] outputShape = layer.getOutputShape();
         int width = outputShape[0];
@@ -58,36 +40,6 @@ public class DataUtils {
             }
         }
         return out;
-    }
-
-    /**
-     * 测试用全连接 kennel
-     */
-    public static float[] createFullConnKennel(int alignSize, int[] inputShape, int index) {
-        float[] kennel = new float[alignSize];       // 最后一位是bias
-        for (int i = 0; i < inputShape[0] * inputShape[1]; i++) {
-            for (int j = 0; j < inputShape[2]; j++) {
-                kennel[inputShape[2] * i + j] = j;
-            }
-        }
-        kennel[alignSize - 4] = 1;
-        return kennel;
-    }
-
-    /**
-     * 测试用conv kennel
-     * channel需要4对齐, 依次排满通道后再排下一个值, 最后4个值为 bias, 0, 0, 0
-     */
-    public static float[] createConvKennel(int num, int width, int height, int channel, float bias) {
-        int alignChannel = Utils.alignBy4(channel);
-        float[] data = new float[width * height * alignChannel + 4];
-        for (int i = 0; i < width * height; i++) {
-            for (int ii = 0; ii < channel; ii++) {
-                data[i * alignChannel + ii] = 1;
-            }
-        }
-        data[width * height * alignChannel] = bias;
-        return data;
     }
 
 }
