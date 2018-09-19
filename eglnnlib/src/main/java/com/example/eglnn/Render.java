@@ -1,15 +1,13 @@
 package com.example.eglnn;
 
-import android.opengl.GLES20;
-import android.opengl.GLES30;
 import android.opengl.GLES31;
 
 import com.example.eglnn.utils.ShaderUtils;
-import com.example.eglnn.utils.Utils;
 
 import java.nio.Buffer;
 
 import static android.opengl.GLES20.GL_CLAMP_TO_EDGE;
+import static android.opengl.GLES20.GL_COLOR_ATTACHMENT0;
 import static android.opengl.GLES20.GL_FLOAT;
 import static android.opengl.GLES20.GL_FRAMEBUFFER;
 import static android.opengl.GLES20.GL_INT;
@@ -21,15 +19,18 @@ import static android.opengl.GLES20.GL_TEXTURE_MIN_FILTER;
 import static android.opengl.GLES20.GL_TEXTURE_WRAP_S;
 import static android.opengl.GLES20.GL_TEXTURE_WRAP_T;
 import static android.opengl.GLES20.glBindBuffer;
+import static android.opengl.GLES20.glBindTexture;
 import static android.opengl.GLES20.glBufferData;
 import static android.opengl.GLES20.glBufferSubData;
 import static android.opengl.GLES20.glFramebufferTexture2D;
 import static android.opengl.GLES20.glGenBuffers;
+import static android.opengl.GLES20.glGenTextures;
 import static android.opengl.GLES20.glGetIntegerv;
 import static android.opengl.GLES20.glGetUniformLocation;
 import static android.opengl.GLES20.glLinkProgram;
 import static android.opengl.GLES20.glReadPixels;
 import static android.opengl.GLES20.glTexParameteri;
+import static android.opengl.GLES20.glTexSubImage2D;
 import static android.opengl.GLES20.glUniform1iv;
 import static android.opengl.GLES20.glUseProgram;
 import static android.opengl.GLES30.GL_DYNAMIC_COPY;
@@ -41,6 +42,9 @@ import static android.opengl.GLES30.GL_TEXTURE_2D_ARRAY;
 import static android.opengl.GLES30.glBindBufferBase;
 import static android.opengl.GLES30.glFramebufferTextureLayer;
 import static android.opengl.GLES30.glReadBuffer;
+import static android.opengl.GLES30.glTexStorage2D;
+import static android.opengl.GLES30.glTexStorage3D;
+import static android.opengl.GLES30.glTexSubImage3D;
 import static android.opengl.GLES31.GL_COMPUTE_SHADER;
 import static android.opengl.GLES31.GL_READ_ONLY;
 import static android.opengl.GLES31.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
@@ -112,48 +116,48 @@ public class Render {
 
     private static int createTexture(int width, int height, int format) {
         int[] texture = new int[1];
-        GLES20.glGenTextures(1, texture, 0);
-        GLES20.glBindTexture(GL_TEXTURE_2D, texture[0]);
-        GLES30.glTexStorage2D(GL_TEXTURE_2D, 1, format, width, height);
+        glGenTextures(1, texture, 0);
+        glBindTexture(GL_TEXTURE_2D, texture[0]);
+        glTexStorage2D(GL_TEXTURE_2D, 1, format, width, height);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        GLES31.glBindTexture(GL_TEXTURE_2D, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
         return texture[0];
     }
 
     private static int createTextureArray(int width, int height, int depth, int internalFormat) {
         int[] texture = new int[1];
-        GLES20.glGenTextures(1, texture, 0);
-        GLES20.glBindTexture(GL_TEXTURE_2D_ARRAY, texture[0]);
-        GLES30.glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, internalFormat, width, height, depth);
+        glGenTextures(1, texture, 0);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, texture[0]);
+        glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, internalFormat, width, height, depth);
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        GLES31.glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
         return texture[0];
     }
 
     public static void bindTextureAndBuffer(int texID, int attachID) {
-        int attachment = GLES20.GL_COLOR_ATTACHMENT0 + attachID;
+        int attachment = GL_COLOR_ATTACHMENT0 + attachID;
         glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texID, 0);
     }
 
     public static void bindTextureAndBuffer(int texID, int attachID, int bufferId) {
-        int attachment = GLES20.GL_COLOR_ATTACHMENT0 + attachID;
+        int attachment = GL_COLOR_ATTACHMENT0 + attachID;
         glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texID, 0);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, bufferId);
     }
 
     public static void bindTextureArray(int texID, int attachID) {
-        int attachment = GLES31.GL_COLOR_ATTACHMENT0 + attachID;
+        int attachment = GL_COLOR_ATTACHMENT0 + attachID;
         glFramebufferTextureLayer(GL_FRAMEBUFFER, attachment, texID, 0, 0);
     }
 
     public static void bindTextureArray(int texID, int attachID, int layer) {
-        int attachment = GLES31.GL_COLOR_ATTACHMENT0 + attachID;
+        int attachment = GL_COLOR_ATTACHMENT0 + attachID;
         glFramebufferTextureLayer(GL_FRAMEBUFFER, attachment, texID, 0, layer);
     }
 
@@ -162,14 +166,14 @@ public class Render {
     }
 
     public static void bindTextureArrayAndBuffer(int texID, int attachID, int bufferId) {
-        int attachment = GLES31.GL_COLOR_ATTACHMENT0 + attachID;
+        int attachment = GL_COLOR_ATTACHMENT0 + attachID;
         glFramebufferTextureLayer(GL_FRAMEBUFFER, attachment, texID, 0, 0);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, bufferId);
     }
 
     public static void performConvoluteGEMM(int compProg, int[] params, int inTex, int outTex, int kennelTex, int buffer, int numGroupsX, int numGroupZ) {
-        GLES20.glUseProgram(compProg);
-        glUniform1iv(GLES20.glGetUniformLocation(compProg, "params"), params.length, params, 0);
+        glUseProgram(compProg);
+        glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
 
         glBindImageTexture(0, inTex, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
         glBindImageTexture(1, outTex, 0, true, 0, GL_WRITE_ONLY, GL_RGBA32F);
@@ -181,8 +185,8 @@ public class Render {
     }
 
     public static void performConvoluteGEMM4(int compProg, int[] params, int inTex, int outTex, int convIndex, int kennelTex, int numGroupsX, int numGroupZ) {
-        GLES20.glUseProgram(compProg);
-        glUniform1iv(GLES20.glGetUniformLocation(compProg, "params"), params.length, params, 0);
+        glUseProgram(compProg);
+        glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
 
         glBindImageTexture(0, inTex, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
         glBindImageTexture(1, outTex, 0, true, 0, GL_WRITE_ONLY, GL_RGBA32F);
@@ -194,8 +198,8 @@ public class Render {
     }
 
     public static void performConvoluteGEMM2(int compProg, int[] params, int inTex, int outTex, int kennelTex, int numGroupsX, int numGroupZ) {
-        GLES20.glUseProgram(compProg);
-        glUniform1iv(GLES20.glGetUniformLocation(compProg, "params"), params.length, params, 0);
+        glUseProgram(compProg);
+        glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
 
         glBindImageTexture(0, inTex, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
         glBindImageTexture(1, outTex, 0, true, 0, GL_WRITE_ONLY, GL_RGBA32F);
@@ -218,24 +222,24 @@ public class Render {
     }
 
     public static Buffer transferFromTexture(Buffer data, int attachID, int x, int y, int width, int height) {
-        glReadBuffer(GLES31.GL_COLOR_ATTACHMENT0 + attachID);
+        glReadBuffer(GL_COLOR_ATTACHMENT0 + attachID);
         glReadPixels(x, y, width, height, GL_RGBA, GL_FLOAT, data);
         return data;
     }
 
     public static void transferToTexture(Buffer data, int texID, int xOffset, int yOffset, int width, int height) {
-        GLES20.glBindTexture(GL_TEXTURE_2D, texID);
-        GLES20.glTexSubImage2D(GL_TEXTURE_2D, 0, xOffset, yOffset, width, height, GL_RGBA, GL_FLOAT, data);
+        glBindTexture(GL_TEXTURE_2D, texID);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, xOffset, yOffset, width, height, GL_RGBA, GL_FLOAT, data);
     }
 
     public static void transferToTextureArrayFloat(Buffer data, int texID, int xOffset, int yOffset, int zOffset, int width, int height, int depth) {
-        GLES20.glBindTexture(GL_TEXTURE_2D_ARRAY, texID);
-        GLES31.glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, xOffset, yOffset, zOffset, width, height, depth, GL_RGBA, GL_FLOAT, data);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, texID);
+        glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, xOffset, yOffset, zOffset, width, height, depth, GL_RGBA, GL_FLOAT, data);
     }
 
     public static void trainferToTexttureArrayInt(Buffer data, int texID, int xOffset, int yOffset, int zOffset, int width, int height) {
-        GLES20.glBindTexture(GL_TEXTURE_2D_ARRAY, texID);
-        GLES31.glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, xOffset, yOffset, zOffset, width, height, 1, GL_RGBA_INTEGER, GL_INT, data);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, texID);
+        glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, xOffset, yOffset, zOffset, width, height, 1, GL_RGBA_INTEGER, GL_INT, data);
     }
 
     public static void transferToBuffer(Buffer data, int bufferId, int offset) {
