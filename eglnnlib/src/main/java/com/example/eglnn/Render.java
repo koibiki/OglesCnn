@@ -83,8 +83,8 @@ public class Render {
         return compProg;
     }
 
-    public static int createTexture() {
-        return createTexture(S_TEXTURE_SIZE, S_TEXTURE_SIZE, GL_RGBA32F);
+    public static int createTexture(int width, int height) {
+        return createTexture(width, height, GL_RGBA32F);
     }
 
     public static int createTexture(int format) {
@@ -206,6 +206,19 @@ public class Render {
         glBindImageTexture(2, kennelTex, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
 
         glDispatchCompute(numGroupsX, 1, numGroupZ);
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    }
+
+    public static void performFullConnectSSBO(int compProg, int[] params, int inTex, int outTex, int buffer, int numGroupZ) {
+        glUseProgram(compProg);
+
+        glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
+
+        glBindImageTexture(0, inTex, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+        glBindImageTexture(1, outTex, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffer);
+
+        glDispatchCompute(1, 1, numGroupZ);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }
 
