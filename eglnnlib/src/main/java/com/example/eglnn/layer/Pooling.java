@@ -32,22 +32,21 @@ public class Pooling extends Layer {
         this.mPadType = padType;
         this.mKennelShape = new int[]{k_w, k_h};
         this.mStrides = new int[]{stride_w, stride_h};
-        this.mOutShape = calculatePoolingShape();
+        this.mOutShape = calculateConvShapeByType();
     }
 
-    private int[] calculatePoolingShape() {
-        int[] inShape = mPreLayer.getOutputShape();
-        int width;
-        int height;
+    private int[] calculateConvShapeByType() {
+        int width, height;
         if (mPadType == PaddingType.SAME) {
-            width = (int) Math.ceil(inShape[0] * 1.0f / mStrides[0]);
-            height = (int) Math.ceil(inShape[1] * 1.0f / mStrides[1]);
+            width = (int) Math.ceil(mInShape[0] * 1.0f / mStrides[0]);
+            mPadW = ((width - 1) * mStrides[0] + mKennelShape[0] - mInShape[0]) / 2;
+            height = (int) Math.ceil(mInShape[1] * 1.0f / mStrides[1]);
+            mPadH = ((height - 1) * mStrides[1] + mKennelShape[1] - mInShape[1]) / 2;
         } else {
-            width = (int) Math.floor(inShape[0] * 1.0f / mStrides[0]);
-            height = (int) Math.floor(inShape[1] * 1.0f / mStrides[1]);
-
+            width = (int) Math.ceil((mInShape[0] - mKennelShape[0] + 1) * 1.0f / mStrides[0]);
+            height = (int) Math.ceil((mInShape[1] - mKennelShape[1] + 1) * 1.0f / mStrides[1]);
         }
-        return new int[]{width, height, inShape[2]};
+        return new int[]{width, height, mInShape[2]};
     }
 
     private void initPooling() {
@@ -61,7 +60,7 @@ public class Pooling extends Layer {
         mAttachID = Layer.getDataAttachID();
         mOutTex = Render.createFloatTextureArray(mOutShape[0], mOutShape[1], Utils.alignBy4(mOutShape[2]) / 4);
 
-        mParams = new int[10];
+        mParams = new int[13];
         mParams[0] = mInShape[0];
         mParams[1] = mInShape[1];
         mParams[2] = mInShape[2];
@@ -72,6 +71,9 @@ public class Pooling extends Layer {
         mParams[7] = mKennelShape[1];
         mParams[8] = mStrides[0];
         mParams[9] = mStrides[1];
+        mParams[10] = Utils.alignBy4(mInShape[2]) / 4;
+        mParams[11] = -1 * mPadW;
+        mParams[12] = -1 * mPadH;
     }
 
     private String createShaderSource(int localSizeY, int localSizeZ) {

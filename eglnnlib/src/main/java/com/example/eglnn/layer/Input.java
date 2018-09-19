@@ -17,7 +17,7 @@ public class Input extends Layer {
     @Override
     public void initialize() {
         mAttachID = Layer.getDataAttachID();
-        mOutTex = Render.createFloatTextureArray(mOutShape[0] + 1, mOutShape[1] + 1, Utils.alignBy4(mOutShape[2]) / 4);
+        mOutTex = Render.createFloatTextureArray(mOutShape[0], mOutShape[1], Utils.alignBy4(mOutShape[2]) / 4);
     }
 
     @Override

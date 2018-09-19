@@ -108,14 +108,14 @@ public class ConvGEMM2 extends Layer {
         String source = createShaderSource(xSize, zSize);
         mShaderPro = initCompPro(source);
         mAttachID = Layer.getDataAttachID();
-        mOutTex = Render.createFloatTextureArray(mOutShape[0] + 1, mOutShape[1] + 1, Utils.alignBy4(mOutShape[2]) / 4);
+        mOutTex = Render.createFloatTextureArray(mOutShape[0], mOutShape[1], Utils.alignBy4(mOutShape[2]) / 4);
 
         if (TextUtils.isEmpty(mKennelFilePath)) {
             mKennels = createTestKennels();
         } else {
             mKennels = loadKennels();
         }
-
+        // kennel 最后一列为bias
         mKennelTex = Render.createKennelFloatTextureArray(mKennelShape[0] * mKennelShape[1] + 1, mKennelAmount, Utils.alignBy4(mInShape[2]) / 4);
         transferToKennelTex();
 

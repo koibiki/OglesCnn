@@ -5,20 +5,20 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
 
-import com.example.cnnlib.utils.ParamUnpacker;
+//import com.example.cnnlib.utils.ParamUnpacker;
 
 public class TestUtils {
 
     private int mWidthPixel = 32;
     private int mHeightPixel = 32;
     private final String sRoot = Environment.getExternalStorageDirectory().getAbsolutePath();
-    private final float[][][] mean;
+    private float[][][] mean;
 
 
-    public TestUtils() {
-        ParamUnpacker pu = new ParamUnpacker();
-        mean = (float[][][]) pu.unpackerFunction(sRoot + "/Cifar10es/net/mean.msg", float[][][].class);
-    }
+//    public TestUtils() {
+//        ParamUnpacker pu = new ParamUnpacker();
+//        mean = (float[][][]) pu.unpackerFunction(sRoot + "/Cifar10es/net/mean.msg", float[][][].class);
+//    }
 
 
     public float[][][] getTestImage(Context context) {

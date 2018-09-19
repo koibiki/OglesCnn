@@ -9,6 +9,7 @@ import com.example.eglnn.layer.ConvGEMM2;
 import com.example.eglnn.layer.Layer.PaddingType;
 import com.example.eglnn.layer.Input;
 import com.example.eglnn.layer.Layer;
+import com.example.eglnn.layer.Pooling;
 import com.example.eglnn.utils.DataUtils;
 import com.example.eglnn.utils.TestDataCreator;
 import com.example.eglnn.utils.Utils;
@@ -25,9 +26,10 @@ public class MainActivity extends AppCompatActivity {
         buildNet();
 
     }
-    int width = 13;
+
+    int width = 227;
     int height = width;
-    int channel = 256;
+    int channel = 8;
 
     private void buildNet() {
         mNnNetwork = new NnNetwork(this);
@@ -35,8 +37,11 @@ public class MainActivity extends AppCompatActivity {
         Layer in = new Input(this, width, height, channel);
         mNnNetwork.addLayer(in);
 
-        Layer conv1 = new ConvGEMM2(this, in, 128, 6, 6, PaddingType.SAME, 5, 5, 0, "");
+        Layer conv1 = new ConvGEMM2(this, in, 512, 4, 4, PaddingType.SAME, 2, 2, 0, "");
         mNnNetwork.addLayer(conv1);
+
+//        Pooling pooling = new Pooling(this, in, 3, 3, PaddingType.SAME, 2, 2);
+//        mNnNetwork.addLayer(pooling);
 
         mNnNetwork.initialize();
 

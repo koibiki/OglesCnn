@@ -104,11 +104,6 @@ void main(void)
         conv_index_on_tex2 = ivec2(x_offset + strides[0] * x_2, y_offset + strides[1] * y_2);
         conv_index_on_tex3 = ivec2(x_offset + strides[0] * x_3, y_offset + strides[1] * y_3);
 
-        ivec2 real_index0 = real_index(conv_index_on_tex0, in_width, in_height);
-        ivec2 real_index1 = real_index(conv_index_on_tex1, in_width, in_height);
-        ivec2 real_index2 = real_index(conv_index_on_tex2, in_width, in_height);
-        ivec2 real_index3 = real_index(conv_index_on_tex3, in_width, in_height);
-
         for (int c = 0; c < count; c++) {
             kennel[0] = imageLoad(kennel_image, ivec3(i, z_index0, c));
             kennel[1] = imageLoad(kennel_image, ivec3(i, z_index1, c));
@@ -117,10 +112,10 @@ void main(void)
 
             kennel = transpose(kennel);
 
-            data_mat0[0] = imageLoad(input_image, ivec3(real_index0, c));
-            data_mat0[1] = imageLoad(input_image, ivec3(real_index1, c));
-            data_mat0[2] = imageLoad(input_image, ivec3(real_index2, c));
-            data_mat0[3] = imageLoad(input_image, ivec3(real_index3, c));
+            data_mat0[0] = imageLoad(input_image, ivec3(conv_index_on_tex0, c));
+            data_mat0[1] = imageLoad(input_image, ivec3(conv_index_on_tex1, c));
+            data_mat0[2] = imageLoad(input_image, ivec3(conv_index_on_tex2, c));
+            data_mat0[3] = imageLoad(input_image, ivec3(conv_index_on_tex3, c));
 
             result += kennel * data_mat0;
         }
