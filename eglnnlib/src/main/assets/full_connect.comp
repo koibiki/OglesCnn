@@ -35,7 +35,7 @@ void main(void)
                 for (int x = 0; x < input_shape[0];x++) {
                     for (int y=0; y < input_shape[1]; y++) {
                         for (int d = 0 ; d < align_depth; d++) {
-                            vec4 data = imageLoad(input_image, ivec3(x, y, d));
+                            vec4 data = imageLoad(input_image, ivec2(x + d, y));
                             int kennel_start_index = (y * input_shape[0] + x) + c * 4 * input_area + offset;
                             vec4 k_v = getKennelValue(kennel_start_index, input_area);
                             output_vec[i] += dot(data, k_v);
