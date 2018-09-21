@@ -102,7 +102,7 @@ public class ConvGEMM extends Layer {
         String source = createShaderSource(xSize, zSize);
         mShaderPro = initCompPro(source);
         mAttachID = Layer.getDataAttachID();
-        mOutTex = Render.createFloatTextureArray(mOutShape[0], mOutShape[1], Utils.alignBy4(mOutShape[2]) / 4);
+        mOutTex = Render.createFloatTextureArray(mOutShape[0], mOutShape[1], Utils.alignBy4(mOutShape[2]) * 2 / 4);
         createConvInputDataIndex();
 
         if (TextUtils.isEmpty(mKennelFilePath)) {
@@ -212,6 +212,6 @@ public class ConvGEMM extends Layer {
 
     @Override
     protected void actualForwardProc(float[][] input) {
-        Render.performConvoluteGEMM(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex,mKennelTex, mIndexBufferId, mNumGroupsX, mNumGroupsZ);
+        Render.performConvoluteGEMM(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mKennelTex, mIndexBufferId, mNumGroupsX, mNumGroupsZ);
     }
 }

@@ -108,7 +108,7 @@ public class ConvGEMM2 extends Layer {
         String source = createShaderSource(xSize, zSize);
         mShaderPro = initCompPro(source);
         mAttachID = Layer.getDataAttachID();
-        mOutTex = Render.createFloatTextureArray(mOutShape[0], mOutShape[1], Utils.alignBy4(mOutShape[2]) / 4);
+        mOutTex = Render.createFloatTextureArray(mOutShape[0], mOutShape[1], Utils.alignBy4(mOutShape[2]) * 2 / 4);
 
         if (TextUtils.isEmpty(mKennelFilePath)) {
             mKennels = createTestKennels();
@@ -135,6 +135,8 @@ public class ConvGEMM2 extends Layer {
         String shaderFile;
         if (mInShape[2] <= 4) {
             shaderFile = "conv_gemm2_in_c_4.comp";
+        } else if (mKennelShape[0] * mKennelShape[1] == 1) {
+            shaderFile = "conv_gemm2_k_1.comp";
         } else {
             shaderFile = "conv_gemm2.comp";
         }
