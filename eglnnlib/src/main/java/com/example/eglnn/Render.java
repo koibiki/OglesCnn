@@ -209,6 +209,18 @@ public class Render {
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }
 
+    public static void performExpand(int compProg, int[] params, int inTex, int outTex, int kennelTex, int numGroupsX, int numGroupZ) {
+        glUseProgram(compProg);
+        glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
+
+        glBindImageTexture(0, kennelTex, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
+        glBindImageTexture(1, inTex, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
+        glBindImageTexture(2, outTex, 0, true, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
+        glDispatchCompute(numGroupsX, 1, numGroupZ);
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    }
+
     public static void performFullConnectSSBO(int compProg, int[] params, int inTex, int outTex, int buffer, int numGroupZ) {
         glUseProgram(compProg);
 

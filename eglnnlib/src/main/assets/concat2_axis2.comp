@@ -1,0 +1,26 @@
+layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = Z_SIZE) in;
+
+uniform int params[7];     // input_shape[3], output_shape[3], ksize[2], stride[2] max_depth, pad_w, pad_h
+layout(binding = 0, rgba32f) writeonly uniform  image2DArray input_image1;
+layout(binding = 1, rgba32f) readonly uniform  image2DArray input_image2;
+
+bool isInInputShape(ivec2 index, int[3] input_shape);
+
+
+// TODO 暂时为考虑传入时 输入纹理channel 未4对齐的情况
+// TODO 暂时只考虑输入 2 张纹理的情况
+// 计算工作组坐标 x, y, z  x为输出特征图的x y为输入特征图的y z为输出特征图在输出纹理上的深度
+void main(void)
+{
+    ivec3 pos = ivec3(gl_GlobalInvocationID.xyz);
+    int input_shape1[3] = int[3](params[0], params[1], params[2]);
+    int input_shape2[3] = int[3](params[3], params[4], params[5]);
+    int max_depth = params[6];                 // 有效纹理最大深度
+
+    if (pos.y >= input_shape2[1] || pos.z >= max_depth) {
+        return;
+    }
+
+    vec4 data = imageLoad(input_image2, pos);
+    imageStore(input_image1, ivec3(pos.x, pos.y, pos.z + input_shape1[2]), data);
+}
