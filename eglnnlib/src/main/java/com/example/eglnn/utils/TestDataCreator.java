@@ -5,7 +5,7 @@ public class TestDataCreator {
     /**
      * 测试用输入数据
      */
-    public static float[][][] createInputBuffer(int[] shape) {
+    public static float[][][] createInputBuffer(int[] shape, int bias) {
         int channel = shape[2];
         int width = shape[0];
         int height = shape[1];
@@ -13,7 +13,7 @@ public class TestDataCreator {
         for (int c = 0; c < channel; c++) {
             for (int w = 0; w < width; w++) {
                 for (int h = 0; h < height; h++) {
-                    input[c][h][w] = 1;
+                    input[c][h][w] = 0.011f + bias;
                 }
             }
         }
@@ -33,7 +33,7 @@ public class TestDataCreator {
             for (int w = 0; w < k_w; w++) {
                 for (int h = 0; h < k_h; h++) {
                     for (int c = 0; c < k_c; c++) {
-                        kennenls[a][c / 4][(w + h * k_w) * 4 + c % 4] = 1;
+                        kennenls[a][c / 4][(w + h * k_w) * 4 + c % 4] = 0.11f;
                     }
                 }
             }

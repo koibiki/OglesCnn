@@ -15,6 +15,7 @@ import static com.example.eglnn.utils.Constants.S_POOLING_SHADER_HEADER;
 
 /**
  * pool 层 以输出 shape 为基准生成计算器, 每个计算器只负责一个深度纹理上的一次pool计算
+ * 默认pool 输出 w 小于 1024
  */
 public class Pooling extends Layer {
 
@@ -95,7 +96,7 @@ public class Pooling extends Layer {
 
     @Override
     protected void actualForwardProc(float[][] input) {
-        Render.performWithIntParams(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mNumGroupsY, mNumGroupsZ);
+        Render.performConcat2(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mNumGroupsY, mNumGroupsZ);
     }
 
 }

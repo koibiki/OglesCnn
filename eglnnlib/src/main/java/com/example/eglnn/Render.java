@@ -222,13 +222,26 @@ public class Render {
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }
 
-    public static void performWithIntParams(int compProg, int[] params, int inTex, int outTex, int numGroupsY, int numGroupZ) {
+    public static void performConcat2(int compProg, int[] params, int inTex, int outTex, int numGroupsY, int numGroupZ) {
         glUseProgram(compProg);
 
         glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
 
         glBindImageTexture(0, inTex, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
         glBindImageTexture(1, outTex, 0, true, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
+        glDispatchCompute(1, numGroupsY, numGroupZ);
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    }
+
+    public static void performConcat2(int compProg, int[] params, int inTex1, int inTex2, int outTex, int numGroupsY, int numGroupZ) {
+        glUseProgram(compProg);
+
+        glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
+
+        glBindImageTexture(0, inTex1, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
+        glBindImageTexture(1, inTex2, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
+        glBindImageTexture(2, outTex, 0, true, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
         glDispatchCompute(1, numGroupsY, numGroupZ);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);

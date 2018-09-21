@@ -10,7 +10,7 @@ float sigmoid(float i);
 vec4 activeVector(int type, vec4 v);
 ivec2 real_index(ivec2 index, int in_width, int in_height);
 
-ivec2 getRelativeRestoreIndex(int pos, int offset, int out_width);
+ivec2 getRelativeRestoreIndex(int pos, int out_width);
 
 void main(void)
 {
@@ -74,21 +74,21 @@ void main(void)
                         bias0, bias1, bias2, bias3);
     result = bias;
 
-    int start_x = start_x_index;
-    int x_0 = start_x % out_width;
-    int y_0 = start_x / out_width;
+    int start_x0 = start_x_index;
+    int x_0 = start_x0 % out_width;
+    int y_0 = start_x0 / out_width;
 
-    start_x += 1;
-    int x_1 = start_x % out_width;
-    int y_1 = start_x / out_width;
+    int start_x1 = start_x0 + 1;
+    int x_1 = start_x1 % out_width;
+    int y_1 = start_x1 / out_width;
 
-    start_x += 1;
-    int x_2 = start_x % out_width;
-    int y_2 = start_x / out_width;
+    int start_x2 = start_x1 + 1;
+    int x_2 = start_x2 % out_width;
+    int y_2 = start_x2 / out_width;
 
-    start_x += 1;
-    int x_3 = start_x % out_width;
-    int y_3 = start_x / out_width;
+    int start_x3 = start_x2 + 1;
+    int x_3 = start_x3 % out_width;
+    int y_3 = start_x3 / out_width;
 
 
     for (int i = 0; i < kennel_area; i++) {
@@ -121,10 +121,10 @@ void main(void)
         }
     }
 
-    ivec2 restore_index0 = getRelativeRestoreIndex(start_x_index, 0, out_width);
-    ivec2 restore_index1 = getRelativeRestoreIndex(start_x_index, 1, out_width);
-    ivec2 restore_index2 = getRelativeRestoreIndex(start_x_index, 2, out_width);
-    ivec2 restore_index3 = getRelativeRestoreIndex(start_x_index, 3, out_width);
+    ivec2 restore_index0 = getRelativeRestoreIndex(start_x0, out_width);
+    ivec2 restore_index1 = getRelativeRestoreIndex(start_x1, out_width);
+    ivec2 restore_index2 = getRelativeRestoreIndex(start_x2, out_width);
+    ivec2 restore_index3 = getRelativeRestoreIndex(start_x3, out_width);
 
     imageStore(output_image, ivec3(restore_index0.xy, pos.z), activeVector(active_type, result[0]));
     imageStore(output_image, ivec3(restore_index1.xy, pos.z), activeVector(active_type, result[1]));
@@ -145,8 +145,7 @@ int alignBy4(int channel) {
     return (channel + (align - 1)) & ~(align - 1);
 }
 
-ivec2 getRelativeRestoreIndex(int pos, int offset, int out_width) {
-    pos = pos + offset;
+ivec2 getRelativeRestoreIndex(int pos,int out_width) {
     int x = pos % out_width;
     int y = pos / out_width;
     return ivec2(x, y);

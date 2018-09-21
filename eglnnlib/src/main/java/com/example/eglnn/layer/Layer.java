@@ -6,6 +6,7 @@ public abstract class Layer {
 
     protected Context mContext;
     protected Layer mPreLayer;
+    protected Layer[] mPreLayers;
     protected int[] mOutShape;
     protected int[] mInShape;
 
@@ -62,7 +63,14 @@ public abstract class Layer {
     public Layer(Context context, Layer preLayer) {
         this.mContext = context;
         this.mPreLayer = preLayer;
+        this.mPreLayers = new Layer[]{preLayer};
         this.mInShape = preLayer.getOutputShape();
+    }
+
+    public Layer(Context context, Layer[] preLayers) {
+        this.mContext = context;
+        this.mPreLayer = null;
+        this.mPreLayers = preLayers;
     }
 
 
