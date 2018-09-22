@@ -132,20 +132,12 @@ public class ConvGEMM2 extends Layer {
     }
 
     private String createShaderSource(int xSize, int zSize) {
-        String shaderFile;
-        if (mInShape[2] <= 4) {
-            shaderFile = "conv_gemm2_in_c_4.comp";
-        } else if (mKennelShape[0] * mKennelShape[1] == 1) {
-            shaderFile = "conv_gemm2_k_1.comp";
-        } else {
-            shaderFile = "conv_gemm2.comp";
-        }
+        String shaderFile = "conv_gemm2.comp";
         String source = ShaderUtils.loadFromAssetsFile(shaderFile, mContext.getResources());
         int kennelArea = mKennelShape[0] * mKennelShape[1];
         int kennelSize = kennelArea * Utils.alignBy4(mKennelShape[2]);
         return String.format(Locale.getDefault(), S_CONV_GEMM_SHADER_HEADER, kennelArea, mKennelAmount, kennelSize, xSize, 1, zSize) + source;
     }
-
 
     private void createShaderParams() {
         mParams = new int[15];
