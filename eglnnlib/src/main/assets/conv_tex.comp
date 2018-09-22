@@ -1,0 +1,105 @@
+layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = Z_SIZE) in;
+
+uniform int params[15];  // kennel_shape[3] input_shape[3] output_shape[3] strides[2] active_type pad_w, pad_h
+layout(binding = 0, rgba32f) readonly uniform image2DArray input_image;
+layout(binding = 1, rgba32f) writeonly uniform image2DArray output_image;
+layout(binding = 2, rgba32f) readonly uniform image2DArray kennel_image;
+
+float relu(float i);
+float sigmoid(float i);
+vec4 activeVector(int type, vec4 v);
+
+void main(void)
+{
+    // 分解参数
+    int kennel_width = params[0];
+    int kennel_height = params[1];
+    int kennel_channel = params[2];
+
+    int in_width = params[3];
+    int in_height = params[4];
+    int in_channel = params[5];
+
+    int out_width = params[6];
+    int out_height = params[7];
+    int out_channel = params[8];
+
+    int strides[2] = int[2](params[9], params[10]);
+
+    int active_type = params[11];
+    int align_channel = params[12];
+
+    int pad_w = params[13];
+    int pad_h = params[14];
+
+    ivec3 pos = ivec3(gl_GlobalInvocationID.xyz);
+
+    if (pos.x >= out_width || pos.y >= out_height || pos.z >= out_channel) {
+        return;
+    }
+
+    int count = align_channel / 4;
+
+    int output_area = out_width * out_height;
+    int kennel_area = kennel_width * kennel_height;
+
+    int start_z_index = pos.z * 4;
+
+    int z_index0 = start_z_index;
+    int z_index1 = z_index0 + 1;
+    int z_index2 = z_index1 + 1;
+    int z_index3 = z_index2 + 1;
+
+    float bias0 =  imageLoad(kennel_image, ivec3(kennel_area, z_index0, 0))[0];
+    float bias1 =  imageLoad(kennel_image, ivec3(kennel_area, z_index1, 0))[0];
+    float bias2 =  imageLoad(kennel_image, ivec3(kennel_area, z_index2, 0))[0];
+    float bias3 =  imageLoad(kennel_image, ivec3(kennel_area, z_index3, 0))[0];
+
+    vec4 result = vec4(bias0, bias1, bias2, bias3);
+
+    for (int y = 0; y < kennel_height; y++){
+        for (int x = 0;x < kennel_width; x++){
+            int conv_x = pad_w + x + strides[0] * pos.x;
+            int conv_y = pad_h + y + strides[1] * pos.y;
+            int k_index = y * kennel_width + x;
+            for (int c = 0; c < count; c++) {
+                vec4 data = imageLoad(input_image, ivec3(conv_x, conv_y, c));
+                vec4 kennel0 = imageLoad(kennel_image, ivec3(k_index, z_index0, c));
+                vec4 kennel1 = imageLoad(kennel_image, ivec3(k_index, z_index1, c));
+                vec4 kennel2 = imageLoad(kennel_image, ivec3(k_index, z_index2, c));
+                vec4 kennel3 = imageLoad(kennel_image, ivec3(k_index, z_index3, c));
+                float result0 = dot(data, kennel0);
+                float result1 = dot(data, kennel1);
+                float result2 = dot(data, kennel2);
+                float result3 = dot(data, kennel3);
+                result += vec4(result0, result1, result2, result3);
+            }
+        }
+    }
+
+    imageStore(output_image, pos, activeVector(active_type, result));
+}
+
+float relu(float i){
+    if (i > 0.0){
+        return i;
+    } else {
+        return 0.0;
+    }
+}
+
+float sigmoid(float i){
+    return 1.0 / (1.0 + exp(-i));
+}
+
+vec4 activeVector(int type, vec4 v) {
+    if (type == 0) {
+        return vec4(relu(v[0]), relu(v[1]), relu(v[2]), relu(v[3]));
+    } else if (type == 1) {
+        return vec4(sigmoid(v[0]), sigmoid(v[1]), sigmoid(v[2]), sigmoid(v[3]));
+    } else if (type == 2){
+        return vec4(tanh(v[0]), tanh(v[1]), tanh(v[2]), tanh(v[3]));
+    } else {
+        return v;
+    }
+}
