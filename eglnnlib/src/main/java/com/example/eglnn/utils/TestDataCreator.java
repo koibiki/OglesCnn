@@ -13,7 +13,7 @@ public class TestDataCreator {
         for (int c = 0; c < channel; c++) {
             for (int w = 0; w < width; w++) {
                 for (int h = 0; h < height; h++) {
-                    input[c][h][w] = 1;
+                    input[c][h][w] = 0.01f;
                 }
             }
         }
@@ -33,7 +33,7 @@ public class TestDataCreator {
             for (int w = 0; w < k_w; w++) {
                 for (int h = 0; h < k_h; h++) {
                     for (int c = 0; c < k_c; c++) {
-                        kennenls[a][c / 4][(w + h * k_w) * 4 + c % 4] = 1;
+                        kennenls[a][c / 4][(w + h * k_w) * 4 + c % 4] = 0.011f;
                     }
                 }
             }

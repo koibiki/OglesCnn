@@ -12,6 +12,13 @@ public class Constants {
                     "#define Y_SIZE %d\n" +
                     "#define Z_SIZE %d\n";
 
+    public static final String S_EXPAND_SHADER_HEADER =
+            "#version 310 es\n" +
+                    "#define START_Z %d\n" +
+                    "#define X_SIZE %d\n" +
+                    "#define Y_SIZE %d\n" +
+                    "#define Z_SIZE %d\n";
+
     public static final String S_POOLING_SHADER_HEADER =
             "#version 310 es\n" +
                     "#define KENNEL_AREA %d\n" +

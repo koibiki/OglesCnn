@@ -14,7 +14,7 @@ public class ComputeShaderUtils {
     public static int getCompShaderLocalSizeZ(int[] shape, int count) {
         int maxLoaclSizeZ = Constants.S_MAX_COMPUTE_SIZE / (shape[0] * shape[1]);
         if (maxLoaclSizeZ > shape[2] / count) {
-            return shape[2] / count;
+            return (int) Math.ceil(shape[2] * 1.0f / count);
         } else {
             return (int) Math.pow(2, MathUtils.getPowerBy2(maxLoaclSizeZ));
         }
