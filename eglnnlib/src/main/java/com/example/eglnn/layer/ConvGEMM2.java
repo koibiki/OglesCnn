@@ -178,7 +178,7 @@ public class ConvGEMM2 extends Layer {
 
     @Override
     protected void bindTextureAndBuffer() {
-        Render.bindTextureArray(mOutTex, mAttachID);
+        Render.bindTextureArray(mOutTex, mAttachID, mOutShape[2]/4 -1);
     }
 
     @Override

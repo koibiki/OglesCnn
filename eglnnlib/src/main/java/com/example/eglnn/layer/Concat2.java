@@ -89,7 +89,7 @@ public class Concat2 extends Layer {
     }
 
     private void initConcat() {
-        int [] computeShape = mPreLayers[1].getOutputShape();
+        int[] computeShape = mPreLayers[1].getOutputShape();
         int localSizeY = getCompShaderLocalSizeY(computeShape);
         mNumGroupsY = (int) Math.ceil(computeShape[1] * 1.0d / localSizeY);
         int localSizeZ = getCompShaderLocalSizeZ(computeShape, 4);
@@ -119,7 +119,7 @@ public class Concat2 extends Layer {
 
     @Override
     protected void bindTextureAndBuffer() {
-        Render.bindTextureArray(mOutTex, mAttachID, 0);
+        Render.bindTextureArray(mOutTex, mAttachID, mOutShape[2] / 4 - 1);
     }
 
     @Override
