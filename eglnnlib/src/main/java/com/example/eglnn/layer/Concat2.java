@@ -102,14 +102,13 @@ public class Concat2 extends Layer {
         mOutTex = mPreLayers[0].getOutTex();
 
         // TODO 先用ubo 以后换为 SSBO 动态传入shader中
-        mParams = new int[7];
+        mParams = new int[6];
         mParams[0] = mPreLayers[0].getOutputShape()[0];
         mParams[1] = mPreLayers[0].getOutputShape()[1];
         mParams[2] = Utils.alignBy4(mPreLayers[0].getOutputShape()[2]) / 4;
         mParams[3] = mPreLayers[1].getOutputShape()[0];
         mParams[4] = mPreLayers[1].getOutputShape()[1];
         mParams[5] = Utils.alignBy4(mPreLayers[1].getOutputShape()[2]) / 4;
-        mParams[6] = mParams[5] / 4;
     }
 
     private String createShaderSource(int localSizeY, int localSizeZ) {
@@ -120,7 +119,7 @@ public class Concat2 extends Layer {
 
     @Override
     protected void bindTextureAndBuffer() {
-        Render.bindTextureArray(mOutTex, mAttachID, 1);
+        Render.bindTextureArray(mOutTex, mAttachID, 0);
     }
 
     @Override

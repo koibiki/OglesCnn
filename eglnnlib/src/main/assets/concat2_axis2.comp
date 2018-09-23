@@ -1,6 +1,6 @@
 layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = Z_SIZE) in;
 
-uniform int params[7];     // input_shape[3], output_shape[3], ksize[2], stride[2] max_depth, pad_w, pad_h
+uniform int params[6];
 layout(binding = 0, rgba32f) writeonly uniform  image2DArray input_image1;
 layout(binding = 1, rgba32f) readonly uniform  image2DArray input_image2;
 
@@ -13,14 +13,18 @@ bool isInInputShape(ivec2 index, int[3] input_shape);
 void main(void)
 {
     ivec3 pos = ivec3(gl_GlobalInvocationID.xyz);
-    int input_shape1[3] = int[3](params[0], params[1], params[2]);
-    int input_shape2[3] = int[3](params[3], params[4], params[5]);
-    int max_depth = params[6];                 // 有效纹理最大深度
+    int in_width1 = params[0];
+    int in_height1 = params[1];
+    int in_depth1 = params[2];
 
-    if (pos.y >= input_shape2[1] || pos.z >= max_depth) {
+    int in_width2 = params[3];
+    int in_height2 = params[4];
+    int in_depth2 = params[5];
+
+    if (pos.y >= in_height2 || pos.z >= in_depth2) {
         return;
     }
 
     vec4 data = imageLoad(input_image2, pos);
-    imageStore(input_image1, ivec3(pos.x, pos.y, pos.z + input_shape1[2]), data);
+    imageStore(input_image1, ivec3(pos.x, pos.y, pos.z + in_depth1), data);
 }
