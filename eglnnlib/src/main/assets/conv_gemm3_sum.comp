@@ -1,0 +1,62 @@
+layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = Z_SIZE) in;
+
+layout(binding = 0, rgba32f) readonly uniform image2DArray input_image;
+layout(binding = 1, rgba32f) writeonly uniform image2DArray output_image;
+layout(binding = 2, rgba32f) readonly uniform image2DArray kennel_image;
+
+float relu(float i);
+float sigmoid(float i);
+vec4 activeVector(int type, vec4 v);
+
+void main(void)
+{
+    ivec3 pos = ivec3(gl_GlobalInvocationID.xyz);
+
+    if (pos.x >= OUT_WIDTH || pos.y >= OUT_HEIGHT || pos.z >= OUT_MAX_DEPTH) {
+        return;
+    }
+
+    int start_z_index = pos.z * 4;
+
+    int z_index0 = start_z_index;
+    int z_index1 = z_index0 + 1;
+    int z_index2 = z_index1 + 1;
+    int z_index3 = z_index2 + 1;
+
+    float bias0 =  imageLoad(kennel_image, ivec3(KENNEL_AREA, z_index0, 0))[0];
+    float bias1 =  imageLoad(kennel_image, ivec3(KENNEL_AREA, z_index1, 0))[0];
+    float bias2 =  imageLoad(kennel_image, ivec3(KENNEL_AREA, z_index2, 0))[0];
+    float bias3 =  imageLoad(kennel_image, ivec3(KENNEL_AREA, z_index3, 0))[0];
+
+    vec4 result = vec4(bias0, bias1, bias2, bias3);
+
+    for (int c = 0; c < IN_MAX_DEPTH; c++){
+        result += imageLoad(input_image, ivec3(pos.x, pos.y + c * OUT_HEIGHT, pos.z));
+    }
+
+    imageStore(output_image, pos, activeVector(ACTIVATE_TYPE, result));
+}
+
+float relu(float i){
+    if (i > 0.0){
+        return i;
+    } else {
+        return 0.0;
+    }
+}
+
+float sigmoid(float i){
+    return 1.0 / (1.0 + exp(-i));
+}
+
+vec4 activeVector(int type, vec4 v) {
+    if (type == 0) {
+        return vec4(relu(v[0]), relu(v[1]), relu(v[2]), relu(v[3]));
+    } else if (type == 1) {
+        return vec4(sigmoid(v[0]), sigmoid(v[1]), sigmoid(v[2]), sigmoid(v[3]));
+    } else if (type == 2){
+        return vec4(tanh(v[0]), tanh(v[1]), tanh(v[2]), tanh(v[3]));
+    } else {
+        return v;
+    }
+}

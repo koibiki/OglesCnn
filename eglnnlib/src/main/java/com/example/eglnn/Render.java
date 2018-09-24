@@ -196,15 +196,14 @@ public class Render {
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }
 
-    public static void performConvoluteGEMM2(int compProg, int[] params, int inTex, int outTex, int kennelTex, int numGroupsX, int numGroupZ) {
+    public static void performConvolute(int compProg, int inTex, int outTex, int kennelTex, int numGroupsX,int numGroupsY, int numGroupZ) {
         glUseProgram(compProg);
-        glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
 
         glBindImageTexture(0, inTex, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
         glBindImageTexture(1, outTex, 0, true, 0, GL_WRITE_ONLY, GL_RGBA32F);
         glBindImageTexture(2, kennelTex, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
 
-        glDispatchCompute(numGroupsX, 1, numGroupZ);
+        glDispatchCompute(numGroupsX, numGroupsY, numGroupZ);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }
 
