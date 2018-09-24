@@ -183,6 +183,6 @@ public class ConvGEMM2 extends Layer {
 
     @Override
     protected void actualForwardProc(float[][] input) {
-        Render.performConvoluteGEMM2(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mKennelTex, mNumGroupsX, mNumGroupsZ);
+        Render.performConvolute(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mKennelTex, mNumGroupsX,1, mNumGroupsZ);
     }
 }
