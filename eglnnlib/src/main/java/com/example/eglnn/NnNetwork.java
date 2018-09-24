@@ -61,15 +61,16 @@ public class NnNetwork {
 
     private void runNet(float[][] input) {
         long begin = System.currentTimeMillis();
-        int count = 100 ;
+        int count = 100;
         int filter = 10;
         for (int ii = 0; ii < count + filter; ii++) {
             long begin1 = System.currentTimeMillis();
-            if(ii == filter){
+            if (ii == filter) {
                 begin = begin1;
             }
-            for (int i = 0; i < mLayers.size(); i++) {
-                mLayers.get(i).forwardProc(input);
+            int size = mLayers.size() - 1;
+            for (int i = 0; i <= size; i++) {
+                mLayers.get(i).forwardProc(input, i == size);
             }
             actualReadOutput();
             Log.w(TAG, "spent:" + (System.currentTimeMillis() - begin1));

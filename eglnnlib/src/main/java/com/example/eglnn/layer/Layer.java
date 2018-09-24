@@ -73,7 +73,6 @@ public abstract class Layer {
         this.mPreLayers = preLayers;
     }
 
-
     public int getAttachID() {
         return mAttachID;
     }
@@ -92,8 +91,10 @@ public abstract class Layer {
 
     protected abstract void actualForwardProc(float[][] input);
 
-    public void forwardProc(float[][] input) {
-        bindTextureAndBuffer();
+    public void forwardProc(float[][] input, boolean bindBuffer) {
+        if (bindBuffer) {
+            bindTextureAndBuffer();
+        }
         actualForwardProc(input);
     }
 
