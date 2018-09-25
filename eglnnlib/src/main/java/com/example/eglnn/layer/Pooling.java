@@ -21,12 +21,13 @@ public class Pooling extends Layer {
 
     private int[] mKennelShape;
     private int[] mStrides;
-    private int mNumGroupsY;
     private int mShaderPro;
     private int[] mParams;
-    private int mNumGroupsZ;
     private PaddingType mPadType;
     private int mPadW, mPadH;
+    private int mNumGroupsX;
+    private int mNumGroupsY;
+    private int mNumGroupsZ;
 
     public Pooling(Context context, Layer preLayer, int k_w, int k_h, PaddingType padType, int stride_w, int stride_h) {
         super(context, preLayer);
@@ -50,13 +51,44 @@ public class Pooling extends Layer {
         return new int[]{width, height, mInShape[2]};
     }
 
-    private void initPooling() {
-        int localSizeY = getCompShaderLocalSizeY(mOutShape);
-        mNumGroupsY = (int) Math.ceil(mOutShape[1] * 1.0d / localSizeY);
-        int localSizeZ = getCompShaderLocalSizeZ(mOutShape, 4);
-        mNumGroupsZ = (int) Math.ceil(mOutShape[2] * 1.0d / (localSizeZ * 4));
+    private int getLocalSizeX(int[] outShape) {
+        if (outShape[0] >= 1024) {
+            return 1024;
+        } else {
+            return outShape[0];
+        }
+    }
 
-        String source = createShaderSource(localSizeY, localSizeZ);
+    private int getLocalSizeY(int[] outShape, int xSize) {
+        int maxSize = 1024 / xSize;
+        if (outShape[1] <= maxSize) {
+            return outShape[1];
+        } else {
+            return maxSize;
+        }
+    }
+
+    private int getLocalSizeZ(int xSize, int ySize) {
+        int maxZSize = 1024 / (xSize * ySize) >= 64 ? 64 : 1024 / (xSize * ySize);
+        int zSize = Utils.alignBy4(mOutShape[2]) / 4;
+        if (zSize >= maxZSize) {
+            return maxZSize;
+        } else {
+            return zSize;
+        }
+    }
+
+    private void initPooling() {
+        int xSize = getLocalSizeX(mOutShape);
+        mNumGroupsX = (int) Math.ceil(mOutShape[0] * 1.0f / xSize);
+
+        int ySize = getLocalSizeY(mOutShape, xSize);
+        mNumGroupsY = (int) Math.ceil(mOutShape[1] * 1.0f / ySize);
+
+        int zSize = getLocalSizeZ(xSize, ySize);
+        mNumGroupsZ = (int) Math.ceil(Utils.alignBy4(mOutShape[2]) * 1.0f / 4 / zSize);
+
+        String source = createShaderSource(xSize, ySize,zSize);
         mShaderPro = initCompPro(source);
         mAttachID = Layer.getDataAttachID();
         mOutTex = Render.createFloatTextureArray(mOutShape[0], mOutShape[1], Utils.alignBy4(mOutShape[2]) / 4);
@@ -77,11 +109,11 @@ public class Pooling extends Layer {
         mParams[12] = -1 * mPadH;
     }
 
-    private String createShaderSource(int localSizeY, int localSizeZ) {
+    private String createShaderSource(int xSize, int ySize, int zSize) {
         String shaderFile = "pooling.comp";
         String source = ShaderUtils.loadFromAssetsFile(shaderFile, mContext.getResources());
         int kennelArea = mKennelShape[0] * mKennelShape[1];
-        return String.format(Locale.getDefault(), S_POOLING_SHADER_HEADER, kennelArea, mOutShape[0], localSizeY, localSizeZ) + source;
+        return String.format(Locale.getDefault(), S_POOLING_SHADER_HEADER, kennelArea, xSize, ySize, zSize) + source;
     }
 
     @Override
@@ -96,7 +128,7 @@ public class Pooling extends Layer {
 
     @Override
     protected void actualForwardProc(float[][] input) {
-        Render.performConcat2(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mNumGroupsY, mNumGroupsZ);
+        Render.performCompute(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mNumGroupsX, mNumGroupsY, mNumGroupsZ);
     }
 
 }

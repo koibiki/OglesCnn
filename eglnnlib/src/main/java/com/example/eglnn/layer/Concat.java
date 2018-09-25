@@ -127,6 +127,6 @@ public class Concat extends Layer {
 
     @Override
     protected void actualForwardProc(float[][] input) {
-        Render.performConcat2(mShaderPro, mParams, mPreLayers[0].getOutTex(), mPreLayers[1].getOutTex(), mOutTex, mNumGroupsY, mNumGroupsZ);
+        Render.performConcat(mShaderPro, mParams, mPreLayers[0].getOutTex(), mPreLayers[1].getOutTex(), mOutTex, 1,mNumGroupsY, mNumGroupsZ);
     }
 }
