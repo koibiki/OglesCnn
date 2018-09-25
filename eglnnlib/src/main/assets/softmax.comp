@@ -1,0 +1,64 @@
+layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = Z_SIZE) in;
+
+layout(binding = 0, rgba32f) readonly uniform  image2DArray input_image;
+layout(binding = 1, rgba32f) writeonly uniform  image2DArray output_image;
+
+shared float scanline[AMOUNT];
+float softmax[AMOUNT];
+
+vec2 getExtremum();
+float getSoftmaxValue(int index, vec2 extremun);
+
+void main(void)
+{
+    ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
+    vec4 data = imageLoad(input_image, ivec3( 0, 0, pos.x));
+    int startIndex = pos.x * 4;
+    for (int i = 0; i < 4; i++) {
+        if (startIndex + i < AMOUNT) {
+            scanline[startIndex + i] = data[i];
+        }
+    }
+    barrier();
+    vec2 extremun = getExtremum();
+    float softmax = 0.0;
+    vec4 result = vec4(0.0);
+    if (extremun[0] != extremun[1]) {
+        for (int i = 0; i < 4; i++) {
+            if (startIndex + i < AMOUNT) {
+                result[i] = getSoftmaxValue(startIndex + i, extremun);
+            }
+        }
+    } else {
+        softmax = 1.0 / float(AMOUNT);
+        result = vec4(softmax);
+    }
+    imageStore(output_image, ivec3(pos.x, 0, 0), result);
+}
+
+vec2 getExtremum(){
+    float max_v = scanline[0];
+    float min_v = scanline[0];
+    for (int i=0; i< AMOUNT; i++) {
+        if (max_v < scanline[i]) {
+            max_v = scanline[i];
+        }
+        if (min_v > scanline[i]) {
+            min_v = scanline[i];
+        }
+    }
+    return vec2(max_v, min_v);
+}
+
+float getSoftmaxValue(int index, vec2 extremun) {
+    for (int i = 0; i < AMOUNT; i++){
+        float v = (scanline[i] - extremun[1]) * 100.0 / (extremun[0] - extremun[1]) - 50.0;
+        softmax[i] = exp(v);
+    }
+
+    float sum = 0.0;
+    for (int i=0; i < AMOUNT; i++){
+        sum += softmax[i];
+    }
+    return softmax[index] / sum;
+}
