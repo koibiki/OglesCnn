@@ -12,23 +12,25 @@ import java.nio.FloatBuffer;
 import java.util.Locale;
 
 import static com.example.eglnn.Render.initCompPro;
-import static com.example.eglnn.utils.Constants.S_CONV_GEMM_SHADER_HEADER;
+import static com.example.eglnn.utils.Constants.S_EXPAND_SHADER_HEADER;
 
 /**
  *
  * */
 public class Expand extends Layer {
 
-    private static final String TAG = "ConvGEMM";
+    private static final String TAG = "Expand";
     private int mKennelAmount;
-    private int mNumGroupsX;
 
     private float[][][] mKennels1;
     private float[][][] mKennels2;
 
-    private int mShaderPro;
+    private int mShaderPro1;
+    private int mShaderPro2;
+    private int mNumGroupsX;
     private int mNumGroupsZ;
-    private int[] mParams;
+    private int[] mParams1;
+    private int[] mParams2;
     private ActiveType mType;
     private String mKennel1FilePath;
     private String mKennel2FilePath;
@@ -73,10 +75,12 @@ public class Expand extends Layer {
         mNumGroupsX = (int) Math.ceil(Utils.alignBy4(mOutShape[0] * mOutShape[1]) * 1.0f / 4 / xSize);
 
         int zSize = getLocalSizeZ(xSize);
-        mNumGroupsZ = (int) Math.ceil(Utils.alignBy4(mOutShape[2]) * 1.0f / 4 / zSize);
+        mNumGroupsZ = (int) Math.ceil(Utils.alignBy4(mKennelAmount) * 1.0f / 4 / zSize);
 
-        String source = createShaderSource(xSize, zSize);
-        mShaderPro = initCompPro(source);
+        String source1 = createShaderSource(0, xSize, zSize);
+        String source2 = createShaderSource(Utils.alignBy4(mKennelAmount) / 4, xSize, zSize);
+        mShaderPro1 = initCompPro(source1);
+        mShaderPro2 = initCompPro(source2);
         mAttachID = Layer.getDataAttachID();
         mOutTex = Render.createFloatTextureArray(mOutShape[0], mOutShape[1], Utils.alignBy4(mOutShape[2]) / 4);
 
@@ -88,42 +92,57 @@ public class Expand extends Layer {
             mKennels2 = loadKennels();
         }
         // kennel 最后一列为bias
-        mKennelTex1 = Render.createKennelFloatTextureArray(mKennelShape2[0] * mKennelShape2[1] + 1, mKennelAmount, 2 * Utils.alignBy4(mKennelShape2[2]) / 4);
+        mKennelTex1 = Render.createKennelFloatTextureArray(mKennelShape1[0] * mKennelShape1[1] + 1, mKennelAmount, 2 * Utils.alignBy4(mKennelShape1[2]) / 4);
+        mKennelTex2 = Render.createKennelFloatTextureArray(mKennelShape2[0] * mKennelShape2[1] + 1, mKennelAmount, 2 * Utils.alignBy4(mKennelShape2[2]) / 4);
 
-        transferToKennelTex(mKennels1, mKennelTex1, mKennelShape1,0);
-        transferToKennelTex(mKennels2, mKennelTex1, mKennelShape2, Utils.alignBy4(mKennelShape1[2]) / 4);
+        transferToKennelTex(mKennels1, mKennelTex1, mKennelShape1);
+        transferToKennelTex(mKennels2, mKennelTex2, mKennelShape2);
         createShaderParams();
     }
 
-    private void transferToKennelTex(float[][][] kennels, int kennelTex, int[] kennelShape, int zOffset) {
+    private void transferToKennelTex(float[][][] kennels, int kennelTex, int[] kennelShape) {
         for (int a = 0; a < kennels.length; a++) {
             float[][] kennel = kennels[a];
             for (int c = 0; c < kennel.length; c++) {
-                Render.transferToTextureArrayFloat(FloatBuffer.wrap(kennel[c]), kennelTex, 0, a, c + zOffset, kennelShape[0] * kennelShape[1] + 1, 1, 1);
+                Render.transferToTextureArrayFloat(FloatBuffer.wrap(kennel[c]), kennelTex, 0, a, c, kennelShape[0] * kennelShape[1] + 1, 1, 1);
             }
         }
     }
 
-    private String createShaderSource(int xSize, int zSize) {
+    private String createShaderSource(int startZ, int xSize, int zSize) {
         String shaderFile = "expand.comp";
         String source = ShaderUtils.loadFromAssetsFile(shaderFile, mContext.getResources());
-        int kennelArea = mKennelShape1[0] * mKennelShape1[1];
-        int kennelSize = kennelArea * Utils.alignBy4(mKennelShape1[2]);
-        return String.format(Locale.getDefault(), S_CONV_GEMM_SHADER_HEADER, kennelArea, mKennelAmount, kennelSize, xSize, 1, zSize) + source;
+        return String.format(Locale.getDefault(), S_EXPAND_SHADER_HEADER, startZ, xSize, 1, zSize) + source;
     }
 
-
     private void createShaderParams() {
-        mParams = new int[9];
-        mParams[0] = mInShape[0];
-        mParams[1] = mInShape[1];
-        mParams[2] = mInShape[2];
-        mParams[3] = mOutShape[0];
-        mParams[4] = mOutShape[1];
-        mParams[5] = mOutShape[2];
-        mParams[6] = mType.index;
-        mParams[7] = mKennelAmount / 4;
-        mParams[8] = Utils.alignBy4(mInShape[2]) / 4;
+        mParams1 = new int[12];
+        mParams1[0] = mKennelShape1[0];
+        mParams1[1] = mKennelShape1[1];
+        mParams1[2] = mKennelShape1[2];
+        mParams1[3] = mInShape[0];
+        mParams1[4] = mInShape[1];
+        mParams1[5] = mInShape[2];
+        mParams1[6] = mOutShape[0];
+        mParams1[7] = mOutShape[1];
+        mParams1[8] = mOutShape[2] / 2;
+        mParams1[9] = mType.index;
+        mParams1[10] = Utils.alignBy4(mInShape[2]);
+        mParams1[11] = 0;
+
+        mParams2 = new int[12];
+        mParams2[0] = mKennelShape2[0];
+        mParams2[1] = mKennelShape2[1];
+        mParams2[2] = mKennelShape2[2];
+        mParams2[3] = mInShape[0];
+        mParams2[4] = mInShape[1];
+        mParams2[5] = mInShape[2];
+        mParams2[6] = mOutShape[0];
+        mParams2[7] = mOutShape[1];
+        mParams2[8] = mOutShape[2] / 2;
+        mParams2[9] = mType.index;
+        mParams2[10] = Utils.alignBy4(mInShape[2]);
+        mParams2[11] = -1;
     }
 
     private float[][][] createTestKennels(int[] kennelShape) {
@@ -138,7 +157,6 @@ public class Expand extends Layer {
         return null;
     }
 
-
     @Override
     public void initialize() {
         initConv();
@@ -146,11 +164,12 @@ public class Expand extends Layer {
 
     @Override
     protected void bindTextureAndBuffer() {
-        Render.bindTextureArray(mOutTex, mAttachID);
+        Render.bindTextureArray(mOutTex, mAttachID, mOutShape[2] / 4 - 1);
     }
 
     @Override
     protected void actualForwardProc(float[][] input) {
-        Render.performExpand(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mKennelTex1, mNumGroupsX, mNumGroupsZ);
+        Render.performExpand(mShaderPro1, mParams1, mPreLayer.getOutTex(), mOutTex, mKennelTex1, mNumGroupsX, mNumGroupsZ);
+        Render.performExpand(mShaderPro2, mParams2, mPreLayer.getOutTex(), mOutTex, mKennelTex2, mNumGroupsX, mNumGroupsZ);
     }
 }

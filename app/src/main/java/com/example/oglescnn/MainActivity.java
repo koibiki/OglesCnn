@@ -6,10 +6,9 @@ import android.view.View;
 
 import com.example.eglnn.NnNetwork;
 import com.example.eglnn.layer.Concat2;
-import com.example.eglnn.layer.Concat2;
 import com.example.eglnn.layer.Conv;
 import com.example.eglnn.layer.ConvGEMM2;
-import com.example.eglnn.layer.Expand2;
+import com.example.eglnn.layer.Expand;
 import com.example.eglnn.layer.Layer.PaddingType;
 import com.example.eglnn.layer.Input;
 import com.example.eglnn.layer.Layer;
@@ -299,8 +298,8 @@ public class MainActivity extends AppCompatActivity {
         Layer conv10 = new ConvGEMM2(this, concat9, 2, 1, 1, PaddingType.SAME, 1, 1, Layer.ActiveType.RELU, "");
         mNnNetwork.addLayer(conv10);
 
-        Pooling pooling11 = new Pooling(this, conv10, 13, 13, PaddingType.VALID, 1, 1);
-        mNnNetwork.addLayer(pooling11);
+//        Pooling pooling11 = new Pooling(this, conv10, 13, 13, PaddingType.VALID, 1, 1);
+//        mNnNetwork.addLayer(pooling11);
 
         mNnNetwork.initialize();
     }
@@ -321,14 +320,14 @@ public class MainActivity extends AppCompatActivity {
         Layer conv2_squeeze = new ConvGEMM2(this, pooling1, 16, 1, 1, PaddingType.SAME, 1, 1, Layer.ActiveType.RELU, "");
         mNnNetwork.addLayer(conv2_squeeze);
 
-        Layer expand2 = new Expand2(this, conv2_squeeze, 64, Layer.ActiveType.RELU, "", "");
+        Layer expand2 = new Expand(this, conv2_squeeze, 64, Layer.ActiveType.RELU, "", "");
         mNnNetwork.addLayer(expand2);
 
         // fire3
         Layer conv3_squeeze = new ConvGEMM2(this, expand2, 16, 1, 1, PaddingType.SAME, 1, 1, Layer.ActiveType.RELU, "");
         mNnNetwork.addLayer(conv3_squeeze);
 
-        Layer expand3 = new Expand2(this, conv3_squeeze, 64, Layer.ActiveType.RELU, "", "");
+        Layer expand3 = new Expand(this, conv3_squeeze, 64, Layer.ActiveType.RELU, "", "");
         mNnNetwork.addLayer(expand3);
 
         Pooling pooling3 = new Pooling(this, expand3, 3, 3, PaddingType.VALID, 2, 2);
@@ -339,14 +338,14 @@ public class MainActivity extends AppCompatActivity {
         Layer conv4_squeeze = new ConvGEMM2(this, pooling3, 32, 1, 1, PaddingType.SAME, 1, 1, Layer.ActiveType.RELU, "");
         mNnNetwork.addLayer(conv4_squeeze);
 
-        Layer expand4 = new Expand2(this, conv4_squeeze, 128, Layer.ActiveType.RELU, "", "");
+        Layer expand4 = new Expand(this, conv4_squeeze, 128, Layer.ActiveType.RELU, "", "");
         mNnNetwork.addLayer(expand4);
 
         // fire5
         Layer conv5_squeeze = new ConvGEMM2(this, expand4, 32, 1, 1, PaddingType.SAME, 1, 1, Layer.ActiveType.RELU, "");
         mNnNetwork.addLayer(conv5_squeeze);
 
-        Layer expand5 = new Expand2(this, conv5_squeeze, 128, Layer.ActiveType.RELU, "", "");
+        Layer expand5 = new Expand(this, conv5_squeeze, 128, Layer.ActiveType.RELU, "", "");
         mNnNetwork.addLayer(expand5);
 
         Pooling pooling5 = new Pooling(this, expand5, 3, 3, PaddingType.VALID, 2, 2);
@@ -356,36 +355,36 @@ public class MainActivity extends AppCompatActivity {
         Layer conv6_squeeze = new ConvGEMM2(this, pooling5, 48, 1, 1, PaddingType.SAME, 1, 1, Layer.ActiveType.RELU, "");
         mNnNetwork.addLayer(conv6_squeeze);
 
-        Layer expand6 = new Expand2(this, conv6_squeeze, 192, Layer.ActiveType.RELU, "", "");
+        Layer expand6 = new Expand(this, conv6_squeeze, 192, Layer.ActiveType.RELU, "", "");
         mNnNetwork.addLayer(expand6);
 
         // fire7
         Layer conv7_squeeze = new ConvGEMM2(this, expand6, 48, 1, 1, PaddingType.SAME, 1, 1, Layer.ActiveType.RELU, "");
         mNnNetwork.addLayer(conv7_squeeze);
 
-        Layer expand7 = new Expand2(this, conv7_squeeze, 192, Layer.ActiveType.RELU, "", "");
+        Layer expand7 = new Expand(this, conv7_squeeze, 192, Layer.ActiveType.RELU, "", "");
         mNnNetwork.addLayer(expand7);
 
         // fire8
         Layer conv8_squeeze = new ConvGEMM2(this, expand7, 64, 1, 1, PaddingType.SAME, 1, 1, Layer.ActiveType.RELU, "");
         mNnNetwork.addLayer(conv8_squeeze);
 
-        Layer expand8 = new Expand2(this, conv8_squeeze, 256, Layer.ActiveType.RELU, "", "");
+        Layer expand8 = new Expand(this, conv8_squeeze, 256, Layer.ActiveType.RELU, "", "");
         mNnNetwork.addLayer(expand8);
 
         // fire9
         Layer conv9_squeeze = new ConvGEMM2(this, expand8, 64, 1, 1, PaddingType.SAME, 1, 1, Layer.ActiveType.RELU, "");
         mNnNetwork.addLayer(conv9_squeeze);
 
-        Layer expand9 = new Expand2(this, conv9_squeeze, 256, Layer.ActiveType.RELU, "", "");
+        Layer expand9 = new Expand(this, conv9_squeeze, 256, Layer.ActiveType.RELU, "", "");
         mNnNetwork.addLayer(expand9);
 
         // fire10
-        Layer conv10 = new ConvGEMM2(this, expand9, 2, 1, 1, PaddingType.SAME, 1, 1, Layer.ActiveType.RELU, "");
+        Layer conv10 = new ConvGEMM2(this, expand9, 1000, 1, 1, PaddingType.SAME, 1, 1, Layer.ActiveType.RELU, "");
         mNnNetwork.addLayer(conv10);
 
-        Pooling pooling11 = new Pooling(this, conv10, 13, 13, PaddingType.VALID, 1, 1);
-        mNnNetwork.addLayer(pooling11);
+//        Pooling pooling11 = new Pooling(this, conv10, 13, 13, PaddingType.VALID, 1, 1);
+//        mNnNetwork.addLayer(pooling11);
 
         mNnNetwork.initialize();
 

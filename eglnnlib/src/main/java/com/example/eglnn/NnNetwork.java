@@ -68,9 +68,9 @@ public class NnNetwork {
             if (ii == filter) {
                 begin = begin1;
             }
-            int size = mLayers.size() - 1;
-            for (int i = 0; i <= size; i++) {
-                mLayers.get(i).forwardProc(input, i == size);
+            int size = mLayers.size();
+            for (int i = 0; i < size; i++) {
+                mLayers.get(i).forwardProc(input, true);
             }
             actualReadOutput();
             Log.w(TAG, "spent:" + (System.currentTimeMillis() - begin1));

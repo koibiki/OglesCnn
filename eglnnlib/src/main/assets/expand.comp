@@ -1,32 +1,39 @@
 layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = Z_SIZE) in;
 
-uniform int params[9];  // input_shape[3] output_shape[3] active_type kAmount max_depth ( align_in_channel / 4)
-layout(binding = 0, rgba32f) readonly uniform image2DArray kennel_image;
-layout(binding = 1, rgba32f) readonly uniform image2DArray input_image;
-layout(binding = 2, rgba32f) writeonly uniform image2DArray output_image;
+uniform int params[12];  // kennel_shape[3] input_shape[3] output_shape[3] active_type align_channel pad
+layout(binding = 0, rgba32f) readonly uniform image2DArray input_image;
+layout(binding = 1, rgba32f) writeonly uniform image2DArray output_image;
+layout(binding = 2, rgba32f) readonly uniform image2DArray kennel_image;
 
 float relu(float i);
 float sigmoid(float i);
 vec4 activeVector(int type, vec4 v);
-
 ivec2 getRelativeRestoreIndex(int pos, int out_width);
 
 void main(void)
 {
     // 分解参数
-    int in_width = params[0];
-    int in_height = params[1];
-    int in_channel = params[2];
+    int kennel_width = params[0];
+    int kennel_height = params[1];
+    int kennel_channel = params[2];
 
-    int out_width = params[3];
-    int out_height = params[4];
-    int out_channel = params[5];
+    int in_width = params[3];
+    int in_height = params[4];
+    int in_channel = params[5];
 
-    int active_type = params[6];
-    int offset_depth = params[7];
-    int max_depth = params[8];
+    int out_width = params[6];
+    int out_height = params[7];
+    int out_channel = params[8];
+
+    int active_type = params[9];
+    int align_channel = params[10];
+
+    int pad = params[11];
+
+    int count = align_channel / 4;
 
     int output_area = out_width * out_height;
+    int kennel_area = kennel_width * kennel_height;
     ivec3 pos = ivec3(gl_GlobalInvocationID.xyz);
 
     int start_x_index = pos.x * 4;
@@ -41,35 +48,23 @@ void main(void)
         return;
     }
 
-    mat4 result1;
-    mat4 result2;
-
     ivec2 conv_index_on_tex0;
     ivec2 conv_index_on_tex1;
     ivec2 conv_index_on_tex2;
     ivec2 conv_index_on_tex3;
 
-    mat4 data_mat;
+    mat4 data_mat0;
 
-    float bias10 = imageLoad(kennel_image, ivec3(1, z_index0, 0))[0];
-    float bias11 = imageLoad(kennel_image, ivec3(1, z_index1, 0))[0];
-    float bias12 = imageLoad(kennel_image, ivec3(1, z_index2, 0))[0];
-    float bias13 = imageLoad(kennel_image, ivec3(1, z_index3, 0))[0];
-    mat4 bias1 = mat4(bias10, bias11, bias12, bias13,
-                        bias10, bias11, bias12, bias13,
-                        bias10, bias11, bias12, bias13,
-                        bias10, bias11, bias12, bias13);
-    result1 = bias1;
+    int bias_index = kennel_area;
+    float bias0 = imageLoad(kennel_image, ivec3(bias_index, z_index0, 0))[0];
+    float bias1 = imageLoad(kennel_image, ivec3(bias_index, z_index1, 0))[0];
+    float bias2 = imageLoad(kennel_image, ivec3(bias_index, z_index2, 0))[0];
+    float bias3 = imageLoad(kennel_image, ivec3(bias_index, z_index3, 0))[0];
 
-    float bias20 = imageLoad(kennel_image, ivec3(9, z_index0, max_depth))[0];
-    float bias21 = imageLoad(kennel_image, ivec3(9, z_index1, max_depth))[0];
-    float bias22 = imageLoad(kennel_image, ivec3(9, z_index2, max_depth))[0];
-    float bias23 = imageLoad(kennel_image, ivec3(9, z_index3, max_depth))[0];
-    mat4 bias2 = mat4(bias20, bias21, bias22, bias23,
-                        bias20, bias21, bias22, bias23,
-                        bias20, bias21, bias22, bias23,
-                        bias20, bias21, bias22, bias23);
-    result2 = bias2;
+    mat4 result = mat4(bias0, bias1, bias2, bias3,
+                        bias0, bias1, bias2, bias3,
+                        bias0, bias1, bias2, bias3,
+                        bias0, bias1, bias2, bias3);
 
     int start_x0 = start_x_index;
     int x_0 = start_x0 % out_width;
@@ -87,46 +82,33 @@ void main(void)
     int x_3 = start_x3 % out_width;
     int y_3 = start_x3 / out_width;
 
-    for (int i = 0; i < 9; i++) {
-        mat4 kennel1;
-        mat4 kennel2;
-        int k_x = i % 3;
-        int k_y = i / 3;
+    for (int i = 0; i < kennel_area; i++) {
+        mat4 kennel;
+        int k_x = i % kennel_width;
+        int k_y = i / kennel_width;
 
-        int x_offset = k_x - 1;
-        int y_offset = k_y - 1;
+        int x_offset = pad + k_x;
+        int y_offset = pad + k_y;
 
         conv_index_on_tex0 = ivec2(x_offset + x_0, y_offset + y_0);
         conv_index_on_tex1 = ivec2(x_offset + x_1, y_offset + y_1);
         conv_index_on_tex2 = ivec2(x_offset + x_2, y_offset + y_2);
         conv_index_on_tex3 = ivec2(x_offset + x_3, y_offset + y_3);
 
-        for (int c = 0; c < max_depth; c++) {
-            data_mat[0] = imageLoad(input_image, ivec3(conv_index_on_tex0, c));
-            data_mat[1] = imageLoad(input_image, ivec3(conv_index_on_tex1, c));
-            data_mat[2] = imageLoad(input_image, ivec3(conv_index_on_tex2, c));
-            data_mat[3] = imageLoad(input_image, ivec3(conv_index_on_tex3, c));
-            
-                kennel1[0] = imageLoad(kennel_image, ivec3(0, z_index0, c));
-                kennel1[1] = imageLoad(kennel_image, ivec3(0, z_index1, c));
-                kennel1[2] = imageLoad(kennel_image, ivec3(0, z_index2, c));
-                kennel1[3] = imageLoad(kennel_image, ivec3(0, z_index3, c));
+        for (int c = 0; c < count; c++) {
+            kennel[0] = imageLoad(kennel_image, ivec3(i, z_index0, c));
+            kennel[1] = imageLoad(kennel_image, ivec3(i, z_index1, c));
+            kennel[2] = imageLoad(kennel_image, ivec3(i, z_index2, c));
+            kennel[3] = imageLoad(kennel_image, ivec3(i, z_index3, c));
 
-                kennel1 = transpose(kennel1);
+            kennel = transpose(kennel);
 
-            if (i == 4) {
-                result1 += kennel1 * data_mat;
-            }
+            data_mat0[0] = imageLoad(input_image, ivec3(conv_index_on_tex0, c));
+            data_mat0[1] = imageLoad(input_image, ivec3(conv_index_on_tex1, c));
+            data_mat0[2] = imageLoad(input_image, ivec3(conv_index_on_tex2, c));
+            data_mat0[3] = imageLoad(input_image, ivec3(conv_index_on_tex3, c));
 
-            int kennel2_depth = c + max_depth;
-            kennel2[0] = imageLoad(kennel_image, ivec3(i, z_index0, kennel2_depth));
-            kennel2[1] = imageLoad(kennel_image, ivec3(i, z_index1, kennel2_depth));
-            kennel2[2] = imageLoad(kennel_image, ivec3(i, z_index2, kennel2_depth));
-            kennel2[3] = imageLoad(kennel_image, ivec3(i, z_index3, kennel2_depth));
-
-            kennel2 = transpose(kennel2);
-
-            result2 += kennel2 * data_mat;
+            result += kennel * data_mat0;
         }
     }
 
@@ -135,21 +117,11 @@ void main(void)
     ivec2 restore_index2 = getRelativeRestoreIndex(start_x2, out_width);
     ivec2 restore_index3 = getRelativeRestoreIndex(start_x3, out_width);
 
-    imageStore(output_image, ivec3(restore_index0.xy, pos.z), activeVector(active_type, result1[0]));
-    imageStore(output_image, ivec3(restore_index1.xy, pos.z), activeVector(active_type, result1[1]));
-    imageStore(output_image, ivec3(restore_index2.xy, pos.z), activeVector(active_type, result1[2]));
-    imageStore(output_image, ivec3(restore_index3.xy, pos.z), activeVector(active_type, result1[3]));
-
-    int store_depth = pos.z + offset_depth;
-    imageStore(output_image, ivec3(restore_index0.xy, store_depth), activeVector(active_type, result2[0]));
-    imageStore(output_image, ivec3(restore_index1.xy, store_depth), activeVector(active_type, result2[1]));
-    imageStore(output_image, ivec3(restore_index2.xy, store_depth), activeVector(active_type, result2[2]));
-    imageStore(output_image, ivec3(restore_index3.xy, store_depth), activeVector(active_type, result2[3]));
-}
-
-int alignBy4(int channel) {
-    int align = 4;
-    return (channel + (align - 1)) & ~(align - 1);
+    int restore_z = pos.z + START_Z;
+    imageStore(output_image, ivec3(restore_index0.xy, restore_z), activeVector(active_type, result[0]));
+    imageStore(output_image, ivec3(restore_index1.xy, restore_z), activeVector(active_type, result[1]));
+    imageStore(output_image, ivec3(restore_index2.xy, restore_z), activeVector(active_type, result[2]));
+    imageStore(output_image, ivec3(restore_index3.xy, restore_z), activeVector(active_type, result[3]));
 }
 
 ivec2 getRelativeRestoreIndex(int pos,int out_width) {
