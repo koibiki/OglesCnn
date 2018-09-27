@@ -1,0 +1,305 @@
+layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = Z_SIZE) in;
+
+uniform int params[15];  // kennel_shape[3] input_shape[3] output_shape[3] strides[2] active_type pad_w, pad_h
+layout(binding = 0, rgba32f) readonly uniform image2DArray input_image;
+layout(binding = 1, rgba32f) writeonly uniform image2DArray output_image;
+layout(binding = 2, rgba32f) readonly uniform image2DArray kennel_image;
+
+float sum(vec4 v);
+float relu(float i);
+float sigmoid(float i);
+vec4 activeVector(int type, vec4 v);
+
+/**
+* 输出 2x2 filter 3x3 stride 1x1
+*/
+void main(void)
+{
+    // 分解参数
+    int kennel_width = params[0];
+    int kennel_height = params[1];
+    int kennel_channel = params[2];
+
+    int in_width = params[3];
+    int in_height = params[4];
+    int in_channel = params[5];
+
+    int out_width = params[6];
+    int out_height = params[7];
+    int out_channel = params[8];
+
+    int strides[2] = int[2](params[9], params[10]);
+
+    int active_type = params[11];
+    int align_channel = params[12];
+
+    int pad_w = params[13];
+    int pad_h = params[14];
+
+    ivec3 pos = ivec3(gl_GlobalInvocationID.xyz);
+
+    int start_x = pos.x * 2;
+    int start_y = pos.y * 2;
+
+    if (start_x >= out_width || start_y >= out_height || pos.z >= out_channel) {
+        return;
+    }
+
+    int count = align_channel / 4;
+
+    mat4 GgGt0 = mat4(1.0,1.5,0.5,1.0,
+                    1.5,2.25,0.75,1.5,
+                    0.5,0.75,0.25,0.5,
+                    1.0,1.5,0.5,1.0);
+
+    mat4 GgGt1 = mat4(1.0,1.5,0.5,1.0,
+                    1.5,2.25,0.75,1.5,
+                    0.5,0.75,0.25,0.5,
+                    1.0,1.5,0.5,1.0);
+
+    mat4 GgGt2 = mat4(1.0,1.5,0.5,1.0,
+                    1.5,2.25,0.75,1.5,
+                    0.5,0.75,0.25,0.5,
+                    1.0,1.5,0.5,1.0);
+
+    mat4 GgGt3 = mat4(1.0,1.5,0.5,1.0,
+                    1.5,2.25,0.75,1.5,
+                    0.5,0.75,0.25,0.5,
+                    1.0,1.5,0.5,1.0);
+
+    vec4 result00;
+    vec4 result01;
+    vec4 result10;
+    vec4 result11;
+
+    int conv_x0 = pad_w + start_x;
+    int conv_y0 = pad_h + start_y;
+    int conv_x1 = conv_x0 + 1;
+    int conv_y1 = conv_y0 + 1;
+    int conv_x2 = conv_x1 + 1;
+    int conv_y2 = conv_y1 + 1;
+    int conv_x3 = conv_x2 + 1;
+    int conv_y3 = conv_y2 + 1;
+
+    for (int c = 0; c < count; c++) {
+        vec4 data00 = imageLoad(input_image, ivec3(conv_x0, conv_y0, c));
+        vec4 data01 = imageLoad(input_image, ivec3(conv_x0, conv_y1, c));
+        vec4 data02 = imageLoad(input_image, ivec3(conv_x0, conv_y2, c));
+        vec4 data03 = imageLoad(input_image, ivec3(conv_x0, conv_y3, c));
+
+        vec4 data10 = imageLoad(input_image, ivec3(conv_x1, conv_y0, c));
+        vec4 data11 = imageLoad(input_image, ivec3(conv_x1, conv_y1, c));
+        vec4 data12 = imageLoad(input_image, ivec3(conv_x1, conv_y2, c));
+        vec4 data13 = imageLoad(input_image, ivec3(conv_x1, conv_y3, c));
+
+        vec4 data20 = imageLoad(input_image, ivec3(conv_x2, conv_y0, c));
+        vec4 data21 = imageLoad(input_image, ivec3(conv_x2, conv_y1, c));
+        vec4 data22 = imageLoad(input_image, ivec3(conv_x2, conv_y2, c));
+        vec4 data23 = imageLoad(input_image, ivec3(conv_x2, conv_y3, c));
+
+        vec4 data30 = imageLoad(input_image, ivec3(conv_x3, conv_y0, c));
+        vec4 data31 = imageLoad(input_image, ivec3(conv_x3, conv_y1, c));
+        vec4 data32 = imageLoad(input_image, ivec3(conv_x3, conv_y2, c));
+        vec4 data33 = imageLoad(input_image, ivec3(conv_x3, conv_y3, c));
+
+        vec4 d00_20_sub = data00 - data20;
+        vec4 d01_21_sub = data01 - data21;
+        vec4 d02_12_sub = data02 - data12;
+        vec4 d03_13_sub = data03 - data13;
+
+        vec4 d10_20_add = data10 + data20;
+        vec4 d11_21_add = data11 + data21;
+        vec4 d12_22_add = data12 + data22;
+        vec4 d13_23_add = data13 + data23;
+
+        vec4 d20_10_sub = data20 - data10;
+        vec4 d21_11_sub = data21 - data11;
+        vec4 d22_12_sub = data22 - data12;
+        vec4 d23_13_sub = data23 - data13;
+
+        vec4 d10_30_sub = data10 - data30;
+        vec4 d11_31_sub = data11 - data31;
+        vec4 d12_32_sub = data12 - data32;
+        vec4 d13_33_sub = data13 - data33;
+
+        vec4 BtdB00 = d00_20_sub - d02_12_sub;
+        vec4 BtdB01 = d01_21_sub + d02_12_sub;
+        vec4 BtdB02 = d02_12_sub - d01_21_sub;
+        vec4 BtdB03 = d01_21_sub - d03_13_sub;
+
+        vec4 BtdB10 = d10_20_add - d12_22_add;
+        vec4 BtdB11 = d11_21_add + d12_22_add;
+        vec4 BtdB12 = d12_22_add - d11_21_add;
+        vec4 BtdB13 = d11_21_add - d13_23_add;
+
+        vec4 BtdB20 = d20_10_sub - d22_12_sub;
+        vec4 BtdB21 = d21_11_sub + d22_12_sub;
+        vec4 BtdB22 = d22_12_sub - d21_11_sub;
+        vec4 BtdB23 = d21_11_sub - d23_13_sub;
+
+        vec4 BtdB30 = d10_30_sub - d12_32_sub;
+        vec4 BtdB31 = d11_31_sub + d12_32_sub;
+        vec4 BtdB32 = d12_32_sub - d11_31_sub;
+        vec4 BtdB33 = d11_31_sub - d13_33_sub;
+
+        vec4 m00_0 = BtdB00 * GgGt0[0][0];
+        vec4 m01_0 = BtdB01 * GgGt0[1][0];
+        vec4 m02_0 = BtdB02 * GgGt0[2][0];
+        vec4 m03_0 = BtdB03 * GgGt0[3][0];
+
+        vec4 m10_0 = BtdB10 * GgGt0[0][1];
+        vec4 m11_0 = BtdB11 * GgGt0[1][1];
+        vec4 m12_0 = BtdB12 * GgGt0[2][1];
+        vec4 m13_0 = BtdB13 * GgGt0[3][1];
+
+        vec4 m20_0 = BtdB20 * GgGt0[0][2];
+        vec4 m21_0 = BtdB21 * GgGt0[1][2];
+        vec4 m22_0 = BtdB22 * GgGt0[2][2];
+        vec4 m23_0 = BtdB23 * GgGt0[3][2];
+
+        vec4 m30_0 = BtdB30 * GgGt0[0][3];
+        vec4 m31_0 = BtdB31 * GgGt0[1][3];
+        vec4 m32_0 = BtdB32 * GgGt0[2][3];
+        vec4 m33_0 = BtdB33 * GgGt0[3][3];
+
+
+        vec4 m00_1 = BtdB00 * GgGt1[0][0];
+        vec4 m01_1 = BtdB01 * GgGt1[1][0];
+        vec4 m02_1 = BtdB02 * GgGt1[2][0];
+        vec4 m03_1 = BtdB03 * GgGt1[3][0];
+
+        vec4 m10_1 = BtdB10 * GgGt1[0][1];
+        vec4 m11_1 = BtdB11 * GgGt1[1][1];
+        vec4 m12_1 = BtdB12 * GgGt1[2][1];
+        vec4 m13_1 = BtdB13 * GgGt1[3][1];
+
+        vec4 m20_1 = BtdB20 * GgGt1[0][2];
+        vec4 m21_1 = BtdB21 * GgGt1[1][2];
+        vec4 m22_1 = BtdB22 * GgGt1[2][2];
+        vec4 m23_1 = BtdB23 * GgGt1[3][2];
+
+        vec4 m30_1 = BtdB30 * GgGt1[0][3];
+        vec4 m31_1 = BtdB31 * GgGt1[1][3];
+        vec4 m32_1 = BtdB32 * GgGt1[2][3];
+        vec4 m33_1 = BtdB33 * GgGt1[3][3];
+
+
+        vec4 m00_2 = BtdB00 * GgGt2[0][0];
+        vec4 m01_2 = BtdB01 * GgGt2[1][0];
+        vec4 m02_2 = BtdB02 * GgGt2[2][0];
+        vec4 m03_2 = BtdB03 * GgGt2[3][0];
+
+        vec4 m10_2 = BtdB10 * GgGt2[0][1];
+        vec4 m11_2 = BtdB11 * GgGt2[1][1];
+        vec4 m12_2 = BtdB12 * GgGt2[2][1];
+        vec4 m13_2 = BtdB13 * GgGt2[3][1];
+
+        vec4 m20_2 = BtdB20 * GgGt2[0][2];
+        vec4 m21_2 = BtdB21 * GgGt2[1][2];
+        vec4 m22_2 = BtdB22 * GgGt2[2][2];
+        vec4 m23_2 = BtdB23 * GgGt2[3][2];
+
+        vec4 m30_2 = BtdB30 * GgGt2[0][3];
+        vec4 m31_2 = BtdB31 * GgGt2[1][3];
+        vec4 m32_2 = BtdB32 * GgGt2[2][3];
+        vec4 m33_2 = BtdB33 * GgGt2[3][3];
+
+
+        vec4 m00_3 = BtdB00 * GgGt3[0][0];
+        vec4 m01_3 = BtdB01 * GgGt3[1][0];
+        vec4 m02_3 = BtdB02 * GgGt3[2][0];
+        vec4 m03_3 = BtdB03 * GgGt3[3][0];
+
+        vec4 m10_3 = BtdB10 * GgGt3[0][1];
+        vec4 m11_3 = BtdB11 * GgGt3[1][1];
+        vec4 m12_3 = BtdB12 * GgGt3[2][1];
+        vec4 m13_3 = BtdB13 * GgGt3[3][1];
+
+        vec4 m20_3 = BtdB20 * GgGt3[0][2];
+        vec4 m21_3 = BtdB21 * GgGt3[1][2];
+        vec4 m22_3 = BtdB22 * GgGt3[2][2];
+        vec4 m23_3 = BtdB23 * GgGt3[3][2];
+
+        vec4 m30_3 = BtdB30 * GgGt3[0][3];
+        vec4 m31_3 = BtdB31 * GgGt3[1][3];
+        vec4 m32_3 = BtdB32 * GgGt3[2][3];
+        vec4 m33_3 = BtdB33 * GgGt3[3][3];
+
+
+        vec4 m01_11_21_0 = m01_0 + m11_0 + m21_0;
+        vec4 m02_12_22_0 = m02_0 + m12_0 + m22_0;
+        vec4 m11_21_31_0 = m11_0 - m21_0 - m31_0;
+        vec4 m12_22_32_0 = m12_0 - m22_0 - m32_0;
+
+        vec4 m01_11_21_1 = m01_1 + m11_1 + m21_1;
+        vec4 m02_12_22_1 = m02_1 + m12_1 + m22_1;
+        vec4 m11_21_31_1 = m11_1 - m21_1 - m31_1;
+        vec4 m12_22_32_1 = m12_1 - m22_1 - m32_1;
+
+        vec4 m01_11_21_2 = m01_2 + m11_2 + m21_2;
+        vec4 m02_12_22_2 = m02_2 + m12_2 + m22_2;
+        vec4 m11_21_31_2 = m11_2 - m21_2 - m31_2;
+        vec4 m12_22_32_2 = m12_2 - m22_2 - m32_2;
+
+        vec4 m01_11_21_3 = m01_3 + m11_3 + m21_3;
+        vec4 m02_12_22_3 = m02_3 + m12_3 + m22_3;
+        vec4 m11_21_31_3 = m11_3 - m21_3 - m31_3;
+        vec4 m12_22_32_3 = m12_3 - m22_3 - m32_3;
+
+        result00[0] += sum(m00_0 + m10_0 + m20_0 + m01_11_21_0 + m02_12_22_0);
+        result01[0] += sum(m01_11_21_0 - m02_12_22_0 - m03_0 - m13_0 - m23_0);
+        result10[0] += sum(m10_0 - m20_0 - m30_0 + m11_21_31_0 + m12_22_32_0);
+        result11[0] += sum(m11_21_31_0 - m12_22_32_0 - m13_0 + m23_0 + m33_0);
+
+        result00[1] += sum(m00_1 + m10_1 + m20_1 + m01_11_21_1 + m02_12_22_1);
+        result01[1] += sum(m01_11_21_1 - m02_12_22_1 - m03_1 - m13_1 - m23_1);
+        result10[1] += sum(m10_1 - m20_1 - m30_1 + m11_21_31_1 + m12_22_32_1);
+        result11[1] += sum(m11_21_31_1 - m12_22_32_1 - m13_1 + m23_1 + m33_1);
+
+        result00[2] += sum(m00_2 + m10_2 + m20_2 + m01_11_21_2 + m02_12_22_2);
+        result01[2] += sum(m01_11_21_2 - m02_12_22_2 - m03_2 - m13_2 - m23_2);
+        result10[2] += sum(m10_2 - m20_2 - m30_2 + m11_21_31_2 + m12_22_32_2);
+        result11[2] += sum(m11_21_31_2 - m12_22_32_2 - m13_2 + m23_2 + m33_2);
+
+        result00[3] += sum(m00_3 + m10_3 + m20_3 + m01_11_21_3 + m02_12_22_3);
+        result01[3] += sum(m01_11_21_3 - m02_12_22_3 - m03_3 - m13_3 - m23_3);
+        result10[3] += sum(m10_3 - m20_3 - m30_3 + m11_21_31_3 + m12_22_32_3);
+        result11[3] += sum(m11_21_31_3 - m12_22_32_3 - m13_3 + m23_3 + m33_3);
+    }
+
+    int index_x_1 = start_x + 1;
+    int index_y_1 = start_y + 1;
+
+    imageStore(output_image, ivec3(start_x, start_y, pos.z), activeVector(-1, result00));
+    imageStore(output_image, ivec3(index_x_1, start_y, pos.z), activeVector(-1, result10));
+    imageStore(output_image, ivec3(start_x, index_y_1, pos.z), activeVector(-1, result01));
+    imageStore(output_image, ivec3(index_x_1, index_y_1, pos.z), activeVector(-1, result11));
+}
+
+float sum(vec4 v) {
+    return v[0] + v[1] + v[2] + v[3];
+}
+
+float relu(float i){
+    if (i > 0.0){
+        return i;
+    } else {
+        return 0.0;
+    }
+}
+
+float sigmoid(float i){
+    return 1.0 / (1.0 + exp(-i));
+}
+
+vec4 activeVector(int type, vec4 v) {
+    if (type == 0) {
+        return vec4(relu(v[0]), relu(v[1]), relu(v[2]), relu(v[3]));
+    } else if (type == 1) {
+        return vec4(sigmoid(v[0]), sigmoid(v[1]), sigmoid(v[2]), sigmoid(v[3]));
+    } else if (type == 2){
+        return vec4(tanh(v[0]), tanh(v[1]), tanh(v[2]), tanh(v[3]));
+    } else {
+        return v;
+    }
+}
