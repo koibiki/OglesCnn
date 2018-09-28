@@ -40,30 +40,20 @@ void main(void)
         return;
     }
 
-    mat4 GgGt0 = mat4(1.0,1.5,0.5,1.0,
-                    1.5,2.25,0.75,1.5,
-                    0.5,0.75,0.25,0.5,
-                    1.0,1.5,0.5,1.0);
+    int z_0 = pos.z * 4;
+    int z_1 = z_0 + 1;
+    int z_2 = z_1 + 1;
+    int z_3 = z_2 + 1;
 
-    mat4 GgGt1 = mat4(1.0,1.5,0.5,1.0,
-                    1.5,2.25,0.75,1.5,
-                    0.5,0.75,0.25,0.5,
-                    1.0,1.5,0.5,1.0);
+    float bias0 = imageLoad(kennel_image, ivec3(16, z_0, 0))[0];
+    float bias1 = imageLoad(kennel_image, ivec3(16, z_1, 0))[0];
+    float bias2 = imageLoad(kennel_image, ivec3(16, z_2, 0))[0];
+    float bias3 = imageLoad(kennel_image, ivec3(16, z_3, 0))[0];
 
-    mat4 GgGt2 = mat4(1.0,1.5,0.5,1.0,
-                    1.5,2.25,0.75,1.5,
-                    0.5,0.75,0.25,0.5,
-                    1.0,1.5,0.5,1.0);
-
-    mat4 GgGt3 = mat4(1.0,1.5,0.5,1.0,
-                    1.5,2.25,0.75,1.5,
-                    0.5,0.75,0.25,0.5,
-                    1.0,1.5,0.5,1.0);
-
-    vec4 result00;
-    vec4 result01;
-    vec4 result10;
-    vec4 result11;
+    vec4 result00 = vec4(bias0, bias1, bias2, bias3);
+    vec4 result01 = vec4(bias0, bias1, bias2, bias3);
+    vec4 result10 = vec4(bias0, bias1, bias2, bias3);
+    vec4 result11 = vec4(bias0, bias1, bias2, bias3);
 
     int conv_x0 = pad_w + start_x;
     int conv_y0 = pad_h + start_y;
@@ -75,6 +65,7 @@ void main(void)
     int conv_y3 = conv_y2 + 1;
 
     for (int c = 0; c < in_depth; c++) {
+
         vec4 data00 = imageLoad(input_image, ivec3(conv_x0, conv_y0, c));
         vec4 data01 = imageLoad(input_image, ivec3(conv_x1, conv_y0, c));
         vec4 data02 = imageLoad(input_image, ivec3(conv_x2, conv_y0, c));
@@ -136,129 +127,58 @@ void main(void)
         vec4 BtdB33 = d11_31_sub - d13_33_sub;
 
 
-        vec4 m00_0 = BtdB00 * GgGt0[0][0];
-        vec4 m01_0 = BtdB01 * GgGt0[1][0];
-        vec4 m02_0 = BtdB02 * GgGt0[2][0];
-        vec4 m03_0 = BtdB03 * GgGt0[3][0];
+        for (int i = 0; i < 4; i++) {
+            int z_i = z_0 + i;
+            vec4 GgGt00_0 = imageLoad(kennel_image, ivec3(0, z_i, c));
+            vec4 GgGt01_0 = imageLoad(kennel_image, ivec3(1, z_i, c));
+            vec4 GgGt02_0 = imageLoad(kennel_image, ivec3(2, z_i, c));
+            vec4 GgGt03_0 = imageLoad(kennel_image, ivec3(3, z_i, c));
 
-        vec4 m10_0 = BtdB10 * GgGt0[0][1];
-        vec4 m11_0 = BtdB11 * GgGt0[1][1];
-        vec4 m12_0 = BtdB12 * GgGt0[2][1];
-        vec4 m13_0 = BtdB13 * GgGt0[3][1];
+            vec4 GgGt10_0 = imageLoad(kennel_image, ivec3(4, z_i, c));
+            vec4 GgGt11_0 = imageLoad(kennel_image, ivec3(5, z_i, c));
+            vec4 GgGt12_0 = imageLoad(kennel_image, ivec3(6, z_i, c));
+            vec4 GgGt13_0 = imageLoad(kennel_image, ivec3(7, z_i, c));
 
-        vec4 m20_0 = BtdB20 * GgGt0[0][2];
-        vec4 m21_0 = BtdB21 * GgGt0[1][2];
-        vec4 m22_0 = BtdB22 * GgGt0[2][2];
-        vec4 m23_0 = BtdB23 * GgGt0[3][2];
+            vec4 GgGt20_0 = imageLoad(kennel_image, ivec3(8, z_i, c));
+            vec4 GgGt21_0 = imageLoad(kennel_image, ivec3(9, z_i, c));
+            vec4 GgGt22_0 = imageLoad(kennel_image, ivec3(10, z_i, c));
+            vec4 GgGt23_0 = imageLoad(kennel_image, ivec3(11, z_i, c));
 
-        vec4 m30_0 = BtdB30 * GgGt0[0][3];
-        vec4 m31_0 = BtdB31 * GgGt0[1][3];
-        vec4 m32_0 = BtdB32 * GgGt0[2][3];
-        vec4 m33_0 = BtdB33 * GgGt0[3][3];
+            vec4 GgGt30_0 = imageLoad(kennel_image, ivec3(12, z_i, c));
+            vec4 GgGt31_0 = imageLoad(kennel_image, ivec3(13, z_i, c));
+            vec4 GgGt32_0 = imageLoad(kennel_image, ivec3(14, z_i, c));
+            vec4 GgGt33_0 = imageLoad(kennel_image, ivec3(15, z_i, c));
 
+            vec4 m00_0 = BtdB00 * GgGt00_0;
+            vec4 m01_0 = BtdB01 * GgGt01_0;
+            vec4 m02_0 = BtdB02 * GgGt02_0;
+            vec4 m03_0 = BtdB03 * GgGt03_0;
 
-        vec4 m00_1 = BtdB00 * GgGt1[0][0];
-        vec4 m01_1 = BtdB01 * GgGt1[1][0];
-        vec4 m02_1 = BtdB02 * GgGt1[2][0];
-        vec4 m03_1 = BtdB03 * GgGt1[3][0];
+            vec4 m10_0 = BtdB10 * GgGt10_0;
+            vec4 m11_0 = BtdB11 * GgGt11_0;
+            vec4 m12_0 = BtdB12 * GgGt12_0;
+            vec4 m13_0 = BtdB13 * GgGt13_0;
 
-        vec4 m10_1 = BtdB10 * GgGt1[0][1];
-        vec4 m11_1 = BtdB11 * GgGt1[1][1];
-        vec4 m12_1 = BtdB12 * GgGt1[2][1];
-        vec4 m13_1 = BtdB13 * GgGt1[3][1];
+            vec4 m20_0 = BtdB20 * GgGt20_0;
+            vec4 m21_0 = BtdB21 * GgGt21_0;
+            vec4 m22_0 = BtdB22 * GgGt22_0;
+            vec4 m23_0 = BtdB23 * GgGt23_0;
 
-        vec4 m20_1 = BtdB20 * GgGt1[0][2];
-        vec4 m21_1 = BtdB21 * GgGt1[1][2];
-        vec4 m22_1 = BtdB22 * GgGt1[2][2];
-        vec4 m23_1 = BtdB23 * GgGt1[3][2];
+            vec4 m30_0 = BtdB30 * GgGt30_0;
+            vec4 m31_0 = BtdB31 * GgGt31_0;
+            vec4 m32_0 = BtdB32 * GgGt32_0;
+            vec4 m33_0 = BtdB33 * GgGt33_0;
 
-        vec4 m30_1 = BtdB30 * GgGt1[0][3];
-        vec4 m31_1 = BtdB31 * GgGt1[1][3];
-        vec4 m32_1 = BtdB32 * GgGt1[2][3];
-        vec4 m33_1 = BtdB33 * GgGt1[3][3];
+            vec4 m01_11_21_0 = m01_0 + m11_0 + m21_0;
+            vec4 m02_12_22_0 = m02_0 + m12_0 + m22_0;
+            vec4 m11_21_31_0 = m11_0 - m21_0 - m31_0;
+            vec4 m12_22_32_0 = m12_0 - m22_0 - m32_0;
 
-
-        vec4 m00_2 = BtdB00 * GgGt2[0][0];
-        vec4 m01_2 = BtdB01 * GgGt2[1][0];
-        vec4 m02_2 = BtdB02 * GgGt2[2][0];
-        vec4 m03_2 = BtdB03 * GgGt2[3][0];
-
-        vec4 m10_2 = BtdB10 * GgGt2[0][1];
-        vec4 m11_2 = BtdB11 * GgGt2[1][1];
-        vec4 m12_2 = BtdB12 * GgGt2[2][1];
-        vec4 m13_2 = BtdB13 * GgGt2[3][1];
-
-        vec4 m20_2 = BtdB20 * GgGt2[0][2];
-        vec4 m21_2 = BtdB21 * GgGt2[1][2];
-        vec4 m22_2 = BtdB22 * GgGt2[2][2];
-        vec4 m23_2 = BtdB23 * GgGt2[3][2];
-
-        vec4 m30_2 = BtdB30 * GgGt2[0][3];
-        vec4 m31_2 = BtdB31 * GgGt2[1][3];
-        vec4 m32_2 = BtdB32 * GgGt2[2][3];
-        vec4 m33_2 = BtdB33 * GgGt2[3][3];
-
-
-        vec4 m00_3 = BtdB00 * GgGt3[0][0];
-        vec4 m01_3 = BtdB01 * GgGt3[1][0];
-        vec4 m02_3 = BtdB02 * GgGt3[2][0];
-        vec4 m03_3 = BtdB03 * GgGt3[3][0];
-
-        vec4 m10_3 = BtdB10 * GgGt3[0][1];
-        vec4 m11_3 = BtdB11 * GgGt3[1][1];
-        vec4 m12_3 = BtdB12 * GgGt3[2][1];
-        vec4 m13_3 = BtdB13 * GgGt3[3][1];
-
-        vec4 m20_3 = BtdB20 * GgGt3[0][2];
-        vec4 m21_3 = BtdB21 * GgGt3[1][2];
-        vec4 m22_3 = BtdB22 * GgGt3[2][2];
-        vec4 m23_3 = BtdB23 * GgGt3[3][2];
-
-        vec4 m30_3 = BtdB30 * GgGt3[0][3];
-        vec4 m31_3 = BtdB31 * GgGt3[1][3];
-        vec4 m32_3 = BtdB32 * GgGt3[2][3];
-        vec4 m33_3 = BtdB33 * GgGt3[3][3];
-
-
-        vec4 m01_11_21_0 = m01_0 + m11_0 + m21_0;
-        vec4 m02_12_22_0 = m02_0 + m12_0 + m22_0;
-        vec4 m11_21_31_0 = m11_0 - m21_0 - m31_0;
-        vec4 m12_22_32_0 = m12_0 - m22_0 - m32_0;
-
-        vec4 m01_11_21_1 = m01_1 + m11_1 + m21_1;
-        vec4 m02_12_22_1 = m02_1 + m12_1 + m22_1;
-        vec4 m11_21_31_1 = m11_1 - m21_1 - m31_1;
-        vec4 m12_22_32_1 = m12_1 - m22_1 - m32_1;
-
-        vec4 m01_11_21_2 = m01_2 + m11_2 + m21_2;
-        vec4 m02_12_22_2 = m02_2 + m12_2 + m22_2;
-        vec4 m11_21_31_2 = m11_2 - m21_2 - m31_2;
-        vec4 m12_22_32_2 = m12_2 - m22_2 - m32_2;
-
-        vec4 m01_11_21_3 = m01_3 + m11_3 + m21_3;
-        vec4 m02_12_22_3 = m02_3 + m12_3 + m22_3;
-        vec4 m11_21_31_3 = m11_3 - m21_3 - m31_3;
-        vec4 m12_22_32_3 = m12_3 - m22_3 - m32_3;
-
-        result00[0] += sum(m00_0 + m10_0 + m20_0 + m01_11_21_0 + m02_12_22_0);
-        result01[0] += sum(m01_11_21_0 - m02_12_22_0 - m03_0 - m13_0 - m23_0);
-        result10[0] += sum(m10_0 - m20_0 - m30_0 + m11_21_31_0 + m12_22_32_0);
-        result11[0] += sum(m11_21_31_0 - m12_22_32_0 - m13_0 + m23_0 + m33_0);
-
-        result00[1] += sum(m00_1 + m10_1 + m20_1 + m01_11_21_1 + m02_12_22_1);
-        result01[1] += sum(m01_11_21_1 - m02_12_22_1 - m03_1 - m13_1 - m23_1);
-        result10[1] += sum(m10_1 - m20_1 - m30_1 + m11_21_31_1 + m12_22_32_1);
-        result11[1] += sum(m11_21_31_1 - m12_22_32_1 - m13_1 + m23_1 + m33_1);
-
-        result00[2] += sum(m00_2 + m10_2 + m20_2 + m01_11_21_2 + m02_12_22_2);
-        result01[2] += sum(m01_11_21_2 - m02_12_22_2 - m03_2 - m13_2 - m23_2);
-        result10[2] += sum(m10_2 - m20_2 - m30_2 + m11_21_31_2 + m12_22_32_2);
-        result11[2] += sum(m11_21_31_2 - m12_22_32_2 - m13_2 + m23_2 + m33_2);
-
-        result00[3] += sum(m00_3 + m10_3 + m20_3 + m01_11_21_3 + m02_12_22_3);
-        result01[3] += sum(m01_11_21_3 - m02_12_22_3 - m03_3 - m13_3 - m23_3);
-        result10[3] += sum(m10_3 - m20_3 - m30_3 + m11_21_31_3 + m12_22_32_3);
-        result11[3] += sum(m11_21_31_3 - m12_22_32_3 - m13_3 + m23_3 + m33_3);
+            result00[i] += sum(m00_0 + m10_0 + m20_0 + m01_11_21_0 + m02_12_22_0);
+            result01[i] += sum(m01_11_21_0 - m02_12_22_0 - m03_0 - m13_0 - m23_0);
+            result10[i] += sum(m10_0 - m20_0 - m30_0 + m11_21_31_0 + m12_22_32_0);
+            result11[i] += sum(m11_21_31_0 - m12_22_32_0 - m13_0 + m23_0 + m33_0);
+        }
     }
 
     int index_x_1 = start_x + 1;

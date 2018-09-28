@@ -4,6 +4,7 @@ import android.content.Context;
 import android.text.TextUtils;
 
 import com.example.eglnn.Render;
+import com.example.eglnn.utils.Numpy;
 import com.example.eglnn.utils.ShaderUtils;
 import com.example.eglnn.utils.TestDataCreator;
 import com.example.eglnn.utils.Utils;
@@ -23,7 +24,7 @@ public class ConvWinogradF23 extends Layer {
     private final int mKennelAmount;
 
 
-    private float[][][] mKennels;
+    private float[][][][] mKennels;
     private int[] mStrides;
     private int[] mKennelShape;
     private int mShaderPro;
@@ -129,19 +130,63 @@ public class ConvWinogradF23 extends Layer {
             mKennels = loadKennels();
         }
 
-        mKennelTex = Render.createKennelFloatTextureArray(mKennelShape[0] * mKennelShape[1] + 1, mKennelAmount, Utils.alignBy4(mKennelShape[2]) / 4);
-        transferToKennelTex();
+        mKennelTex = Render.createKennelFloatTextureArray(17, mKennelAmount, Utils.alignBy4(mKennelShape[2]) / 4);
+        transferKennelToGgGt(mKennels);
+
         createShaderParams();
     }
 
-    private void transferToKennelTex() {
-        for (int a = 0; a < mKennelAmount; a++) {
-            float[][] kennel = mKennels[a];
-            for (int c = 0; c < kennel.length; c++) {
-                Render.transferToTextureArrayFloat(FloatBuffer.wrap(kennel[c]), mKennelTex, 0, a, c, mKennelShape[0] * mKennelShape[1] + 1, 1, 1);
+    private void transferKennelToGgGt(float[][][][] mKennels) {
+        int kennel_amount = mKennels.length;
+        int kennel_channel = mKennels[0].length;
+
+        float[][][][] GgGt = new float[kennel_amount][kennel_channel][4][4];
+        float[][] G = new float[][]{{1, 0, 0}, {0.5f, 0.5f, 0.5f}, {0.5f, -0.5f, 0.5f}, {0, 0, 1}};
+        float[][] Gt = Numpy.transpose(G);
+
+        for (int a = 0; a < kennel_amount; a++) {
+            for (int c = 0; c < kennel_channel; c++) {
+                GgGt[a][c] = Numpy.dot(Numpy.dot(G, mKennels[a][c]), Gt);
+            }
+        }
+
+        int align_c = Utils.alignBy4(kennel_channel);
+
+        float[] biases = new float[kennel_amount];
+        float[][][] GgGt_align = new float[kennel_amount][align_c / 4][16 * 4 + 4]; // depth == 0 处 最后一列第一个为 bias
+
+        for (int a = 0; a < kennel_amount; a++) {
+            for (int c = 0; c < kennel_channel; c++) {
+                for (int h = 0; h < 4; h++) {
+                    for (int w = 0; w < 4; w++) {
+                        GgGt_align[a][c / 4][(w + h * 4) * 4 + c % 4] = GgGt[a][c][h][w];
+                    }
+                }
+            }
+        }
+        for (int a = 0; a < kennel_amount; a++) {
+            GgGt_align[a][0][16 * 4] = 0.01f * a;
+        }
+
+        // 传输到纹理
+        for (int a = 0; a < kennel_amount; a++) {
+            float[][] kennel = GgGt_align[a];
+            int depth = kennel.length;
+            for (int c = 0; c < depth; c++) {
+                Render.transferToTextureArrayFloat(FloatBuffer.wrap(kennel[c]), mKennelTex, 0, a, c, 17, 1, 1);
             }
         }
     }
+
+//
+//    private void transferToKennelTex() {
+//        for (int a = 0; a < mKennelAmount; a++) {
+//            float[][] kennel = mKennels[a];
+//            for (int c = 0; c < kennel.length; c++) {
+//                Render.transferToTextureArrayFloat(FloatBuffer.wrap(kennel[c]), mKennelTex, 0, a, c, mKennelShape[0] * mKennelShape[1] + 1, 1, 1);
+//            }
+//        }
+//    }
 
     private String createShaderSource(int xSize, int ySize, int zSize) {
         String source = ShaderUtils.loadFromAssetsFile("conv_winograd_2x3.comp", mContext.getResources());
@@ -163,15 +208,15 @@ public class ConvWinogradF23 extends Layer {
         mParams[10] = -1 * mPadH;
     }
 
-    private float[][][] createTestKennels() {
-        return TestDataCreator.createConvKennels(mKennelShape, mKennelAmount);
+    private float[][][][] createTestKennels() {
+        return TestDataCreator.createConvKennels2(mKennelShape, mKennelAmount);
     }
 
     /**
      * TODO
      * channel需要4对齐, 依次排满一个通道后再排下一个通道的值, 最后4个值为 bias, 0, 0, 0
      */
-    private float[][][] loadKennels() {
+    private float[][][][] loadKennels() {
         return null;
     }
 
