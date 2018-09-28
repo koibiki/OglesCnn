@@ -64,15 +64,12 @@ void main(void)
             int k_index = y * kennel_width + x;
             for (int c = 0; c < count; c++) {
                 vec4 data = imageLoad(input_image, ivec3(conv_x, conv_y, c));
-                vec4 kennel0 = imageLoad(kennel_image, ivec3(k_index, z_index0, c));
-                vec4 kennel1 = imageLoad(kennel_image, ivec3(k_index, z_index1, c));
-                vec4 kennel2 = imageLoad(kennel_image, ivec3(k_index, z_index2, c));
-                vec4 kennel3 = imageLoad(kennel_image, ivec3(k_index, z_index3, c));
-                float result0 = dot(data, kennel0);
-                float result1 = dot(data, kennel1);
-                float result2 = dot(data, kennel2);
-                float result3 = dot(data, kennel3);
-                result += vec4(result0, result1, result2, result3);
+                for (int i = 0; i < 4; i++) {
+                    int z_i = start_z_index + i;
+                    vec4 kennel = imageLoad(kennel_image, ivec3(k_index, z_i, c));
+                    float dot_result = dot(data, kennel);
+                    result[i] += dot_result;
+                }
             }
         }
     }

@@ -55,24 +55,16 @@ void main(void)
     }
 
     mat4 result;
-
-    ivec2 conv_index_on_tex0;
-    ivec2 conv_index_on_tex1;
-    ivec2 conv_index_on_tex2;
-    ivec2 conv_index_on_tex3;
-
-    mat4 data_mat0;
-
-    int bias_index = kennel_area;
-    float bias0 = imageLoad(kennel_image, ivec3(bias_index, z_index0, 0))[0];
-    float bias1 = imageLoad(kennel_image, ivec3(bias_index, z_index1, 0))[0];
-    float bias2 = imageLoad(kennel_image, ivec3(bias_index, z_index2, 0))[0];
-    float bias3 = imageLoad(kennel_image, ivec3(bias_index, z_index3, 0))[0];
-    mat4 bias = mat4(bias0, bias1, bias2, bias3,
-                        bias0, bias1, bias2, bias3,
-                        bias0, bias1, bias2, bias3,
-                        bias0, bias1, bias2, bias3);
-    result = bias;
+    {
+        float bias0 = imageLoad(kennel_image, ivec3(kennel_area, z_index0, 0))[0];
+        float bias1 = imageLoad(kennel_image, ivec3(kennel_area, z_index1, 0))[0];
+        float bias2 = imageLoad(kennel_image, ivec3(kennel_area, z_index2, 0))[0];
+        float bias3 = imageLoad(kennel_image, ivec3(kennel_area, z_index3, 0))[0];
+        result = mat4(bias0, bias1, bias2, bias3,
+                            bias0, bias1, bias2, bias3,
+                            bias0, bias1, bias2, bias3,
+                            bias0, bias1, bias2, bias3);
+    }
 
     int start_x0 = start_x_index;
     int x_0 = start_x0 % out_width;
@@ -90,21 +82,22 @@ void main(void)
     int x_3 = start_x3 % out_width;
     int y_3 = start_x3 / out_width;
 
-
     for (int i = 0; i < kennel_area; i++) {
-        mat4 kennel;
         int k_x = i % kennel_width;
         int k_y = i / kennel_width;
 
         int x_offset = pad_w + k_x;
         int y_offset = pad_h + k_y;
 
-        conv_index_on_tex0 = ivec2(x_offset + strides[0] * x_0, y_offset + strides[1] * y_0);
-        conv_index_on_tex1 = ivec2(x_offset + strides[0] * x_1, y_offset + strides[1] * y_1);
-        conv_index_on_tex2 = ivec2(x_offset + strides[0] * x_2, y_offset + strides[1] * y_2);
-        conv_index_on_tex3 = ivec2(x_offset + strides[0] * x_3, y_offset + strides[1] * y_3);
+        ivec2 conv_index_on_tex0 = ivec2(x_offset + strides[0] * x_0, y_offset + strides[1] * y_0);
+        ivec2 conv_index_on_tex1 = ivec2(x_offset + strides[0] * x_1, y_offset + strides[1] * y_1);
+        ivec2 conv_index_on_tex2 = ivec2(x_offset + strides[0] * x_2, y_offset + strides[1] * y_2);
+        ivec2 conv_index_on_tex3 = ivec2(x_offset + strides[0] * x_3, y_offset + strides[1] * y_3);
 
         for (int c = 0; c < count; c++) {
+            mat4 kennel;
+            mat4 data_mat0;
+
             kennel[0] = imageLoad(kennel_image, ivec3(i, z_index0, c));
             kennel[1] = imageLoad(kennel_image, ivec3(i, z_index1, c));
             kennel[2] = imageLoad(kennel_image, ivec3(i, z_index2, c));
