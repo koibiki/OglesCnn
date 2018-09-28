@@ -21,6 +21,19 @@ public class Numpy {
         return result;
     }
 
+    public static float[][] transpose(float[][] mat) {
+        int mat_col = mat[0].length;
+        int mat_row = mat.length;
+        float[][] new_mat = new float[mat_col][mat_row];
+
+        for (int col = 0; col < mat_col; col++) {
+            for (int row = 0; row < mat_row; row++) {
+                new_mat[col][row] = mat[row][col];
+            }
+        }
+        return new_mat;
+    }
+
     private static void checkShape(int mat1_col, int mat2_row) {
         if (mat1_col != mat2_row) {
             try {
