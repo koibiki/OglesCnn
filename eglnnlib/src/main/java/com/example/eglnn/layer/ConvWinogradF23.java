@@ -149,22 +149,18 @@ public class ConvWinogradF23 extends Layer {
     }
 
     private void createShaderParams() {
-        mParams = new int[15];
-        mParams[0] = mKennelShape[0];
-        mParams[1] = mKennelShape[1];
-        mParams[2] = mKennelShape[2];
-        mParams[3] = mInShape[0];
-        mParams[4] = mInShape[1];
-        mParams[5] = mInShape[2];
-        mParams[6] = mOutShape[0];
-        mParams[7] = mOutShape[1];
-        mParams[8] = mOutShape[2];
-        mParams[9] = mStrides[0];
-        mParams[10] = mStrides[1];
-        mParams[11] = mType.index;
-        mParams[12] = Utils.alignBy4(mInShape[2]);
-        mParams[13] = -1 * mPadW;
-        mParams[14] = -1 * mPadH;
+        mParams = new int[11];
+        mParams[0] = mInShape[0];
+        mParams[1] = mInShape[1];
+        mParams[2] = mInShape[2];
+        mParams[3] = mOutShape[0];
+        mParams[4] = mOutShape[1];
+        mParams[5] = mOutShape[2];
+        mParams[6] = mType.index;
+        mParams[7] = Utils.alignBy4(mInShape[2]) / 4;
+        mParams[8] = Utils.alignBy4(mOutShape[2]) / 4;
+        mParams[9] = -1 * mPadW;
+        mParams[10] = -1 * mPadH;
     }
 
     private float[][][] createTestKennels() {

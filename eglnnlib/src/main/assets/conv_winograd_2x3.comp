@@ -1,6 +1,6 @@
 layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = Z_SIZE) in;
 
-uniform int params[15];  // kennel_shape[3] input_shape[3] output_shape[3] strides[2] active_type pad_w, pad_h
+uniform int params[11];  // input_shape[3] output_shape[3] active_type in_depth out_depth pad_w, pad_h
 layout(binding = 0, rgba32f) readonly uniform image2DArray input_image;
 layout(binding = 1, rgba32f) writeonly uniform image2DArray output_image;
 layout(binding = 2, rgba32f) readonly uniform image2DArray kennel_image;
@@ -16,36 +16,29 @@ vec4 activeVector(int type, vec4 v);
 void main(void)
 {
     // 分解参数
-    int kennel_width = params[0];
-    int kennel_height = params[1];
-    int kennel_channel = params[2];
+    int in_width = params[0];
+    int in_height = params[1];
+    int in_channel = params[2];
 
-    int in_width = params[3];
-    int in_height = params[4];
-    int in_channel = params[5];
+    int out_width = params[3];
+    int out_height = params[4];
+    int out_channel = params[5];
 
-    int out_width = params[6];
-    int out_height = params[7];
-    int out_channel = params[8];
+    int active_type = params[6];
+    int in_depth = params[7];
+    int out_depth = params[8];
 
-    int strides[2] = int[2](params[9], params[10]);
-
-    int active_type = params[11];
-    int align_channel = params[12];
-
-    int pad_w = params[13];
-    int pad_h = params[14];
+    int pad_w = params[9];
+    int pad_h = params[10];
 
     ivec3 pos = ivec3(gl_GlobalInvocationID.xyz);
 
     int start_x = pos.x * 2;
     int start_y = pos.y * 2;
 
-    if (start_x >= out_width || start_y >= out_height || pos.z >= out_channel) {
+    if (start_x >= out_width || start_y >= out_height || pos.z >= out_depth) {
         return;
     }
-
-    int count = align_channel / 4;
 
     mat4 GgGt0 = mat4(1.0,1.5,0.5,1.0,
                     1.5,2.25,0.75,1.5,
@@ -81,31 +74,31 @@ void main(void)
     int conv_x3 = conv_x2 + 1;
     int conv_y3 = conv_y2 + 1;
 
-    for (int c = 0; c < count; c++) {
+    for (int c = 0; c < in_depth; c++) {
         vec4 data00 = imageLoad(input_image, ivec3(conv_x0, conv_y0, c));
-        vec4 data01 = imageLoad(input_image, ivec3(conv_x0, conv_y1, c));
-        vec4 data02 = imageLoad(input_image, ivec3(conv_x0, conv_y2, c));
-        vec4 data03 = imageLoad(input_image, ivec3(conv_x0, conv_y3, c));
+        vec4 data01 = imageLoad(input_image, ivec3(conv_x1, conv_y0, c));
+        vec4 data02 = imageLoad(input_image, ivec3(conv_x2, conv_y0, c));
+        vec4 data03 = imageLoad(input_image, ivec3(conv_x3, conv_y0, c));
 
-        vec4 data10 = imageLoad(input_image, ivec3(conv_x1, conv_y0, c));
+        vec4 data10 = imageLoad(input_image, ivec3(conv_x0, conv_y1, c));
         vec4 data11 = imageLoad(input_image, ivec3(conv_x1, conv_y1, c));
-        vec4 data12 = imageLoad(input_image, ivec3(conv_x1, conv_y2, c));
-        vec4 data13 = imageLoad(input_image, ivec3(conv_x1, conv_y3, c));
+        vec4 data12 = imageLoad(input_image, ivec3(conv_x2, conv_y1, c));
+        vec4 data13 = imageLoad(input_image, ivec3(conv_x3, conv_y1, c));
 
-        vec4 data20 = imageLoad(input_image, ivec3(conv_x2, conv_y0, c));
-        vec4 data21 = imageLoad(input_image, ivec3(conv_x2, conv_y1, c));
+        vec4 data20 = imageLoad(input_image, ivec3(conv_x0, conv_y2, c));
+        vec4 data21 = imageLoad(input_image, ivec3(conv_x1, conv_y2, c));
         vec4 data22 = imageLoad(input_image, ivec3(conv_x2, conv_y2, c));
-        vec4 data23 = imageLoad(input_image, ivec3(conv_x2, conv_y3, c));
+        vec4 data23 = imageLoad(input_image, ivec3(conv_x3, conv_y2, c));
 
-        vec4 data30 = imageLoad(input_image, ivec3(conv_x3, conv_y0, c));
-        vec4 data31 = imageLoad(input_image, ivec3(conv_x3, conv_y1, c));
-        vec4 data32 = imageLoad(input_image, ivec3(conv_x3, conv_y2, c));
+        vec4 data30 = imageLoad(input_image, ivec3(conv_x0, conv_y3, c));
+        vec4 data31 = imageLoad(input_image, ivec3(conv_x1, conv_y3, c));
+        vec4 data32 = imageLoad(input_image, ivec3(conv_x2, conv_y3, c));
         vec4 data33 = imageLoad(input_image, ivec3(conv_x3, conv_y3, c));
 
         vec4 d00_20_sub = data00 - data20;
         vec4 d01_21_sub = data01 - data21;
-        vec4 d02_12_sub = data02 - data12;
-        vec4 d03_13_sub = data03 - data13;
+        vec4 d02_22_sub = data02 - data22;
+        vec4 d03_23_sub = data03 - data23;
 
         vec4 d10_20_add = data10 + data20;
         vec4 d11_21_add = data11 + data21;
@@ -122,10 +115,10 @@ void main(void)
         vec4 d12_32_sub = data12 - data32;
         vec4 d13_33_sub = data13 - data33;
 
-        vec4 BtdB00 = d00_20_sub - d02_12_sub;
-        vec4 BtdB01 = d01_21_sub + d02_12_sub;
-        vec4 BtdB02 = d02_12_sub - d01_21_sub;
-        vec4 BtdB03 = d01_21_sub - d03_13_sub;
+        vec4 BtdB00 = d00_20_sub - d02_22_sub;
+        vec4 BtdB01 = d01_21_sub + d02_22_sub;
+        vec4 BtdB02 = d02_22_sub - d01_21_sub;
+        vec4 BtdB03 = d01_21_sub - d03_23_sub;
 
         vec4 BtdB10 = d10_20_add - d12_22_add;
         vec4 BtdB11 = d11_21_add + d12_22_add;
@@ -141,6 +134,7 @@ void main(void)
         vec4 BtdB31 = d11_31_sub + d12_32_sub;
         vec4 BtdB32 = d12_32_sub - d11_31_sub;
         vec4 BtdB33 = d11_31_sub - d13_33_sub;
+
 
         vec4 m00_0 = BtdB00 * GgGt0[0][0];
         vec4 m01_0 = BtdB01 * GgGt0[1][0];
@@ -271,8 +265,8 @@ void main(void)
     int index_y_1 = start_y + 1;
 
     imageStore(output_image, ivec3(start_x, start_y, pos.z), activeVector(-1, result00));
-    imageStore(output_image, ivec3(index_x_1, start_y, pos.z), activeVector(-1, result10));
-    imageStore(output_image, ivec3(start_x, index_y_1, pos.z), activeVector(-1, result01));
+    imageStore(output_image, ivec3(index_x_1, start_y, pos.z), activeVector(-1, result01));
+    imageStore(output_image, ivec3(start_x, index_y_1, pos.z), activeVector(-1, result10));
     imageStore(output_image, ivec3(index_x_1, index_y_1, pos.z), activeVector(-1, result11));
 }
 
