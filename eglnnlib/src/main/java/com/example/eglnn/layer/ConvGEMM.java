@@ -17,7 +17,7 @@ import static com.example.eglnn.utils.Constants.S_CONV_GEMM_SHADER_HEADER;
 /**
  *
  * */
-public class ConvGEMM2 extends Layer {
+public class ConvGEMM extends Layer {
 
     private static final String TAG = "ConvGEMM";
     private final int mKennelAmount;
@@ -36,7 +36,7 @@ public class ConvGEMM2 extends Layer {
     private int mKennelTex;
     private int mPadW, mPadH;
 
-    private ConvGEMM2(Context context, Layer preLayer, int kAmount, int k_w, int k_h, int stride_w, int stride_h, ActiveType type, String kennelFilePath) {
+    private ConvGEMM(Context context, Layer preLayer, int kAmount, int k_w, int k_h, int stride_w, int stride_h, ActiveType type, String kennelFilePath) {
         super(context, preLayer);
         this.mKennelShape = new int[]{k_w, k_h, preLayer.getOutputShape()[2]};
         this.mKennelAmount = kAmount;
@@ -45,13 +45,13 @@ public class ConvGEMM2 extends Layer {
         this.mKennelFilePath = kennelFilePath;
     }
 
-    public ConvGEMM2(Context context, Layer preLayer, int kAmount, int k_w, int k_h, PaddingType padType, int stride_w, int stride_h, ActiveType type, String kennelFilePath) {
+    public ConvGEMM(Context context, Layer preLayer, int kAmount, int k_w, int k_h, PaddingType padType, int stride_w, int stride_h, ActiveType type, String kennelFilePath) {
         this(context, preLayer, kAmount, k_w, k_h, stride_w, stride_h, type, kennelFilePath);
         this.mPadType = padType;
         this.mOutShape = calculateConvShapeByType(kAmount);
     }
 
-    public ConvGEMM2(Context context, Layer preLayer, int kAmount, int k_w, int k_h, int pad_w, int pad_h, int stride_w, int stride_h, ActiveType type, String kennelFilePath) {
+    public ConvGEMM(Context context, Layer preLayer, int kAmount, int k_w, int k_h, int pad_w, int pad_h, int stride_w, int stride_h, ActiveType type, String kennelFilePath) {
         this(context, preLayer, kAmount, k_w, k_h, stride_w, stride_h, type, kennelFilePath);
         this.mPadW = pad_w;
         this.mPadH = pad_h;
@@ -108,7 +108,7 @@ public class ConvGEMM2 extends Layer {
         String source = createShaderSource(xSize, zSize);
         mShaderPro = initCompPro(source);
         mAttachID = Layer.getDataAttachID();
-        mOutTex = Render.createFloatTextureArray(mOutShape[0], mOutShape[1], Utils.alignBy4(mOutShape[2]) * 2 / 4);
+        mOutTex = Render.createFloatTextureArray(mOutShape[0], mOutShape[1], Utils.alignBy4(mOutShape[2]) / 4);
 
         if (TextUtils.isEmpty(mKennelFilePath)) {
             mKennels = createTestKennels();
@@ -132,7 +132,7 @@ public class ConvGEMM2 extends Layer {
     }
 
     private String createShaderSource(int xSize, int zSize) {
-        String shaderFile = "conv_gemm2.comp";
+        String shaderFile = "conv_gemm.comp";
         String source = ShaderUtils.loadFromAssetsFile(shaderFile, mContext.getResources());
         int kennelArea = mKennelShape[0] * mKennelShape[1];
         int kennelSize = kennelArea * Utils.alignBy4(mKennelShape[2]);

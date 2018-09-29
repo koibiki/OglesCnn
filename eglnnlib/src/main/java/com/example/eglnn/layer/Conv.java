@@ -123,7 +123,7 @@ public class Conv extends Layer {
         String source = createShaderSource(xSize, ySize, zSize);
         mShaderPro = initCompPro(source);
         mAttachID = Layer.getDataAttachID();
-        mOutTex = Render.createFloatTextureArray(mOutShape[0], mOutShape[1], Utils.alignBy4(mOutShape[2]) * 2 / 4);
+        mOutTex = Render.createFloatTextureArray(mOutShape[0], mOutShape[1], Utils.alignBy4(mOutShape[2]) / 4);
 
         if (TextUtils.isEmpty(mKennelFilePath)) {
             mKennels = createTestKennels();

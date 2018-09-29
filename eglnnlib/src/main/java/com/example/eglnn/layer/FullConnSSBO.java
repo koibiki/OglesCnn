@@ -44,7 +44,7 @@ public class FullConnSSBO extends Layer {
         this.mType = type;
         this.mOutShape = calculateFullShape(kennelAmount);
         this.mParamFilePath = paramFilePath;
-        if (mPreLayer instanceof Input || mPreLayer instanceof Pooling || mPreLayer instanceof ConvGEMM2) {
+        if (mPreLayer instanceof Input || mPreLayer instanceof Pooling || mPreLayer instanceof ConvGEMM) {
             mPreLayerIsArray = true;
         }
     }
