@@ -34,5 +34,5 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-
+    implementation 'org.msgpack:msgpack:0.6.12'
 }
