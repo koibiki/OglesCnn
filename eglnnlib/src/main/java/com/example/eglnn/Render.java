@@ -171,33 +171,9 @@ public class Render {
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, bufferId);
     }
 
-    public static void performConvoluteGEMM(int compProg, int[] params, int inTex, int outTex, int kennelTex, int buffer, int numGroupsX, int numGroupZ) {
-        glUseProgram(compProg);
-        glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
-
-        glBindImageTexture(0, inTex, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
-        glBindImageTexture(1, outTex, 0, true, 0, GL_WRITE_ONLY, GL_RGBA32F);
-        glBindImageTexture(2, kennelTex, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffer);
-
-        glDispatchCompute(numGroupsX, 1, numGroupZ);
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-    }
-
     public static void performConvolute(int compProg, int[] params, int inTex, int outTex, int kennelTex, int numGroupsX, int numGroupsY, int numGroupZ) {
         glUseProgram(compProg);
         glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
-
-        glBindImageTexture(0, inTex, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
-        glBindImageTexture(1, outTex, 0, true, 0, GL_WRITE_ONLY, GL_RGBA32F);
-        glBindImageTexture(2, kennelTex, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
-
-        glDispatchCompute(numGroupsX, numGroupsY, numGroupZ);
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-    }
-
-    public static void performConvolute(int compProg, int inTex, int outTex, int kennelTex, int numGroupsX, int numGroupsY, int numGroupZ) {
-        glUseProgram(compProg);
 
         glBindImageTexture(0, inTex, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
         glBindImageTexture(1, outTex, 0, true, 0, GL_WRITE_ONLY, GL_RGBA32F);
