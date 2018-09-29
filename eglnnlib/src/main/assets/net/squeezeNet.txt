@@ -1,0 +1,76 @@
+layer {
+  type: "Input"
+  name: "in"
+  width: 227
+  height: 227
+  channel: 3
+}
+
+layer {
+  type: "Conv"
+  name: "conv1"
+  pad: "VALID"
+  stride: 2
+  kennel_amount: 64
+  kennel_width: 3
+  kennel_height: 3
+  active: "ReLU"
+  in: "in"
+}
+
+layer {
+  type: "Pooling"
+  name: "pool1"
+  pool: "max"
+  kernel_size: 3
+  pad: "VALID"
+  stride: 2
+}
+
+layer {
+  type: "Conv"
+  name: "fire2_squeeze1x1"
+  active: "ReLU"
+  pad: "SAME"
+  stride: 1
+  kennel_amount: 16
+  kennel_width: 3
+  kennel_height: 3
+}
+
+layer {
+  type: "Pooling"
+  name: "pool2"
+  pool: "max"
+  kernel_size: 3
+  pad: 0
+  stride: 2
+}
+
+layer {
+  type: "Convolution"
+  name: "conv3"
+  parameters_file: "model_param_conv3.msg"
+  pad: 2
+  stride: 1
+  kennel_amount: 64
+  kennel_width: 5
+  kennel_height: 5
+  kennel_channel: 32
+  active: "ReLU"
+}
+
+layer {
+  type: "Pooling"
+  name: "pool3"
+  pool: "max"
+  kernel_size: 3
+  pad: 0
+  stride: 2
+}
+
+layer {
+  type: "Softmax"
+  name: "sm"
+  amount: 100
+}
