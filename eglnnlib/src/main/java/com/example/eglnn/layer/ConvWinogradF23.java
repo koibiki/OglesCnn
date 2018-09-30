@@ -209,8 +209,7 @@ public class ConvWinogradF23 extends Layer {
     }
 
     private float[][][][] createTestKennels() {
-//        return TestDataCreator.createConvKennels2(mKennelShape, mKennelAmount);
-        return null;
+        return TestDataCreator.createConvKennels2(mKennelShape, mKennelAmount);
     }
 
     /**
