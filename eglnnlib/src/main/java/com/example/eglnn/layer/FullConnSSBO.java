@@ -29,7 +29,6 @@ public class FullConnSSBO extends Layer {
     private List<float[]> mKennels;
     private int mShaderPro;
     private int mKennelAmount;
-    private String mParamFilePath;
 
     private int[] mParams;
 
@@ -38,12 +37,11 @@ public class FullConnSSBO extends Layer {
     private int mNumGroupZ;
     private boolean mPreLayerIsArray;
 
-    public FullConnSSBO(Context context, String name, Layer preLayer, int kennelAmount, ActiveType type, String paramFilePath) {
+    public FullConnSSBO(Context context, String name, Layer preLayer, int kennelAmount, ActiveType type) {
         super(context, name, preLayer);
         this.mKennelAmount = kennelAmount;
         this.mType = type;
         this.mOutShape = calculateFullShape(kennelAmount);
-        this.mParamFilePath = paramFilePath;
         if (mPreLayer instanceof Input || mPreLayer instanceof Pooling || mPreLayer instanceof ConvGEMM) {
             mPreLayerIsArray = true;
         }
@@ -81,11 +79,9 @@ public class FullConnSSBO extends Layer {
 
 
         int kennelBufSize = alignKennelSize * mKennelAmount;
-        if (TextUtils.isEmpty(mParamFilePath)) {
-            mKennels = createKennels(alignKennelSize);
-        } else {
-            mKennels = loadKennels(kennelSize, alignKennelSize);
-        }
+
+        mKennels = createKennels(alignKennelSize);
+//            mKennels = loadKennels(kennelSize, alignKennelSize);
 
         mKennelBuffer[0] = Render.initKennelBuffer(kennelBufSize);
         transferKennelToBuffer();

@@ -16,7 +16,7 @@ import static com.example.eglnn.utils.Constants.S_CONV_GEMM_SHADER_HEADER;
 
 /**
  * 使用GEMM优化的卷积
- * */
+ */
 public class ConvGEMM extends Layer {
 
     private static final String TAG = "ConvGEMM";
@@ -32,27 +32,26 @@ public class ConvGEMM extends Layer {
     private int mNumGroupsZ;
     private int[] mParams;
     private ActiveType mType;
-    private String mKennelFilePath;
     private int mKennelTex;
     private int mPadW, mPadH;
 
-    private ConvGEMM(Context context, String name, Layer preLayer, int kAmount, int k_w, int k_h, int stride_w, int stride_h, ActiveType type, String kennelFilePath) {
+    private ConvGEMM(Context context, String name, Layer preLayer, int kAmount, int k_w, int k_h, int stride_w, int stride_h, ActiveType type) {
         super(context, name, preLayer);
         this.mKennelShape = new int[]{k_w, k_h, preLayer.getOutputShape()[2]};
         this.mKennelAmount = kAmount;
         this.mStrides = new int[]{stride_w, stride_h};
         this.mType = type;
-        this.mKennelFilePath = kennelFilePath;
+
     }
 
-    public ConvGEMM(Context context, String name, Layer preLayer, int kAmount, int k_w, int k_h, PaddingType padType, int stride_w, int stride_h, ActiveType type, String kennelFilePath) {
-        this(context, name, preLayer, kAmount, k_w, k_h, stride_w, stride_h, type, kennelFilePath);
+    public ConvGEMM(Context context, String name, Layer preLayer, int kAmount, int k_w, int k_h, PaddingType padType, int stride_w, int stride_h, ActiveType type) {
+        this(context, name, preLayer, kAmount, k_w, k_h, stride_w, stride_h, type);
         this.mPadType = padType;
         this.mOutShape = calculateConvShapeByType(kAmount);
     }
 
-    public ConvGEMM(Context context, String name, Layer preLayer, int kAmount, int k_w, int k_h, int pad_w, int pad_h, int stride_w, int stride_h, ActiveType type, String kennelFilePath) {
-        this(context, name, preLayer, kAmount, k_w, k_h, stride_w, stride_h, type, kennelFilePath);
+    public ConvGEMM(Context context, String name, Layer preLayer, int kAmount, int k_w, int k_h, int pad_w, int pad_h, int stride_w, int stride_h, ActiveType type) {
+        this(context, name, preLayer, kAmount, k_w, k_h, stride_w, stride_h, type);
         this.mPadW = pad_w;
         this.mPadH = pad_h;
         this.mOutShape = calculateConvShapeByPad(kAmount);
@@ -110,11 +109,9 @@ public class ConvGEMM extends Layer {
         mAttachID = Layer.getDataAttachID();
         mOutTex = Render.createFloatTextureArray(mOutShape[0], mOutShape[1], Utils.alignBy4(mOutShape[2]) / 4);
 
-        if (TextUtils.isEmpty(mKennelFilePath)) {
-            mKennels = createTestKennels();
-        } else {
-            mKennels = loadKennels();
-        }
+        mKennels = createTestKennels();
+//            mKennels = loadKennels();
+
         // kennel 最后一列为bias
         mKennelTex = Render.createKennelFloatTextureArray(mKennelShape[0] * mKennelShape[1] + 1, mKennelAmount, Utils.alignBy4(mInShape[2]) / 4);
         transferToKennelTex();
