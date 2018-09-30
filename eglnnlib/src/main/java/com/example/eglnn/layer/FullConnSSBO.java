@@ -38,8 +38,8 @@ public class FullConnSSBO extends Layer {
     private int mNumGroupZ;
     private boolean mPreLayerIsArray;
 
-    public FullConnSSBO(Context context, Layer preLayer, int kennelAmount, ActiveType type, String paramFilePath) {
-        super(context, preLayer);
+    public FullConnSSBO(Context context, String name, Layer preLayer, int kennelAmount, ActiveType type, String paramFilePath) {
+        super(context, name, preLayer);
         this.mKennelAmount = kennelAmount;
         this.mType = type;
         this.mOutShape = calculateFullShape(kennelAmount);

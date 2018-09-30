@@ -29,8 +29,8 @@ public class Pooling extends Layer {
     private int mNumGroupsY;
     private int mNumGroupsZ;
 
-    public Pooling(Context context, Layer preLayer, int k_w, int k_h, PaddingType padType, int stride_w, int stride_h) {
-        super(context, preLayer);
+    public Pooling(Context context, String name, Layer preLayer, int k_w, int k_h, PaddingType padType, int stride_w, int stride_h) {
+        super(context, name, preLayer);
         this.mPadType = padType;
         this.mKennelShape = new int[]{k_w, k_h};
         this.mStrides = new int[]{stride_w, stride_h};
@@ -88,7 +88,7 @@ public class Pooling extends Layer {
         int zSize = getLocalSizeZ(xSize, ySize);
         mNumGroupsZ = (int) Math.ceil(Utils.alignBy4(mOutShape[2]) * 1.0f / 4 / zSize);
 
-        String source = createShaderSource(xSize, ySize,zSize);
+        String source = createShaderSource(xSize, ySize, zSize);
         mShaderPro = initCompPro(source);
         mAttachID = Layer.getDataAttachID();
         mOutTex = Render.createFloatTextureArray(mOutShape[0], mOutShape[1], Utils.alignBy4(mOutShape[2]) / 4);

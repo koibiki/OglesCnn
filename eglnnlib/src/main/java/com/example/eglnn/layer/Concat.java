@@ -24,8 +24,8 @@ public class Concat extends Layer {
     private int mShaderPro;
     private int[] mParams;
 
-    public Concat(Context context, Layer[] preLayers, int axis) {
-        super(context, preLayers);
+    public Concat(Context context, String name, Layer[] preLayers, int axis) {
+        super(context, name, preLayers);
         this.mAxis = axis;
         this.mOutShape = calculateOutShape();
     }
@@ -127,6 +127,6 @@ public class Concat extends Layer {
 
     @Override
     protected void actualForwardProc(float[][] input) {
-        Render.performConcat(mShaderPro, mParams, mPreLayers[0].getOutTex(), mPreLayers[1].getOutTex(), mOutTex, 1,mNumGroupsY, mNumGroupsZ);
+        Render.performConcat(mShaderPro, mParams, mPreLayers[0].getOutTex(), mPreLayers[1].getOutTex(), mOutTex, 1, mNumGroupsY, mNumGroupsZ);
     }
 }

@@ -40,8 +40,8 @@ public class Expand extends Layer {
     private int[] mKennelShape2;
 
 
-    public Expand(Context context, Layer preLayer, int kAmount, ActiveType type, String kennel1FilePath, String kennel2FilePath) {
-        super(context, preLayer);
+    public Expand(Context context, String name, Layer preLayer, int kAmount, ActiveType type, String kennel1FilePath, String kennel2FilePath) {
+        super(context, name, preLayer);
         this.mKennelShape1 = new int[]{1, 1, mInShape[2]};
         this.mKennelShape2 = new int[]{3, 3, mInShape[2]};
         this.mKennelAmount = kAmount;

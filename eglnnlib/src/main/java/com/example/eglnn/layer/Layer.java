@@ -4,6 +4,7 @@ import android.content.Context;
 
 public abstract class Layer {
 
+    protected String mName;
     protected Context mContext;
     protected Layer mPreLayer;
     protected Layer[] mPreLayers;
@@ -53,22 +54,25 @@ public abstract class Layer {
         return startY;
     }
 
-    public Layer(Context context, int w, int h, int c) {
+    public Layer(Context context, String name, int w, int h, int c) {
         this.mContext = context;
+        this.mName = name;
         this.mPreLayer = null;
         this.mInShape = new int[]{w, h, c};
     }
 
 
-    public Layer(Context context, Layer preLayer) {
+    public Layer(Context context, String name, Layer preLayer) {
         this.mContext = context;
+        this.mName = name;
         this.mPreLayer = preLayer;
         this.mPreLayers = new Layer[]{preLayer};
         this.mInShape = preLayer.getOutputShape();
     }
 
-    public Layer(Context context, Layer[] preLayers) {
+    public Layer(Context context, String name, Layer[] preLayers) {
         this.mContext = context;
+        this.mName = name;
         this.mPreLayer = null;
         this.mPreLayers = preLayers;
     }

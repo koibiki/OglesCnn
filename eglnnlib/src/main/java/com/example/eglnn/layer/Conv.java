@@ -17,7 +17,7 @@ import static com.example.eglnn.utils.Constants.S_COMMON_SHADER_HEADER;
 import static com.example.eglnn.utils.Constants.S_CONV_GEMM_SHADER_HEADER;
 
 /**
- *
+ *  按照卷积逻辑进行卷积
  * */
 public class Conv extends Layer {
 
@@ -41,8 +41,8 @@ public class Conv extends Layer {
     private int mKennelTex;
     private int mPadW, mPadH;
 
-    private Conv(Context context, Layer preLayer, int kAmount, int k_w, int k_h, int stride_w, int stride_h, ActiveType type, String kennelFilePath) {
-        super(context, preLayer);
+    private Conv(Context context, String name, Layer preLayer, int kAmount, int k_w, int k_h, int stride_w, int stride_h, ActiveType type, String kennelFilePath) {
+        super(context, name, preLayer);
         this.mKennelShape = new int[]{k_w, k_h, preLayer.getOutputShape()[2]};
         this.mKennelAmount = kAmount;
         this.mStrides = new int[]{stride_w, stride_h};
@@ -50,14 +50,14 @@ public class Conv extends Layer {
         this.mKennelFilePath = kennelFilePath;
     }
 
-    public Conv(Context context, Layer preLayer, int kAmount, int k_w, int k_h, PaddingType padType, int stride_w, int stride_h, ActiveType type, String kennelFilePath) {
-        this(context, preLayer, kAmount, k_w, k_h, stride_w, stride_h, type, kennelFilePath);
+    public Conv(Context context, String name, Layer preLayer, int kAmount, int k_w, int k_h, PaddingType padType, int stride_w, int stride_h, ActiveType type, String kennelFilePath) {
+        this(context, name, preLayer, kAmount, k_w, k_h, stride_w, stride_h, type, kennelFilePath);
         this.mPadType = padType;
         this.mOutShape = calculateConvShapeByType(kAmount);
     }
 
-    public Conv(Context context, Layer preLayer, int kAmount, int k_w, int k_h, int pad_w, int pad_h, int stride_w, int stride_h, ActiveType type, String kennelFilePath) {
-        this(context, preLayer, kAmount, k_w, k_h, stride_w, stride_h, type, kennelFilePath);
+    public Conv(Context context, String name, Layer preLayer, int kAmount, int k_w, int k_h, int pad_w, int pad_h, int stride_w, int stride_h, ActiveType type, String kennelFilePath) {
+        this(context, name, preLayer, kAmount, k_w, k_h, stride_w, stride_h, type, kennelFilePath);
         this.mPadW = pad_w;
         this.mPadH = pad_h;
         this.mOutShape = calculateConvShapeByPad(kAmount);

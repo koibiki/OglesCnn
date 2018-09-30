@@ -22,8 +22,8 @@ public class SoftMax extends Layer {
     private int mNumGroupsY;
     private int mAmount;
 
-    public SoftMax(Context context, Layer preLayer) {
-        super(context, preLayer);
+    public SoftMax(Context context, String name, Layer preLayer) {
+        super(context, name, preLayer);
         this.mOutShape = calculateSoftMaxShape(preLayer.getOutputShape());
         this.mAmount = preLayer.getOutputShape()[2];
     }
