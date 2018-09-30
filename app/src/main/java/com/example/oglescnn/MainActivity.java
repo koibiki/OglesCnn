@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
 
 //        buildSqueezeNet();
 //        buildSqueezeNet2();
-        buildTestNet();
+//        buildTestNet();
 
         buildCifar10Net();
     }
@@ -40,10 +40,10 @@ public class MainActivity extends AppCompatActivity {
     private void buildCifar10Net() {
         mNnNetwork = new NnNetwork(this);
 
-        Layer in = new Input(this, "input", width, height, channel);
+        Layer in = new Input(this, "input", 32, 32, 3);
         mNnNetwork.addLayer(in);
 
-        Layer conv1 = new ConvGEMM(this, "conv1", in, 4, 3, 3, PaddingType.VALID, 2, 2, Layer.ActiveType.RELU);
+        Layer conv1 = new ConvGEMM(this, "conv1", in, 32, 5, 5, PaddingType.SAME, 1, 1, Layer.ActiveType.RELU);
         mNnNetwork.addLayer(conv1);
 
         mNnNetwork.initialize();
@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
         Layer in = new Input(this, "input", width, height, channel);
         mNnNetwork.addLayer(in);
 
-        Layer conv1 = new ConvWinogradF23(this, "conv1", in, 4, 3, 3, PaddingType.VALID, 2, 2, Layer.ActiveType.RELU);
+        Layer conv1 = new ConvGEMM(this, "conv1", in, 4, 3, 3, PaddingType.VALID, 2, 2, Layer.ActiveType.RELU);
         mNnNetwork.addLayer(conv1);
 
         mNnNetwork.initialize();
@@ -328,16 +328,16 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void runNn(View view) {
-        float[][][] input = TestDataCreator.createInputBuffer(new int[]{width, height, channel}, 0);
-        float[][] localInput = new float[Utils.alignBy4(channel) / 4][width * height * 4];
-        for (int w = 0; w < width; w++) {
-            for (int h = 0; h < height; h++) {
-                for (int c = 0; c < channel; c++) {
-                    localInput[c / 4][(h * width + w) * 4 + c % 4] = input[c][h][w];
+//        float[][][] input = TestDataCreator.createInputBuffer(new int[]{32, 32, 3}, 0);
+        float[][][] input = TestUtils.getTestCifarImage(this);
+        float[][] localInput = new float[Utils.alignBy4(3) / 4][32 * 32 * 4];
+        for (int w = 0; w < 32; w++) {
+            for (int h = 0; h < 32; h++) {
+                for (int c = 0; c < 3; c++) {
+                    localInput[c / 4][(h * 32 + w) * 4 + c % 4] = input[c][h][w];
                 }
             }
         }
-
         mNnNetwork.predict(localInput);
     }
 }

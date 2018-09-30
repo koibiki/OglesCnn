@@ -1,0 +1,94 @@
+root_directory: "/sdcard/Cifar10es/net/"
+layer {
+  type: "Input"
+  name: "in"
+  width: 32
+  height: 32
+  channel: 3
+}
+
+layer {
+  type: "Convolution"
+  name: "conv1"
+  parameters_file: "model_param_conv1.msg"
+  pad: 2
+  stride: 1
+  kennel_amount: 32
+  kennel_width: 5
+  kennel_height: 5
+  kennel_channel: 3
+  active: "ReLU"
+}
+
+layer {
+  type: "Pooling"
+  name: "pool1"
+  pool: "max"
+  kernel_size: 3
+  pad: 0
+  stride: 2
+}
+
+layer {
+  type: "Convolution"
+  name: "conv2"
+  parameters_file: "model_param_conv2.msg"
+  active: "ReLU"
+  pad: 2
+  stride: 1
+  kennel_amount: 32
+  kennel_width: 5
+  kennel_height: 5
+  kennel_channel: 32
+}
+
+layer {
+  type: "Pooling"
+  name: "pool2"
+  pool: "max"
+  kernel_size: 3
+  pad: 0
+  stride: 2
+}
+
+layer {
+  type: "Convolution"
+  name: "conv3"
+  parameters_file: "model_param_conv3.msg"
+  pad: 2
+  stride: 1
+  kennel_amount: 64
+  kennel_width: 5
+  kennel_height: 5
+  kennel_channel: 32
+  active: "ReLU"
+}
+
+layer {
+  type: "Pooling"
+  name: "pool3"
+  pool: "max"
+  kernel_size: 3
+  pad: 0
+  stride: 2
+}
+
+layer {
+  type: "FullyConnected"
+  name: "fc1"
+  kennel_amount: 64
+  parameters_file: "model_param_ip1.msg"
+}
+
+layer {
+  type: "FullyConnected"
+  name: "fc2"
+  kennel_amount: 10
+  parameters_file: "model_param_ip2.msg"
+}
+
+layer {
+  type: "Softmax"
+  name: "sm"
+  amount: 10
+}

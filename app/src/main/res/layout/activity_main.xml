@@ -14,5 +14,11 @@
         android:text="run"
         android:onClick="runNn"/>
 
+    <TextView
+        android:id="@+id/tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/app_name"/>
+
 
 </LinearLayout>

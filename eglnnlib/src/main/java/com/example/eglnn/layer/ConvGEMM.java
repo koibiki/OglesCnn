@@ -4,10 +4,12 @@ import android.content.Context;
 import android.text.TextUtils;
 
 import com.example.eglnn.Render;
+import com.example.eglnn.utils.MessagePackUtils;
 import com.example.eglnn.utils.ShaderUtils;
 import com.example.eglnn.utils.TestDataCreator;
 import com.example.eglnn.utils.Utils;
 
+import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.util.Locale;
 
@@ -109,21 +111,24 @@ public class ConvGEMM extends Layer {
         mAttachID = Layer.getDataAttachID();
         mOutTex = Render.createFloatTextureArray(mOutShape[0], mOutShape[1], Utils.alignBy4(mOutShape[2]) / 4);
 
-        mKennels = createTestKennels();
-//            mKennels = loadKennels();
+//        mKennels = createTestKennels();
+        float[][][][] kernels = loadKennels();
+//        float[] bias = loadbias();
+        mKennels = transferKernelFormat(kernels, null);
 
         // kennel 最后一列为bias
         mKennelTex = Render.createKennelFloatTextureArray(mKennelShape[0] * mKennelShape[1] + 1, mKennelAmount, Utils.alignBy4(mInShape[2]) / 4);
-        transferToKennelTex();
+
+        transferToKennelTex(mKennels, mKennelTex);
 
         createShaderParams();
     }
 
-    private void transferToKennelTex() {
+    private void transferToKennelTex(float[][][] kernels, int kernelTex) {
         for (int a = 0; a < mKennelAmount; a++) {
-            float[][] kennel = mKennels[a];
+            float[][] kennel = kernels[a];
             for (int c = 0; c < kennel.length; c++) {
-                Render.transferToTextureArrayFloat(FloatBuffer.wrap(kennel[c]), mKennelTex, 0, a, c, mKennelShape[0] * mKennelShape[1] + 1, 1, 1);
+                Render.transferToTextureArrayFloat(FloatBuffer.wrap(kennel[c]), kernelTex, 0, a, c, mKennelShape[0] * mKennelShape[1] + 1, 1, 1);
             }
         }
     }
@@ -149,7 +154,7 @@ public class ConvGEMM extends Layer {
         mParams[8] = mOutShape[2];
         mParams[9] = mStrides[0];
         mParams[10] = mStrides[1];
-        mParams[11] = mType.index;
+        mParams[11] = -1;
         mParams[12] = Utils.alignBy4(mInShape[2]);
         mParams[13] = -1 * mPadW;
         mParams[14] = -1 * mPadH;
@@ -159,14 +164,49 @@ public class ConvGEMM extends Layer {
         return TestDataCreator.createConvKennels(mKennelShape, mKennelAmount);
     }
 
-    /**
-     * TODO
-     * channel需要4对齐, 依次排满一个通道后再排下一个通道的值, 最后4个值为 bias, 0, 0, 0
-     */
-    private float[][][] loadKennels() {
-        return null;
+    private float[][][][] loadKennels() {
+        String kernel_file = "cifar10/" + mName + "_kernel";
+        float[][][][] kernel_value = null;
+        try {
+            kernel_value = (float[][][][]) MessagePackUtils.unpackParam(mContext, kernel_file, float[][][][].class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return kernel_value;
     }
 
+    private float[] loadbias() {
+        String kernel_file = "cifar10/" + mName + "_kernel";
+        float[] kernel_value = null;
+        try {
+            kernel_value = (float[]) MessagePackUtils.unpackParam(mContext, kernel_file, float[].class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return kernel_value;
+    }
+
+    /**
+     * 更改kernel存放方式 amount depth (= ceil(channel / 4)) height x width x 4 + 4 (bias, 0, 0, 0) ,
+     */
+    private float[][][] transferKernelFormat(float[][][][] kernels, float[] bias) {
+        int k_w = mKennelShape[0];
+        int k_h = mKennelShape[1];
+        int k_c = mKennelShape[2];
+        int align_c = Utils.alignBy4(k_c);
+        float[][][] new_kernenls = new float[mKennelAmount][align_c / 4][(k_w * k_h + 1) * 4];
+        for (int a = 0; a < mKennelAmount; a++) {
+            for (int w = 0; w < k_w; w++) {
+                for (int h = 0; h < k_h; h++) {
+                    for (int c = 0; c < k_c; c++) {
+                        new_kernenls[a][c / 4][(w + h * k_w) * 4 + c % 4] = kernels[a][c][w][h];
+                    }
+                }
+            }
+            new_kernenls[a][0][k_w * k_h * 4] = 0;
+        }
+        return new_kernenls;
+    }
 
     @Override
     public void initialize() {
@@ -182,4 +222,5 @@ public class ConvGEMM extends Layer {
     protected void actualForwardProc(float[][] input) {
         Render.performConvolute(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mKennelTex, mNumGroupsX, 1, mNumGroupsZ);
     }
+
 }
