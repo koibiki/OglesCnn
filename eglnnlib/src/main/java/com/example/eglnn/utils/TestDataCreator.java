@@ -13,7 +13,7 @@ public class TestDataCreator {
         for (int c = 0; c < channel; c++) {
             for (int w = 0; w < width; w++) {
                 for (int h = 0; h < height; h++) {
-                    input[c][h][w] = w;
+                    input[c][h][w] = h * width + w;
                 }
             }
         }
@@ -33,11 +33,11 @@ public class TestDataCreator {
             for (int w = 0; w < k_w; w++) {
                 for (int h = 0; h < k_h; h++) {
                     for (int c = 0; c < k_c; c++) {
-                        kennenls[a][c / 4][(w + h * k_w) * 4 + c % 4] = c;
+                        kennenls[a][c / 4][(w + h * k_w) * 4 + c % 4] = 1;
                     }
                 }
             }
-            kennenls[a][0][k_w * k_h * 4] = 0;       // bias
+            kennenls[a][0][k_w * k_h * 4] = a * 0.001f;       // bias
         }
         return kennenls;
     }
@@ -70,15 +70,18 @@ public class TestDataCreator {
     /**
      * 测试用全连接 kennel
      */
-    public static float[] createFullConnKennel(int alignSize, int[] inputShape, int index) {
-        float[] kennel = new float[alignSize];       // 最后一位是bias
-        for (int i = 0; i < inputShape[0] * inputShape[1]; i++) {
-            for (int j = 0; j < inputShape[2]; j++) {
-                kennel[inputShape[2] * i + j] = j;
+    public static float[][] createFullConnKennel(int kernelSize, int kernelAmount, int[] inShape) {
+        float[][] kennels = new float[kernelAmount][kernelSize];       // 每个最后4位是bias,0,0,0
+        int input_area = inShape[0] * inShape[1];
+        for (int a = 0; a < kernelAmount; a++) {
+            for (int i = 0; i < input_area; i++) {
+                for (int c = 0; c < inShape[2]; c++) {
+                    kennels[a][input_area * c +  i] = i;
+                }
             }
+            kennels[a][kernelSize - 4] = 0.01f * a;
         }
-        kennel[alignSize - 4] = 1;
-        return kennel;
+        return kennels;
     }
 
 }

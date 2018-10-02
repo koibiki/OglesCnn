@@ -10,10 +10,12 @@ import com.example.eglnn.layer.Conv;
 import com.example.eglnn.layer.ConvGEMM;
 import com.example.eglnn.layer.ConvWinogradF23;
 import com.example.eglnn.layer.Expand;
+import com.example.eglnn.layer.FullConnSSBO;
 import com.example.eglnn.layer.Layer.PaddingType;
 import com.example.eglnn.layer.Input;
 import com.example.eglnn.layer.Layer;
 import com.example.eglnn.layer.Pooling;
+import com.example.eglnn.utils.MessagePackUtils;
 import com.example.eglnn.utils.TestDataCreator;
 import com.example.eglnn.utils.Utils;
 
@@ -21,19 +23,23 @@ public class MainActivity extends AppCompatActivity {
 
     private NnNetwork mNnNetwork;
 
-    int width = 227;
+    int width = 32;
     int height = width;
-    int channel = 4;
+    int channel = 3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+//        MessagePackUtils.test2(this, "cifar10/conv1");
+//        MessagePackUtils.test2(this, "cifar10/conv2");
+//        MessagePackUtils.test2(this, "cifar10/conv3");
+
 //        buildSqueezeNet();
 //        buildSqueezeNet2();
 //        buildTestNet();
-
         buildCifar10Net();
     }
 
@@ -46,6 +52,27 @@ public class MainActivity extends AppCompatActivity {
         Layer conv1 = new ConvGEMM(this, "conv1", in, 32, 5, 5, PaddingType.SAME, 1, 1, Layer.ActiveType.RELU);
         mNnNetwork.addLayer(conv1);
 
+        Pooling pooling1 = new Pooling(this, "pool1", conv1, 3, 3, PaddingType.SAME, 2, 2);
+        mNnNetwork.addLayer(pooling1);
+
+        Layer conv2 = new ConvGEMM(this, "conv2", pooling1, 32, 5, 5, PaddingType.SAME, 1, 1, Layer.ActiveType.RELU);
+        mNnNetwork.addLayer(conv2);
+
+        Pooling pooling2 = new Pooling(this, "pool2", conv2, 3, 3, PaddingType.SAME, 2, 2);
+        mNnNetwork.addLayer(pooling2);
+
+        Layer conv3 = new ConvGEMM(this, "conv3", pooling2, 64, 5, 5, PaddingType.SAME, 1, 1, Layer.ActiveType.RELU);
+        mNnNetwork.addLayer(conv3);
+
+        Pooling pooling3 = new Pooling(this, "pool2", conv3, 3, 3, PaddingType.SAME, 2, 2);
+        mNnNetwork.addLayer(pooling3);
+
+        Layer fc1 = new FullConnSSBO(this, "fc1", pooling3, 64, Layer.ActiveType.NONE);
+        mNnNetwork.addLayer(fc1);
+
+        Layer fc2 = new FullConnSSBO(this, "fc2", fc1, 10, Layer.ActiveType.NONE);
+        mNnNetwork.addLayer(fc2);
+
         mNnNetwork.initialize();
     }
 
@@ -55,8 +82,14 @@ public class MainActivity extends AppCompatActivity {
         Layer in = new Input(this, "input", width, height, channel);
         mNnNetwork.addLayer(in);
 
-        Layer conv1 = new ConvGEMM(this, "conv1", in, 4, 3, 3, PaddingType.VALID, 2, 2, Layer.ActiveType.RELU);
-        mNnNetwork.addLayer(conv1);
+//        Layer conv1 = new ConvGEMM(this, "conv1", in, 32, 5, 5, PaddingType.SAME  , 1, 1, Layer.ActiveType.RELU);
+//        mNnNetwork.addLayer(conv1);
+//
+//        Pooling pooling1 = new Pooling(this, "pool1", conv1, 3, 3, PaddingType.SAME, 2, 2);
+//        mNnNetwork.addLayer(pooling1);
+
+        Layer fc1 = new FullConnSSBO(this, "fc1", in, 4, Layer.ActiveType.NONE);
+        mNnNetwork.addLayer(fc1);
 
         mNnNetwork.initialize();
     }
@@ -328,13 +361,13 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void runNn(View view) {
-//        float[][][] input = TestDataCreator.createInputBuffer(new int[]{32, 32, 3}, 0);
+//        float[][][] input = TestDataCreator.createInputBuffer(new int[]{width, height, channel}, 0);
         float[][][] input = TestUtils.getTestCifarImage(this);
-        float[][] localInput = new float[Utils.alignBy4(3) / 4][32 * 32 * 4];
-        for (int w = 0; w < 32; w++) {
-            for (int h = 0; h < 32; h++) {
-                for (int c = 0; c < 3; c++) {
-                    localInput[c / 4][(h * 32 + w) * 4 + c % 4] = input[c][h][w];
+        float[][] localInput = new float[Utils.alignBy4(channel) / 4][width * height * 4];
+        for (int w = 0; w < width; w++) {
+            for (int h = 0; h < height; h++) {
+                for (int c = 0; c < channel; c++) {
+                    localInput[c / 4][(h * width + w) * 4 + c % 4] = input[c][h][w];
                 }
             }
         }

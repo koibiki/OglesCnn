@@ -1,9 +1,9 @@
 layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = Z_SIZE) in;
 
-uniform int params[15];  // kennel_shape[3] input_shape[3] output_shape[3] strides[2] active_type pad_w, pad_h
+uniform int params[15];  // kernel_shape[3] input_shape[3] output_shape[3] strides[2] active_type pad_w, pad_h
 layout(binding = 0, rgba32f) readonly uniform image2DArray input_image;
 layout(binding = 1, rgba32f) writeonly uniform image2DArray output_image;
-layout(binding = 2, rgba32f) readonly uniform image2DArray kennel_image;
+layout(binding = 2, rgba32f) readonly uniform image2DArray kernel_image;
 
 float relu(float i);
 float sigmoid(float i);
@@ -15,9 +15,9 @@ ivec2 getRelativeRestoreIndex(int pos, int out_width);
 void main(void)
 {
     // 分解参数
-    int kennel_width = params[0];
-    int kennel_height = params[1];
-    int kennel_channel = params[2];
+    int kernel_width = params[0];
+    int kernel_height = params[1];
+    int kernel_channel = params[2];
 
     int in_width = params[3];
     int in_height = params[4];
@@ -30,16 +30,13 @@ void main(void)
     int strides[2] = int[2](params[9], params[10]);
 
     int active_type = params[11];
-    int align_channel = params[12];
+    int in_depth = params[12];
 
     int pad_w = params[13];
     int pad_h = params[14];
 
-
-    int count = align_channel / 4;
-
     int output_area = out_width * out_height;
-    int kennel_area = kennel_width * kennel_height;
+    int kernel_area = kernel_width * kernel_height;
     ivec3 pos = ivec3(gl_GlobalInvocationID.xyz);
 
     int start_x_index = pos.x * 4;
@@ -54,17 +51,14 @@ void main(void)
         return;
     }
 
-    mat4 result;
-    {
-        float bias0 = imageLoad(kennel_image, ivec3(kennel_area, z_index0, 0))[0];
-        float bias1 = imageLoad(kennel_image, ivec3(kennel_area, z_index1, 0))[0];
-        float bias2 = imageLoad(kennel_image, ivec3(kennel_area, z_index2, 0))[0];
-        float bias3 = imageLoad(kennel_image, ivec3(kennel_area, z_index3, 0))[0];
-        result = mat4(bias0, bias1, bias2, bias3,
-                            bias0, bias1, bias2, bias3,
-                            bias0, bias1, bias2, bias3,
-                            bias0, bias1, bias2, bias3);
-    }
+    float bias0 = imageLoad(kernel_image, ivec3(kernel_area, z_index0, 0))[0];
+    float bias1 = imageLoad(kernel_image, ivec3(kernel_area, z_index1, 0))[0];
+    float bias2 = imageLoad(kernel_image, ivec3(kernel_area, z_index2, 0))[0];
+    float bias3 = imageLoad(kernel_image, ivec3(kernel_area, z_index3, 0))[0];
+    mat4 result = mat4(bias0, bias1, bias2, bias3,
+                       bias0, bias1, bias2, bias3,
+                       bias0, bias1, bias2, bias3,
+                       bias0, bias1, bias2, bias3);
 
     int start_x0 = start_x_index;
     int x_0 = start_x0 % out_width;
@@ -82,9 +76,12 @@ void main(void)
     int x_3 = start_x3 % out_width;
     int y_3 = start_x3 / out_width;
 
-    for (int i = 0; i < kennel_area; i++) {
-        int k_x = i % kennel_width;
-        int k_y = i / kennel_width;
+    mat4 kernel;
+    mat4 data_mat0;
+
+    for (int i = 0; i < kernel_area; i++) {
+        int k_x = i % kernel_width;
+        int k_y = i / kernel_width;
 
         int x_offset = pad_w + k_x;
         int y_offset = pad_h + k_y;
@@ -94,23 +91,21 @@ void main(void)
         ivec2 conv_index_on_tex2 = ivec2(x_offset + strides[0] * x_2, y_offset + strides[1] * y_2);
         ivec2 conv_index_on_tex3 = ivec2(x_offset + strides[0] * x_3, y_offset + strides[1] * y_3);
 
-        for (int c = 0; c < count; c++) {
-            mat4 kennel;
-            mat4 data_mat0;
+        for (int c = 0; c < in_depth; c++) {
 
-            kennel[0] = imageLoad(kennel_image, ivec3(i, z_index0, c));
-            kennel[1] = imageLoad(kennel_image, ivec3(i, z_index1, c));
-            kennel[2] = imageLoad(kennel_image, ivec3(i, z_index2, c));
-            kennel[3] = imageLoad(kennel_image, ivec3(i, z_index3, c));
+            kernel[0] = imageLoad(kernel_image, ivec3(i, z_index0, c));
+            kernel[1] = imageLoad(kernel_image, ivec3(i, z_index1, c));
+            kernel[2] = imageLoad(kernel_image, ivec3(i, z_index2, c));
+            kernel[3] = imageLoad(kernel_image, ivec3(i, z_index3, c));
 
-            kennel = transpose(kennel);
+            kernel = transpose(kernel);
 
             data_mat0[0] = imageLoad(input_image, ivec3(conv_index_on_tex0, c));
             data_mat0[1] = imageLoad(input_image, ivec3(conv_index_on_tex1, c));
             data_mat0[2] = imageLoad(input_image, ivec3(conv_index_on_tex2, c));
             data_mat0[3] = imageLoad(input_image, ivec3(conv_index_on_tex3, c));
 
-            result += kennel * data_mat0;
+            result += kernel * data_mat0;
         }
     }
 

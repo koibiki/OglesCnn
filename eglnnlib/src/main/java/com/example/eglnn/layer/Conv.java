@@ -1,7 +1,6 @@
 package com.example.eglnn.layer;
 
 import android.content.Context;
-import android.text.TextUtils;
 
 import com.example.eglnn.Render;
 import com.example.eglnn.utils.ShaderUtils;
@@ -9,12 +8,10 @@ import com.example.eglnn.utils.TestDataCreator;
 import com.example.eglnn.utils.Utils;
 
 import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 import java.util.Locale;
 
 import static com.example.eglnn.Render.initCompPro;
 import static com.example.eglnn.utils.Constants.S_COMMON_SHADER_HEADER;
-import static com.example.eglnn.utils.Constants.S_CONV_GEMM_SHADER_HEADER;
 
 /**
  * 按照卷积逻辑进行卷积
@@ -22,12 +19,12 @@ import static com.example.eglnn.utils.Constants.S_CONV_GEMM_SHADER_HEADER;
 public class Conv extends Layer {
 
     private static final String TAG = "ConvGEMM";
-    private final int mKennelAmount;
+    private final int mKernelAmount;
 
 
-    private float[][][] mKennels;
+    private float[][][] mKernels;
     private int[] mStrides;
-    private int[] mKennelShape;
+    private int[] mKernelShape;
     private int mShaderPro;
     private int mNumGroupsX;
     private int mNumGroupsY;
@@ -36,13 +33,13 @@ public class Conv extends Layer {
     private ActiveType mType;
     private PaddingType mPadType;
 
-    private int mKennelTex;
+    private int mKernelTex;
     private int mPadW, mPadH;
 
     private Conv(Context context, String name, Layer preLayer, int kAmount, int k_w, int k_h, int stride_w, int stride_h, ActiveType type) {
         super(context, name, preLayer);
-        this.mKennelShape = new int[]{k_w, k_h, preLayer.getOutputShape()[2]};
-        this.mKennelAmount = kAmount;
+        this.mKernelShape = new int[]{k_w, k_h, preLayer.getOutputShape()[2]};
+        this.mKernelAmount = kAmount;
         this.mStrides = new int[]{stride_w, stride_h};
         this.mType = type;
     }
@@ -64,19 +61,19 @@ public class Conv extends Layer {
         int width, height;
         if (mPadType == PaddingType.SAME) {
             width = (int) Math.ceil(mInShape[0] * 1.0f / mStrides[0]);
-            mPadW = ((width - 1) * mStrides[0] + mKennelShape[0] - mInShape[0]) / 2;
+            mPadW = ((width - 1) * mStrides[0] + mKernelShape[0] - mInShape[0]) / 2;
             height = (int) Math.ceil(mInShape[1] * 1.0f / mStrides[1]);
-            mPadH = ((height - 1) * mStrides[1] + mKennelShape[1] - mInShape[1]) / 2;
+            mPadH = ((height - 1) * mStrides[1] + mKernelShape[1] - mInShape[1]) / 2;
         } else {
-            width = (int) Math.ceil((mInShape[0] - mKennelShape[0] + 1) * 1.0f / mStrides[0]);
-            height = (int) Math.ceil((mInShape[1] - mKennelShape[1] + 1) * 1.0f / mStrides[1]);
+            width = (int) Math.ceil((mInShape[0] - mKernelShape[0] + 1) * 1.0f / mStrides[0]);
+            height = (int) Math.ceil((mInShape[1] - mKernelShape[1] + 1) * 1.0f / mStrides[1]);
         }
         return new int[]{width, height, kennelAmount};
     }
 
     private int[] calculateConvShapeByPad(int kennelAmount) {
-        int width = (int) Math.ceil((mInShape[0] + 2 * mPadW - mKennelShape[0]) * 1.0f / mStrides[0]);
-        int height = (int) Math.ceil((mInShape[1] + 2 * mPadH - mKennelShape[1]) * 1.0f / mStrides[1]);
+        int width = (int) Math.ceil((mInShape[0] + 2 * mPadW - mKernelShape[0]) * 1.0f / mStrides[0]);
+        int height = (int) Math.ceil((mInShape[1] + 2 * mPadH - mKernelShape[1]) * 1.0f / mStrides[1]);
         return new int[]{width, height, kennelAmount};
     }
 
@@ -122,19 +119,19 @@ public class Conv extends Layer {
         mAttachID = Layer.getDataAttachID();
         mOutTex = Render.createFloatTextureArray(mOutShape[0], mOutShape[1], Utils.alignBy4(mOutShape[2]) / 4);
 
-        mKennels = createTestKennels();
-//            mKennels = loadKennels();
+        mKernels = createTestKernels();
+//            mKernels = loadKennels();
 
-        mKennelTex = Render.createKennelFloatTextureArray(mKennelShape[0] * mKennelShape[1] + 1, mKennelAmount, Utils.alignBy4(mKennelShape[2]) / 4);
+        mKernelTex = Render.createKernelFloatTextureArray(mKernelShape[0] * mKernelShape[1] + 1, mKernelAmount, Utils.alignBy4(mKernelShape[2]) / 4);
         transferToKennelTex();
         createShaderParams();
     }
 
     private void transferToKennelTex() {
-        for (int a = 0; a < mKennelAmount; a++) {
-            float[][] kennel = mKennels[a];
+        for (int a = 0; a < mKernelAmount; a++) {
+            float[][] kennel = mKernels[a];
             for (int c = 0; c < kennel.length; c++) {
-                Render.transferToTextureArrayFloat(FloatBuffer.wrap(kennel[c]), mKennelTex, 0, a, c, mKennelShape[0] * mKennelShape[1] + 1, 1, 1);
+                Render.transferToTextureArrayFloat(FloatBuffer.wrap(kennel[c]), mKernelTex, 0, a, c, mKernelShape[0] * mKernelShape[1] + 1, 1, 1);
             }
         }
     }
@@ -146,9 +143,9 @@ public class Conv extends Layer {
 
     private void createShaderParams() {
         mParams = new int[15];
-        mParams[0] = mKennelShape[0];
-        mParams[1] = mKennelShape[1];
-        mParams[2] = mKennelShape[2];
+        mParams[0] = mKernelShape[0];
+        mParams[1] = mKernelShape[1];
+        mParams[2] = mKernelShape[2];
         mParams[3] = mInShape[0];
         mParams[4] = mInShape[1];
         mParams[5] = mInShape[2];
@@ -163,15 +160,15 @@ public class Conv extends Layer {
         mParams[14] = -1 * mPadH;
     }
 
-    private float[][][] createTestKennels() {
-        return TestDataCreator.createConvKennels(mKennelShape, mKennelAmount);
+    private float[][][] createTestKernels() {
+        return TestDataCreator.createConvKennels(mKernelShape, mKernelAmount);
     }
 
     /**
      * TODO
      * channel需要4对齐, 依次排满一个通道后再排下一个通道的值, 最后4个值为 bias, 0, 0, 0
      */
-    private float[][][] loadKennels() {
+    private float[][][] loadKernels() {
         return null;
     }
 
@@ -183,11 +180,11 @@ public class Conv extends Layer {
 
     @Override
     protected void bindTextureAndBuffer() {
-        Render.bindTextureArray(mOutTex, mAttachID);
+        Render.bindTextureArray(mOutTex, mAttachID, 0);
     }
 
     @Override
     protected void actualForwardProc(float[][] input) {
-        Render.performConvolute(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mKennelTex, mNumGroupsX, mNumGroupsY, mNumGroupsZ);
+        Render.performConvolute(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mKernelTex, mNumGroupsX, mNumGroupsY, mNumGroupsZ);
     }
 }

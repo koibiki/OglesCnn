@@ -12,19 +12,19 @@ void main(void)
     ivec3 pos = ivec3(gl_GlobalInvocationID.xyz);
     int input_shape[3] = int[3](params[0], params[1], params[2]);
     int output_shape[3] = int[3](params[3], params[4], params[5]);
-    int kennel_shape[2] = int[2](params[6], params[7]);
+    int kernel_shape[2] = int[2](params[6], params[7]);
     int strides[2] = int[2](params[8], params[9]);
-    int max_depth = params[10];                 // 有效纹理最大深度
+    int in_depth = params[10];                 // 有效纹理最大深度
     int pad_w = params[11];
     int pad_h = params[12];
 
-    if (pos.y >= output_shape[1] || pos.z >= max_depth) {
+    if (pos.y >= output_shape[1] || pos.z >= in_depth) {
         return;
     }
     ivec2 start_index = ivec2(pad_w + strides[0] * pos.x, pad_h + strides[1] * pos.y);
     vec4 output_value = imageLoad(input_image, ivec3(start_index, pos.z));
-    for (int y=0; y < kennel_shape[1]; y++){
-        for (int x=0;x < kennel_shape[0]; x++){
+    for (int y=0; y < kernel_shape[1]; y++){
+        for (int x=0;x < kernel_shape[0]; x++){
             ivec2 pool_index = ivec2(x, y) + start_index;
             vec4 data = imageLoad(input_image, ivec3(pool_index, pos.z));
             output_value = max(output_value, data);
@@ -32,12 +32,3 @@ void main(void)
     }
     imageStore(output_image, pos, output_value);
 }
-
-// 判断是否处于输入区域
-//bool isInInputShape(ivec2 index, int[3] input_shape) {
-//    if (index.x < 0 || index.x >= input_shape[0] || index.y < 0 || index.y >= input_shape[1]) {
-//        return false;
-//    } else {
-//        return true;
-//    }
-//}

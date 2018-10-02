@@ -68,7 +68,7 @@ public class Render {
         return maxBuffer[0];
     }
 
-    public static int initKennelBuffer(int size) {
+    public static int initKernelBuffer(int size) {
         int[] fFrame = new int[1];
         glGenBuffers(1, fFrame, 0);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, fFrame[0]);
@@ -95,11 +95,7 @@ public class Render {
         return createTextureArray(width, height, depth, GL_RGBA32F);
     }
 
-    public static int createFloatTextureArray(int depth) {
-        return createTextureArray(S_TEXTURE_SIZE, S_TEXTURE_SIZE, depth, GL_RGBA32F);
-    }
-
-    public static int createKennelFloatTextureArray(int width, int height, int depth) {
+    public static int createKernelFloatTextureArray(int width, int height, int depth) {
         return createTextureArray(width, height, depth, GL_RGBA32F);
     }
 
@@ -161,13 +157,9 @@ public class Render {
         glFramebufferTextureLayer(GL_FRAMEBUFFER, attachment, texID, 0, layer);
     }
 
-    public static void bindBuffer(int bufferId) {
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, bufferId);
-    }
-
-    public static void bindTextureArrayAndBuffer(int texID, int attachID, int bufferId) {
+    public static void bindTextureArrayAndBuffer(int texID, int attachID, int layer, int bufferId) {
         int attachment = GL_COLOR_ATTACHMENT0 + attachID;
-        glFramebufferTextureLayer(GL_FRAMEBUFFER, attachment, texID, 0, 0);
+        glFramebufferTextureLayer(GL_FRAMEBUFFER, attachment, texID, 0, layer);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, bufferId);
     }
 
@@ -195,16 +187,16 @@ public class Render {
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }
 
-    public static void performFullConnectSSBO(int compProg, int[] params, int inTex, int outTex, int buffer, int numGroupZ) {
+    public static void performFullConnectSSBO(int compProg, int[] params, int inTex, int outTex, int buffer, int numGroupX) {
         glUseProgram(compProg);
 
         glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
 
-        glBindImageTexture(0, inTex, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
-        glBindImageTexture(1, outTex, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
+        glBindImageTexture(0, inTex, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
+        glBindImageTexture(1, outTex, 0, true, 0, GL_WRITE_ONLY, GL_RGBA32F);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffer);
 
-        glDispatchCompute(1, 1, numGroupZ);
+        glDispatchCompute(numGroupX, 1, 1);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }
 

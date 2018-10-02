@@ -3,7 +3,7 @@ layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = Z_SIZE) in;
 uniform int params[11];  // input_shape[3] output_shape[3] active_type in_depth out_depth pad_w, pad_h
 layout(binding = 0, rgba32f) readonly uniform image2DArray input_image;
 layout(binding = 1, rgba32f) writeonly uniform image2DArray output_image;
-layout(binding = 2, rgba32f) readonly uniform image2DArray kennel_image;
+layout(binding = 2, rgba32f) readonly uniform image2DArray kernel_image;
 
 float sum(vec4 v);
 float relu(float i);
@@ -45,10 +45,10 @@ void main(void)
     int z_2 = z_1 + 1;
     int z_3 = z_2 + 1;
 
-    float bias0 = imageLoad(kennel_image, ivec3(16, z_0, 0))[0];
-    float bias1 = imageLoad(kennel_image, ivec3(16, z_1, 0))[0];
-    float bias2 = imageLoad(kennel_image, ivec3(16, z_2, 0))[0];
-    float bias3 = imageLoad(kennel_image, ivec3(16, z_3, 0))[0];
+    float bias0 = imageLoad(kernel_image, ivec3(16, z_0, 0))[0];
+    float bias1 = imageLoad(kernel_image, ivec3(16, z_1, 0))[0];
+    float bias2 = imageLoad(kernel_image, ivec3(16, z_2, 0))[0];
+    float bias3 = imageLoad(kernel_image, ivec3(16, z_3, 0))[0];
 
     vec4 result00 = vec4(bias0, bias1, bias2, bias3);
     vec4 result01 = vec4(bias0, bias1, bias2, bias3);
@@ -129,25 +129,25 @@ void main(void)
 
         for (int i = 0; i < 4; i++) {
             int z_i = z_0 + i;
-            vec4 GgGt00_0 = imageLoad(kennel_image, ivec3(0, z_i, c));
-            vec4 GgGt01_0 = imageLoad(kennel_image, ivec3(1, z_i, c));
-            vec4 GgGt02_0 = imageLoad(kennel_image, ivec3(2, z_i, c));
-            vec4 GgGt03_0 = imageLoad(kennel_image, ivec3(3, z_i, c));
+            vec4 GgGt00_0 = imageLoad(kernel_image, ivec3(0, z_i, c));
+            vec4 GgGt01_0 = imageLoad(kernel_image, ivec3(1, z_i, c));
+            vec4 GgGt02_0 = imageLoad(kernel_image, ivec3(2, z_i, c));
+            vec4 GgGt03_0 = imageLoad(kernel_image, ivec3(3, z_i, c));
 
-            vec4 GgGt10_0 = imageLoad(kennel_image, ivec3(4, z_i, c));
-            vec4 GgGt11_0 = imageLoad(kennel_image, ivec3(5, z_i, c));
-            vec4 GgGt12_0 = imageLoad(kennel_image, ivec3(6, z_i, c));
-            vec4 GgGt13_0 = imageLoad(kennel_image, ivec3(7, z_i, c));
+            vec4 GgGt10_0 = imageLoad(kernel_image, ivec3(4, z_i, c));
+            vec4 GgGt11_0 = imageLoad(kernel_image, ivec3(5, z_i, c));
+            vec4 GgGt12_0 = imageLoad(kernel_image, ivec3(6, z_i, c));
+            vec4 GgGt13_0 = imageLoad(kernel_image, ivec3(7, z_i, c));
 
-            vec4 GgGt20_0 = imageLoad(kennel_image, ivec3(8, z_i, c));
-            vec4 GgGt21_0 = imageLoad(kennel_image, ivec3(9, z_i, c));
-            vec4 GgGt22_0 = imageLoad(kennel_image, ivec3(10, z_i, c));
-            vec4 GgGt23_0 = imageLoad(kennel_image, ivec3(11, z_i, c));
+            vec4 GgGt20_0 = imageLoad(kernel_image, ivec3(8, z_i, c));
+            vec4 GgGt21_0 = imageLoad(kernel_image, ivec3(9, z_i, c));
+            vec4 GgGt22_0 = imageLoad(kernel_image, ivec3(10, z_i, c));
+            vec4 GgGt23_0 = imageLoad(kernel_image, ivec3(11, z_i, c));
 
-            vec4 GgGt30_0 = imageLoad(kennel_image, ivec3(12, z_i, c));
-            vec4 GgGt31_0 = imageLoad(kennel_image, ivec3(13, z_i, c));
-            vec4 GgGt32_0 = imageLoad(kennel_image, ivec3(14, z_i, c));
-            vec4 GgGt33_0 = imageLoad(kennel_image, ivec3(15, z_i, c));
+            vec4 GgGt30_0 = imageLoad(kernel_image, ivec3(12, z_i, c));
+            vec4 GgGt31_0 = imageLoad(kernel_image, ivec3(13, z_i, c));
+            vec4 GgGt32_0 = imageLoad(kernel_image, ivec3(14, z_i, c));
+            vec4 GgGt33_0 = imageLoad(kernel_image, ivec3(15, z_i, c));
 
             vec4 m00_0 = BtdB00 * GgGt00_0;
             vec4 m01_0 = BtdB01 * GgGt01_0;

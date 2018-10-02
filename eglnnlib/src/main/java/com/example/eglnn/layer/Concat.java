@@ -122,7 +122,7 @@ public class Concat extends Layer {
 
     @Override
     protected void bindTextureAndBuffer() {
-        Render.bindTextureArray(mOutTex, mAttachID);
+        Render.bindTextureArray(mOutTex, mAttachID, 0);
     }
 
     @Override

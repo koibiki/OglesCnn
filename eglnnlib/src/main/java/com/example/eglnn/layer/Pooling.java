@@ -9,9 +9,7 @@ import com.example.eglnn.utils.Utils;
 import java.util.Locale;
 
 import static com.example.eglnn.Render.initCompPro;
-import static com.example.eglnn.utils.ComputeShaderUtils.getCompShaderLocalSizeY;
-import static com.example.eglnn.utils.ComputeShaderUtils.getCompShaderLocalSizeZ;
-import static com.example.eglnn.utils.Constants.S_POOLING_SHADER_HEADER;
+import static com.example.eglnn.utils.Constants.S_COMMON_SHADER_HEADER;
 
 /**
  * pool 层 以输出 shape 为基准生成计算器, 每个计算器只负责一个深度纹理上的一次pool计算
@@ -19,7 +17,7 @@ import static com.example.eglnn.utils.Constants.S_POOLING_SHADER_HEADER;
  */
 public class Pooling extends Layer {
 
-    private int[] mKennelShape;
+    private int[] mKernelShape;
     private int[] mStrides;
     private int mShaderPro;
     private int[] mParams;
@@ -32,7 +30,7 @@ public class Pooling extends Layer {
     public Pooling(Context context, String name, Layer preLayer, int k_w, int k_h, PaddingType padType, int stride_w, int stride_h) {
         super(context, name, preLayer);
         this.mPadType = padType;
-        this.mKennelShape = new int[]{k_w, k_h};
+        this.mKernelShape = new int[]{k_w, k_h};
         this.mStrides = new int[]{stride_w, stride_h};
         this.mOutShape = calculateConvShapeByType();
     }
@@ -41,12 +39,12 @@ public class Pooling extends Layer {
         int width, height;
         if (mPadType == PaddingType.SAME) {
             width = (int) Math.ceil(mInShape[0] * 1.0f / mStrides[0]);
-            mPadW = ((width - 1) * mStrides[0] + mKennelShape[0] - mInShape[0]) / 2;
+            mPadW = ((width - 1) * mStrides[0] + mKernelShape[0] - mInShape[0]) / 2;
             height = (int) Math.ceil(mInShape[1] * 1.0f / mStrides[1]);
-            mPadH = ((height - 1) * mStrides[1] + mKennelShape[1] - mInShape[1]) / 2;
+            mPadH = ((height - 1) * mStrides[1] + mKernelShape[1] - mInShape[1]) / 2;
         } else {
-            width = (int) Math.ceil((mInShape[0] - mKennelShape[0] + 1) * 1.0f / mStrides[0]);
-            height = (int) Math.ceil((mInShape[1] - mKennelShape[1] + 1) * 1.0f / mStrides[1]);
+            width = (int) Math.ceil((mInShape[0] - mKernelShape[0] + 1) * 1.0f / mStrides[0]);
+            height = (int) Math.ceil((mInShape[1] - mKernelShape[1] + 1) * 1.0f / mStrides[1]);
         }
         return new int[]{width, height, mInShape[2]};
     }
@@ -100,8 +98,8 @@ public class Pooling extends Layer {
         mParams[3] = mOutShape[0];
         mParams[4] = mOutShape[1];
         mParams[5] = mOutShape[2];
-        mParams[6] = mKennelShape[0];
-        mParams[7] = mKennelShape[1];
+        mParams[6] = mKernelShape[0];
+        mParams[7] = mKernelShape[1];
         mParams[8] = mStrides[0];
         mParams[9] = mStrides[1];
         mParams[10] = Utils.alignBy4(mInShape[2]) / 4;
@@ -112,8 +110,7 @@ public class Pooling extends Layer {
     private String createShaderSource(int xSize, int ySize, int zSize) {
         String shaderFile = "pooling.comp";
         String source = ShaderUtils.loadFromAssetsFile(shaderFile, mContext.getResources());
-        int kennelArea = mKennelShape[0] * mKennelShape[1];
-        return String.format(Locale.getDefault(), S_POOLING_SHADER_HEADER, kennelArea, xSize, ySize, zSize) + source;
+        return String.format(Locale.getDefault(), S_COMMON_SHADER_HEADER, xSize, ySize, zSize) + source;
     }
 
     @Override
@@ -123,7 +120,8 @@ public class Pooling extends Layer {
 
     @Override
     protected void bindTextureAndBuffer() {
-        Render.bindTextureArray(mOutTex, mAttachID);
+//        Render.bindTextureArray(mOutTex, mAttachID, Utils.alignBy4(mOutShape[2]) / 4 - 1);
+        Render.bindTextureArray(mOutTex, mAttachID, 0);
     }
 
     @Override

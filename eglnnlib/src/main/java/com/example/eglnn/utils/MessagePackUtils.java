@@ -3,6 +3,7 @@ package com.example.eglnn.utils;
 import android.content.Context;
 
 import org.msgpack.MessagePack;
+import org.msgpack.packer.BufferPacker;
 import org.msgpack.unpacker.BufferUnpacker;
 
 import java.io.ByteArrayInputStream;
@@ -12,22 +13,65 @@ import java.io.InputStream;
 
 public class MessagePackUtils {
 
-
     public static Object unpackParam(Context context, String fileName, Class classType) throws IOException {
         MessagePack msgpack = new MessagePack();
         byte[] bytes = getParamsBytes(context, fileName);
-        BufferUnpacker bufferUnpacker = msgpack.createBufferUnpacker(bytes);
-        return bufferUnpacker.read(classType);
+        if (bytes != null) {
+            BufferUnpacker bufferUnpacker = msgpack.createBufferUnpacker(bytes);
+            return bufferUnpacker.read(classType);
+        } else {
+            return null;
+        }
     }
 
-    private static byte[] getParamsBytes(Context context, String fileName) throws IOException {
-        InputStream ins = context.getAssets().open(fileName);
-        int available = ins.available();
-        byte[] bytes = new byte[available];
-        ins.read(bytes);
-        close(ins);
-        ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-        close(in);
+    public static Object[] unpackParam(Context context, String fileName, Class[] classTypes) {
+        MessagePack msgpack = new MessagePack();
+        Object[] objects = null;
+        try {
+            objects = new Object[2];
+            byte[] bytes = getParamsBytes(context, fileName);
+            BufferUnpacker bufferUnpacker = msgpack.createBufferUnpacker(bytes);
+            objects[0] = bufferUnpacker.read(classTypes[0]);
+            objects[1] = bufferUnpacker.read(classTypes[1]);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return objects;
+    }
+
+    public static void test(Context context) {
+        MessagePack messagePack = new MessagePack();
+        try {
+            BufferPacker bufferPacker = messagePack.createBufferPacker();
+            bufferPacker.write(new int[]{1, 2, 3});
+            bufferPacker.write(new float[]{1.0f, 2.0f, 3.1f});
+            byte[] bytes = bufferPacker.toByteArray();
+
+            BufferUnpacker bufferUnpacker = messagePack.createBufferUnpacker(bytes);
+            int[] read = bufferUnpacker.read(int[].class);
+            float[] read2 = bufferUnpacker.read(float[].class);
+            int a = read[0];
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static byte[] getParamsBytes(Context context, String fileName) {
+        InputStream ins = null;
+        ByteArrayInputStream in = null;
+        byte[] bytes = null;
+        try {
+            ins = context.getAssets().open(fileName);
+            int available = ins.available();
+            bytes = new byte[available];
+            ins.read(bytes);
+            in = new ByteArrayInputStream(bytes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            close(ins);
+            close(in);
+        }
         return bytes;
     }
 
@@ -40,6 +84,5 @@ public class MessagePackUtils {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 }
