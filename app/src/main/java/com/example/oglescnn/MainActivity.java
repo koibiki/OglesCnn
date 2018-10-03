@@ -10,7 +10,9 @@ import com.example.eglnn.layer.Conv;
 import com.example.eglnn.layer.ConvGEMM;
 import com.example.eglnn.layer.ConvWinogradF23;
 import com.example.eglnn.layer.Expand;
+import com.example.eglnn.layer.Flat;
 import com.example.eglnn.layer.FullConnSSBO;
+import com.example.eglnn.layer.GlobalAvePooling;
 import com.example.eglnn.layer.Layer.PaddingType;
 import com.example.eglnn.layer.Input;
 import com.example.eglnn.layer.Layer;
@@ -39,8 +41,8 @@ public class MainActivity extends AppCompatActivity {
 
 //        buildSqueezeNet();
 //        buildSqueezeNet2();
-//        buildTestNet();
-        buildCifar10Net();
+        buildTestNet();
+//        buildCifar10Net();
     }
 
     private void buildCifar10Net() {
@@ -52,19 +54,19 @@ public class MainActivity extends AppCompatActivity {
         Layer conv1 = new ConvGEMM(this, "conv1", in, 32, 5, 5, PaddingType.SAME, 1, 1, Layer.ActiveType.RELU);
         mNnNetwork.addLayer(conv1);
 
-        Pooling pooling1 = new Pooling(this, "pool1", conv1, 3, 3, PaddingType.SAME, 2, 2);
+        Pooling pooling1 = new Pooling(this, "pool1", conv1, 3, 3, PaddingType.SAME, 2, 2, Layer.PoolingType.MAX);
         mNnNetwork.addLayer(pooling1);
 
         Layer conv2 = new ConvGEMM(this, "conv2", pooling1, 32, 5, 5, PaddingType.SAME, 1, 1, Layer.ActiveType.RELU);
         mNnNetwork.addLayer(conv2);
 
-        Pooling pooling2 = new Pooling(this, "pool2", conv2, 3, 3, PaddingType.SAME, 2, 2);
+        Pooling pooling2 = new Pooling(this, "pool2", conv2, 3, 3, PaddingType.SAME, 2, 2, Layer.PoolingType.MAX);
         mNnNetwork.addLayer(pooling2);
 
         Layer conv3 = new ConvGEMM(this, "conv3", pooling2, 64, 5, 5, PaddingType.SAME, 1, 1, Layer.ActiveType.RELU);
         mNnNetwork.addLayer(conv3);
 
-        Pooling pooling3 = new Pooling(this, "pool2", conv3, 3, 3, PaddingType.SAME, 2, 2);
+        Pooling pooling3 = new Pooling(this, "pool2", conv3, 3, 3, PaddingType.SAME, 2, 2, Layer.PoolingType.MAX);
         mNnNetwork.addLayer(pooling3);
 
         Layer fc1 = new FullConnSSBO(this, "fc1", pooling3, 64, Layer.ActiveType.NONE);
@@ -72,6 +74,9 @@ public class MainActivity extends AppCompatActivity {
 
         Layer fc2 = new FullConnSSBO(this, "fc2", fc1, 10, Layer.ActiveType.NONE);
         mNnNetwork.addLayer(fc2);
+
+        Flat flat = new Flat(this, "flat", fc2);
+        mNnNetwork.addLayer(flat);
 
         mNnNetwork.initialize();
     }
@@ -85,11 +90,17 @@ public class MainActivity extends AppCompatActivity {
 //        Layer conv1 = new ConvGEMM(this, "conv1", in, 32, 5, 5, PaddingType.SAME  , 1, 1, Layer.ActiveType.RELU);
 //        mNnNetwork.addLayer(conv1);
 //
-//        Pooling pooling1 = new Pooling(this, "pool1", conv1, 3, 3, PaddingType.SAME, 2, 2);
+//        Pooling pooling1 = new Pooling(this, "pool1", in, 2, 2, PaddingType.SAME, 2, 2, Layer.PoolingType.AVE);
 //        mNnNetwork.addLayer(pooling1);
 
-        Layer fc1 = new FullConnSSBO(this, "fc1", in, 4, Layer.ActiveType.NONE);
-        mNnNetwork.addLayer(fc1);
+        Pooling pooling1 = new GlobalAvePooling(this, "pool1", in);
+        mNnNetwork.addLayer(pooling1);
+
+//        Layer fc1 = new FullConnSSBO(this, "fc1", in, 8, Layer.ActiveType.NONE);
+//        mNnNetwork.addLayer(fc1);
+//
+//        Flat flat = new Flat(this, "flat",  fc1);
+//        mNnNetwork.addLayer(flat);
 
         mNnNetwork.initialize();
     }
@@ -103,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
         Layer conv1 = new Conv(this, "conv1", in, 64, 3, 3, PaddingType.VALID, 2, 2, Layer.ActiveType.RELU);
         mNnNetwork.addLayer(conv1);
 
-        Pooling pooling1 = new Pooling(this, "pool1", conv1, 3, 3, PaddingType.VALID, 2, 2);
+        Pooling pooling1 = new Pooling(this, "pool1", conv1, 3, 3, PaddingType.VALID, 2, 2, Layer.PoolingType.MAX);
         mNnNetwork.addLayer(pooling1);
 
         // fire2
@@ -132,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
         Concat concat3 = new Concat(this, "concat3", new Layer[]{conv3_1, conv3_2}, 2);
         mNnNetwork.addLayer(concat3);
 
-        Pooling pooling3 = new Pooling(this, "pool3", concat3, 3, 3, PaddingType.VALID, 2, 2);
+        Pooling pooling3 = new Pooling(this, "pool3", concat3, 3, 3, PaddingType.VALID, 2, 2, Layer.PoolingType.MAX);
         mNnNetwork.addLayer(pooling3);
 
         // fire4
@@ -161,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
         Concat concat5 = new Concat(this, "concat5", new Layer[]{conv5_1, conv5_2}, 2);
         mNnNetwork.addLayer(concat5);
 
-        Pooling pooling5 = new Pooling(this, "pool5", concat5, 3, 3, PaddingType.VALID, 2, 2);
+        Pooling pooling5 = new Pooling(this, "pool5", concat5, 3, 3, PaddingType.VALID, 2, 2, Layer.PoolingType.MAX);
         mNnNetwork.addLayer(pooling5);
 
         // fire6
@@ -235,7 +246,7 @@ public class MainActivity extends AppCompatActivity {
         Layer conv1 = new ConvGEMM(this, "conv1", in, 64, 3, 3, PaddingType.VALID, 2, 2, Layer.ActiveType.RELU);
         mNnNetwork.addLayer(conv1);
 
-        Pooling pooling1 = new Pooling(this, "pool1", conv1, 3, 3, PaddingType.VALID, 2, 2);
+        Pooling pooling1 = new Pooling(this, "pool1", conv1, 3, 3, PaddingType.VALID, 2, 2, Layer.PoolingType.MAX);
         mNnNetwork.addLayer(pooling1);
 
         // fire2
@@ -264,7 +275,7 @@ public class MainActivity extends AppCompatActivity {
         Concat concat3 = new Concat(this, "concat3", new Layer[]{conv3_1, conv3_2}, 2);
         mNnNetwork.addLayer(concat3);
 
-        Pooling pooling3 = new Pooling(this, "pool3", concat3, 3, 3, PaddingType.VALID, 2, 2);
+        Pooling pooling3 = new Pooling(this, "pool3", concat3, 3, 3, PaddingType.VALID, 2, 2, Layer.PoolingType.MAX);
         mNnNetwork.addLayer(pooling3);
 
         // fire4
@@ -293,7 +304,7 @@ public class MainActivity extends AppCompatActivity {
         Concat concat5 = new Concat(this, "concat5", new Layer[]{conv5_1, conv5_2}, 2);
         mNnNetwork.addLayer(concat5);
 
-        Pooling pooling5 = new Pooling(this, "pool5", concat5, 3, 3, PaddingType.VALID, 2, 2);
+        Pooling pooling5 = new Pooling(this, "pool5", concat5, 3, 3, PaddingType.VALID, 2, 2, Layer.PoolingType.MAX);
         mNnNetwork.addLayer(pooling5);
 
         // fire6
@@ -361,8 +372,8 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void runNn(View view) {
-//        float[][][] input = TestDataCreator.createInputBuffer(new int[]{width, height, channel}, 0);
-        float[][][] input = TestUtils.getTestCifarImage(this);
+        float[][][] input = TestDataCreator.createInputBuffer(new int[]{width, height, channel}, 0);
+//        float[][][] input = TestUtils.getTestCifarImage(this);
         float[][] localInput = new float[Utils.alignBy4(channel) / 4][width * height * 4];
         for (int w = 0; w < width; w++) {
             for (int h = 0; h < height; h++) {
