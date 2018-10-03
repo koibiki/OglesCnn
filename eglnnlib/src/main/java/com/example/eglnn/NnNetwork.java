@@ -70,7 +70,7 @@ public class NnNetwork {
             }
             int size = mLayers.size();
             for (int i = 0; i < size; i++) {
-                mLayers.get(i).forwardProc(input, true);
+                mLayers.get(i).forwardProc(input, i+1 == size);
             }
             actualReadOutput();
             Log.w(TAG, "spent:" + (System.currentTimeMillis() - begin1));

@@ -26,6 +26,16 @@ public abstract class Layer {
         }
     }
 
+    public enum PoolingType {
+        MAX(0), AVE(1);
+
+        public int index;
+
+        PoolingType(int index) {
+            this.index = index;
+        }
+    }
+
     public enum ActiveType {
         RELU(0), SIGMOID(1), TANH(2), NONE(-1);
 
