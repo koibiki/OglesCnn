@@ -12,7 +12,7 @@ float getSoftmaxValue(int index, vec2 extremun);
 void main(void)
 {
     ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
-    vec4 data = imageLoad(input_image, ivec3( 0, 0, pos.x));
+    vec4 data = imageLoad(input_image, ivec3(pos.x, 0, 0));
     int startIndex = pos.x * 4;
     for (int i = 0; i < 4; i++) {
         if (startIndex + i < AMOUNT) {
@@ -42,8 +42,7 @@ vec2 getExtremum(){
     for (int i=0; i< AMOUNT; i++) {
         if (max_v < scanline[i]) {
             max_v = scanline[i];
-        }
-        if (min_v > scanline[i]) {
+        } else if (min_v > scanline[i]) {
             min_v = scanline[i];
         }
     }

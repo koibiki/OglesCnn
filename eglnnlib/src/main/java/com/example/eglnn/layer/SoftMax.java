@@ -4,7 +4,6 @@ import android.content.Context;
 
 import com.example.eglnn.Render;
 import com.example.eglnn.utils.ShaderUtils;
-import com.example.eglnn.utils.Utils;
 
 import java.util.Locale;
 
@@ -12,50 +11,49 @@ import static com.example.eglnn.Render.initCompPro;
 import static com.example.eglnn.utils.Constants.S_SOFTMAX_SHADER_HEADER;
 
 /**
- * 不超过1024类
+ * 前接层维度 (N, 1, 4) , 分类维度不超过4096
  */
 public class SoftMax extends Layer {
 
     private static final String TAG = "SoftMax";
 
     private int mShaderPro;
-    private int mNumGroupsY;
     private int mAmount;
 
     public SoftMax(Context context, String name, Layer preLayer) {
         super(context, name, preLayer);
-        this.mOutShape = calculateSoftMaxShape(preLayer.getOutputShape());
-        this.mAmount = preLayer.getOutputShape()[2];
+        if (preLayer instanceof Flat) {
+            this.mAmount = ((Flat) preLayer).getAmount();
+        } else {
+            this.mAmount = mInShape[0] * mInShape[1] * mInShape[2];
+        }
+        checkShape(mInShape[1], 1);
+        checkShape(mInShape[2], 4);
+        this.mOutShape = mInShape;
     }
 
-    private int[] calculateSoftMaxShape(int[] preShape) {
-        checkShape(preShape[0]);
-        checkShape(preShape[1]);
-        return new int[]{Utils.alignBy4(preShape[2]) / 4, 1, 1};
-    }
-
-    private void checkShape(int shape) {
-        if (shape > 1) {
+    private void checkShape(int shape, int i) {
+        if (shape != i) {
             try {
-                throw new Exception("维度不为1");
+                throw new Exception("维度不为" + i);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
 
-
     private void initSoftmax() {
-        String source = createShaderSource(mInShape[2], 1, 1);
+        String source = createShaderSource(mOutShape[0]);
         mShaderPro = initCompPro(source);
+
         mAttachID = Layer.getDataAttachID();
         mOutTex = Render.createFloatTextureArray(mOutShape[0], mOutShape[1], 1);
     }
 
-    private String createShaderSource(int xSize, int ySize, int zSize) {
-        String shaderFile = "expand.comp";
+    private String createShaderSource(int xSize) {
+        String shaderFile = "softmax.comp";
         String source = ShaderUtils.loadFromAssetsFile(shaderFile, mContext.getResources());
-        return String.format(Locale.getDefault(), S_SOFTMAX_SHADER_HEADER, mAmount, xSize, 1, zSize) + source;
+        return String.format(Locale.getDefault(), S_SOFTMAX_SHADER_HEADER, mAmount, xSize, 1, 1) + source;
     }
 
     @Override
