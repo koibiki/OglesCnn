@@ -1,10 +1,8 @@
 layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = Z_SIZE) in;
 
-uniform int params[13];     // input_shape[3], output_shape[3], ksize[2], stride[2] max_depth, pad_w, pad_h
+uniform int params[13];
 layout(binding = 0, rgba32f) readonly uniform  image2DArray input_image;
 layout(binding = 1, rgba32f) writeonly uniform  image2DArray output_image;
-
-bool isInInputShape(ivec2 index, int[3] input_shape);
 
 // 计算工作组坐标 x, y, z  x为输出特征图的x y为输入特征图的y z为输出特征图在输出纹理上的深度
 void main(void)
@@ -22,13 +20,14 @@ void main(void)
         return;
     }
     ivec2 start_index = ivec2(pad_w + strides[0] * pos.x, pad_h + strides[1] * pos.y);
-    vec4 output_value = imageLoad(input_image, ivec3(start_index, pos.z));
+    vec4 output_value;
     for (int y=0; y < kernel_shape[1]; y++){
         for (int x=0;x < kernel_shape[0]; x++){
             ivec2 pool_index = ivec2(x, y) + start_index;
             vec4 data = imageLoad(input_image, ivec3(pool_index, pos.z));
-            output_value = max(output_value, data);
+            output_value +=  data;
         }
     }
+    output_value /= float(kernel_shape[0] * kernel_shape[1]);
     imageStore(output_image, pos, output_value);
 }

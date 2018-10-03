@@ -22,14 +22,16 @@ public class Pooling extends Layer {
     private int mShaderPro;
     private int[] mParams;
     private PaddingType mPadType;
+    private PoolingType mPoolingType;
     private int mPadW, mPadH;
     private int mNumGroupsX;
     private int mNumGroupsY;
     private int mNumGroupsZ;
 
-    public Pooling(Context context, String name, Layer preLayer, int k_w, int k_h, PaddingType padType, int stride_w, int stride_h) {
+    public Pooling(Context context, String name, Layer preLayer, int k_w, int k_h, PaddingType padType, int stride_w, int stride_h, PoolingType poolingType) {
         super(context, name, preLayer);
         this.mPadType = padType;
+        this.mPoolingType = poolingType;
         this.mKernelShape = new int[]{k_w, k_h};
         this.mStrides = new int[]{stride_w, stride_h};
         this.mOutShape = calculateConvShapeByType();
@@ -108,7 +110,12 @@ public class Pooling extends Layer {
     }
 
     private String createShaderSource(int xSize, int ySize, int zSize) {
-        String shaderFile = "pooling.comp";
+        String shaderFile;
+        if (mPoolingType == PoolingType.MAX) {
+            shaderFile = "max_pooling.comp";
+        } else {
+            shaderFile = "ave_pooling.comp";
+        }
         String source = ShaderUtils.loadFromAssetsFile(shaderFile, mContext.getResources());
         return String.format(Locale.getDefault(), S_COMMON_SHADER_HEADER, xSize, ySize, zSize) + source;
     }
