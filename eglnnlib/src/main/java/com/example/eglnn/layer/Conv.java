@@ -122,7 +122,7 @@ public class Conv extends Layer {
         mKernels = createTestKernels();
 //            mKernels = loadKennels();
 
-        mKernelTex = Render.createKernelFloatTextureArray(mKernelShape[0] * mKernelShape[1] + 1, mKernelAmount, Utils.alignBy4(mKernelShape[2]) / 4);
+        mKernelTex = Render.createFloatTextureArray(mKernelShape[0] * mKernelShape[1] + 1, mKernelAmount, Utils.alignBy4(mKernelShape[2]) / 4);
         transferToKennelTex();
         createShaderParams();
     }

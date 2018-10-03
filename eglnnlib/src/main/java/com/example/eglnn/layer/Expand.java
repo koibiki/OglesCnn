@@ -92,8 +92,8 @@ public class Expand extends Layer {
             mKennels2 = loadKennels();
         }
         // kennel 最后一列为bias
-        mKennelTex1 = Render.createKernelFloatTextureArray(mKennelShape1[0] * mKennelShape1[1] + 1, mKennelAmount, 2 * Utils.alignBy4(mKennelShape1[2]) / 4);
-        mKennelTex2 = Render.createKernelFloatTextureArray(mKennelShape2[0] * mKennelShape2[1] + 1, mKennelAmount, 2 * Utils.alignBy4(mKennelShape2[2]) / 4);
+        mKennelTex1 = Render.createFloatTextureArray(mKennelShape1[0] * mKennelShape1[1] + 1, mKennelAmount, 2 * Utils.alignBy4(mKennelShape1[2]) / 4);
+        mKennelTex2 = Render.createFloatTextureArray(mKennelShape2[0] * mKennelShape2[1] + 1, mKennelAmount, 2 * Utils.alignBy4(mKennelShape2[2]) / 4);
 
         transferToKennelTex(mKennels1, mKennelTex1, mKennelShape1);
         transferToKennelTex(mKennels2, mKennelTex2, mKennelShape2);

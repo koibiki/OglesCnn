@@ -14,8 +14,6 @@ public abstract class Layer {
     protected int mOutTex;
     protected int mAttachID;
 
-    private static int sStartY = 0;
-
     private static int mCurrentDataId = 6;
 
     public enum PaddingType {
@@ -44,23 +42,12 @@ public abstract class Layer {
         return mCurrentDataId % 7;
     }
 
-    public static int getConvKennelAttachID() {
-        return 7;
-    }
-
-    public static int getConvStartY(int ySize) {
-        int startY = sStartY;
-        sStartY += ySize;
-        return startY;
-    }
-
     public Layer(Context context, String name, int w, int h, int c) {
         this.mContext = context;
         this.mName = name;
         this.mPreLayer = null;
         this.mInShape = new int[]{w, h, c};
     }
-
 
     public Layer(Context context, String name, Layer preLayer) {
         this.mContext = context;

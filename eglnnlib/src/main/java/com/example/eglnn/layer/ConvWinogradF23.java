@@ -123,7 +123,7 @@ public class ConvWinogradF23 extends Layer {
         mKennels = createTestKennels();
 //            mKennels = loadKennels();
 
-        mKennelTex = Render.createKernelFloatTextureArray(17, mKernelAmount, Utils.alignBy4(mKernelShape[2]) / 4);
+        mKennelTex = Render.createFloatTextureArray(17, mKernelAmount, Utils.alignBy4(mKernelShape[2]) / 4);
         transferKernelToGgGt(mKennels);
 
         createShaderParams();
@@ -170,16 +170,6 @@ public class ConvWinogradF23 extends Layer {
             }
         }
     }
-
-//
-//    private void transferToKennelTex() {
-//        for (int a = 0; a < mKernelAmount; a++) {
-//            float[][] kennel = mKennels[a];
-//            for (int c = 0; c < kennel.length; c++) {
-//                Render.transferToTextureArrayFloat(FloatBuffer.wrap(kennel[c]), mKennelTex, 0, a, c, mKernelShape[0] * mKernelShape[1] + 1, 1, 1);
-//            }
-//        }
-//    }
 
     private String createShaderSource(int xSize, int ySize, int zSize) {
         String source = ShaderUtils.loadFromAssetsFile("conv_winograd_2x3.comp", mContext.getResources());

@@ -113,7 +113,7 @@ public class ConvGEMM extends Layer {
         mKernels = loadKennels();
 
         // kennel 最后一列为bias
-        mKernelTex = Render.createKernelFloatTextureArray(mKernelShape[0] * mKernelShape[1] + 1, mKernelAmount, Utils.alignBy4(mInShape[2]) / 4);
+        mKernelTex = Render.createFloatTextureArray(mKernelShape[0] * mKernelShape[1] + 1, mKernelAmount, Utils.alignBy4(mInShape[2]) / 4);
 
         transferToKennelTex(mKernels, mKernelTex);
 

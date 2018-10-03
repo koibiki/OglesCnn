@@ -42,7 +42,6 @@ import static android.opengl.GLES30.GL_TEXTURE_2D_ARRAY;
 import static android.opengl.GLES30.glBindBufferBase;
 import static android.opengl.GLES30.glFramebufferTextureLayer;
 import static android.opengl.GLES30.glReadBuffer;
-import static android.opengl.GLES30.glTexStorage2D;
 import static android.opengl.GLES30.glTexStorage3D;
 import static android.opengl.GLES30.glTexSubImage3D;
 import static android.opengl.GLES31.GL_COMPUTE_SHADER;
@@ -53,14 +52,11 @@ import static android.opengl.GLES31.GL_WRITE_ONLY;
 import static android.opengl.GLES31.glBindImageTexture;
 import static android.opengl.GLES31.glDispatchCompute;
 import static android.opengl.GLES31.glMemoryBarrier;
-import static com.example.eglnn.utils.Constants.S_TEXTURE_SIZE;
 
 
 public class Render {
 
     private static final String TAG = "Render";
-
-    private static int sConTex = -1;
 
     public static int getMaxDrawBuffers() {
         int[] maxBuffer = new int[1];
@@ -83,44 +79,12 @@ public class Render {
         return compProg;
     }
 
-    public static int createTexture(int width, int height) {
-        return createTexture(width, height, GL_RGBA32F);
-    }
-
-    public static int createTexture(int format) {
-        return createTexture(S_TEXTURE_SIZE, S_TEXTURE_SIZE, format);
-    }
-
     public static int createFloatTextureArray(int width, int height, int depth) {
-        return createTextureArray(width, height, depth, GL_RGBA32F);
-    }
-
-    public static int createKernelFloatTextureArray(int width, int height, int depth) {
         return createTextureArray(width, height, depth, GL_RGBA32F);
     }
 
     public static int createIntTextureArray(int width, int height, int depth) {
         return createTextureArray(width, height, depth, GL_RGBA32I);
-    }
-
-    public static int getConvKennelTexture() {
-        if (sConTex == -1) {
-            sConTex = createTexture(8192, 8192, GL_RGBA32F);
-        }
-        return sConTex;
-    }
-
-    private static int createTexture(int width, int height, int format) {
-        int[] texture = new int[1];
-        glGenTextures(1, texture, 0);
-        glBindTexture(GL_TEXTURE_2D, texture[0]);
-        glTexStorage2D(GL_TEXTURE_2D, 1, format, width, height);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        return texture[0];
     }
 
     private static int createTextureArray(int width, int height, int depth, int internalFormat) {
@@ -145,11 +109,6 @@ public class Render {
         int attachment = GL_COLOR_ATTACHMENT0 + attachID;
         glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texID, 0);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, bufferId);
-    }
-
-    public static void bindTextureArray(int texID, int attachID) {
-        int attachment = GL_COLOR_ATTACHMENT0 + attachID;
-        glFramebufferTextureLayer(GL_FRAMEBUFFER, attachment, texID, 0, 0);
     }
 
     public static void bindTextureArray(int texID, int attachID, int layer) {

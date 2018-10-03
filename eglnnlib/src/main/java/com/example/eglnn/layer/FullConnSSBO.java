@@ -44,6 +44,10 @@ public class FullConnSSBO extends Layer {
         return new int[]{1, 1, kennelAmount};
     }
 
+    public int getKernelAmount() {
+        return mKernelAmount;
+    }
+
     @Override
     public void initialize() {
         initFullConnect();
@@ -143,8 +147,8 @@ public class FullConnSSBO extends Layer {
 
     @Override
     protected void bindTextureAndBuffer() {
-//        Render.bindTextureArrayAndBuffer(mOutTex, mAttachID, 0, mKernelBuffer[0]);
-        Render.bindTextureArrayAndBuffer(mOutTex, mAttachID, Utils.alignBy4(mOutShape[2]) / 4 - 1, mKernelBuffer[0]);
+        Render.bindTextureArrayAndBuffer(mOutTex, mAttachID, 0, mKernelBuffer[0]);
+//        Render.bindTextureArrayAndBuffer(mOutTex, mAttachID, Utils.alignBy4(mOutShape[2]) / 4 - 1, mKernelBuffer[0]);
     }
 
     @Override
