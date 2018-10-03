@@ -14,7 +14,7 @@ public class TestUtils {
         float[][][] inputBatch = new float[3][32][32];
         try {
             float[][][] mean = (float[][][]) MessagePackUtils.unpackParam(context, "cifar10/mean", float[][][].class);
-            Bitmap bmp = BitmapFactory.decodeResource(context.getResources(), R.drawable.airplane);
+            Bitmap bmp = BitmapFactory.decodeResource(context.getResources(), R.drawable.dog);
             Bitmap bmp2 = Bitmap.createScaledBitmap(bmp, 32, 32, false);
             for (int j = 0; j < 32; ++j) {
                 for (int k = 0; k < 32; ++k) {

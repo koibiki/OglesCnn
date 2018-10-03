@@ -17,6 +17,7 @@ import com.example.eglnn.layer.Layer.PaddingType;
 import com.example.eglnn.layer.Input;
 import com.example.eglnn.layer.Layer;
 import com.example.eglnn.layer.Pooling;
+import com.example.eglnn.layer.SoftMax;
 import com.example.eglnn.utils.MessagePackUtils;
 import com.example.eglnn.utils.TestDataCreator;
 import com.example.eglnn.utils.Utils;
@@ -41,8 +42,8 @@ public class MainActivity extends AppCompatActivity {
 
 //        buildSqueezeNet();
 //        buildSqueezeNet2();
-        buildTestNet();
-//        buildCifar10Net();
+//        buildTestNet();
+        buildCifar10Net();
     }
 
     private void buildCifar10Net() {
@@ -77,6 +78,9 @@ public class MainActivity extends AppCompatActivity {
 
         Flat flat = new Flat(this, "flat", fc2);
         mNnNetwork.addLayer(flat);
+
+        SoftMax softmax = new SoftMax(this, "softmax", flat);
+        mNnNetwork.addLayer(softmax);
 
         mNnNetwork.initialize();
     }
@@ -372,8 +376,8 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void runNn(View view) {
-        float[][][] input = TestDataCreator.createInputBuffer(new int[]{width, height, channel}, 0);
-//        float[][][] input = TestUtils.getTestCifarImage(this);
+//        float[][][] input = TestDataCreator.createInputBuffer(new int[]{width, height, channel}, 0);
+        float[][][] input = TestUtils.getTestCifarImage(this);
         float[][] localInput = new float[Utils.alignBy4(channel) / 4][width * height * 4];
         for (int w = 0; w < width; w++) {
             for (int h = 0; h < height; h++) {
