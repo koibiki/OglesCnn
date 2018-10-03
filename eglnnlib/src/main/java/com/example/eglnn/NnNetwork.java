@@ -1,8 +1,6 @@
 package com.example.eglnn;
 
 import android.content.Context;
-import android.opengl.GLES31;
-import android.os.Environment;
 import android.util.Log;
 
 import com.example.eglnn.eglenv.GLES31BackEnv;
@@ -22,9 +20,6 @@ public class NnNetwork {
 
     private volatile boolean mIsInit = false;
     private GLES31BackEnv mGLes31BackEnv;
-    private String mNetStructureFile;
-    private String mRootDir = Environment.getExternalStorageDirectory().getAbsolutePath();
-
 
     public NnNetwork(Context context) {
         this.mContext = context;
@@ -37,11 +32,11 @@ public class NnNetwork {
     }
 
     public void initialize() {
-        mGLes31BackEnv.post(this::actualInitialize);
+       actualInitialize();
     }
 
     public void predict(float[][] input) {
-        mGLes31BackEnv.post(() -> actualPredict(input));
+        actualPredict(input);
     }
 
     private void actualPredict(float[][] input) {
@@ -76,10 +71,6 @@ public class NnNetwork {
             Log.w(TAG, "spent:" + (System.currentTimeMillis() - begin1));
         }
         Log.w(TAG, "ave spent:" + (System.currentTimeMillis() - begin) * 1.0f / count);
-    }
-
-    public void readOutput() {
-        mGLes31BackEnv.post(this::actualReadOutput);
     }
 
     private void actualReadOutput() {
