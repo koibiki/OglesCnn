@@ -3,9 +3,11 @@ package com.example.eglnn.layer;
 import android.content.Context;
 
 import com.example.eglnn.Render;
+import com.example.eglnn.utils.DataUtils;
 import com.example.eglnn.utils.ShaderUtils;
 import com.example.eglnn.utils.Utils;
 
+import java.nio.FloatBuffer;
 import java.util.Locale;
 
 import static com.example.eglnn.Render.initCompPro;
@@ -16,6 +18,9 @@ import static com.example.eglnn.utils.Constants.S_COMMON_SHADER_HEADER;
  * 默认pool 输出 w 小于 1024
  */
 public class Pooling extends Layer {
+
+    private FloatBuffer mOut;       // 每次只能读取一个深度上的数据
+    private int mBindLayer;         // 纹理绑定深度编号
 
     private int[] mKernelShape;
     private int[] mStrides;
@@ -35,6 +40,9 @@ public class Pooling extends Layer {
         this.mKernelShape = new int[]{k_w, k_h};
         this.mStrides = new int[]{stride_w, stride_h};
         this.mOutShape = calculateConvShapeByType();
+        this.mOut = FloatBuffer.allocate(mOutShape[0] * mOutShape[1] * 4);
+        this.mBindLayer = 0;
+//        this.mBindLayer = Utils.alignBy4(mOutShape[2]) / 4;
     }
 
     private int[] calculateConvShapeByType() {
@@ -127,13 +135,20 @@ public class Pooling extends Layer {
 
     @Override
     protected void bindTextureAndBuffer() {
-//        Render.bindTextureArray(mOutTex, mAttachID, Utils.alignBy4(mOutShape[2]) / 4 - 1);
         Render.bindTextureArray(mOutTex, mAttachID, 0);
     }
 
     @Override
     protected void actualForwardProc(float[][] input) {
         Render.performCompute(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mNumGroupsX, mNumGroupsY, mNumGroupsZ);
+    }
+
+    @Override
+    public float[][][] readResult() {
+        float[][][] out = new float[mOutShape[2]][mOutShape[1]][mOutShape[0]];
+        DataUtils.readOutput(this, mOut);
+        DataUtils.transform(out, mOut.array(), mOutShape[0], mOutShape[1], mOutShape[2], mBindLayer);
+        return out;
     }
 
 }

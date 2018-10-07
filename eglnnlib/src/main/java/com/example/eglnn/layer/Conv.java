@@ -3,6 +3,7 @@ package com.example.eglnn.layer;
 import android.content.Context;
 
 import com.example.eglnn.Render;
+import com.example.eglnn.utils.DataUtils;
 import com.example.eglnn.utils.ShaderUtils;
 import com.example.eglnn.utils.TestDataCreator;
 import com.example.eglnn.utils.Utils;
@@ -19,8 +20,10 @@ import static com.example.eglnn.utils.Constants.S_COMMON_SHADER_HEADER;
 public class Conv extends Layer {
 
     private static final String TAG = "ConvGEMM";
-    private final int mKernelAmount;
 
+    private final int mKernelAmount;
+    private FloatBuffer mOut;       // 每次只能读取一个深度上的数据
+    private int mBindLayer;         // 纹理绑定深度编号
 
     private float[][][] mKernels;
     private int[] mStrides;
@@ -48,13 +51,9 @@ public class Conv extends Layer {
         this(context, name, preLayer, kAmount, k_w, k_h, stride_w, stride_h, type);
         this.mPadType = padType;
         this.mOutShape = calculateConvShapeByType(kAmount);
-    }
-
-    public Conv(Context context, String name, Layer preLayer, int kAmount, int k_w, int k_h, int pad_w, int pad_h, int stride_w, int stride_h, ActiveType type) {
-        this(context, name, preLayer, kAmount, k_w, k_h, stride_w, stride_h, type);
-        this.mPadW = pad_w;
-        this.mPadH = pad_h;
-        this.mOutShape = calculateConvShapeByPad(kAmount);
+        this.mOut = FloatBuffer.allocate(mOutShape[0] * mOutShape[1] * 4);
+        this.mBindLayer = 0;
+//        this.mBindLayer = Utils.alignBy4(mOutShape[2]) / 4;
     }
 
     private int[] calculateConvShapeByType(int kennelAmount) {
@@ -68,12 +67,6 @@ public class Conv extends Layer {
             width = (int) Math.ceil((mInShape[0] - mKernelShape[0] + 1) * 1.0f / mStrides[0]);
             height = (int) Math.ceil((mInShape[1] - mKernelShape[1] + 1) * 1.0f / mStrides[1]);
         }
-        return new int[]{width, height, kennelAmount};
-    }
-
-    private int[] calculateConvShapeByPad(int kennelAmount) {
-        int width = (int) Math.ceil((mInShape[0] + 2 * mPadW - mKernelShape[0]) * 1.0f / mStrides[0]);
-        int height = (int) Math.ceil((mInShape[1] + 2 * mPadH - mKernelShape[1]) * 1.0f / mStrides[1]);
         return new int[]{width, height, kennelAmount};
     }
 
@@ -186,5 +179,13 @@ public class Conv extends Layer {
     @Override
     protected void actualForwardProc(float[][] input) {
         Render.performConvolute(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mKernelTex, mNumGroupsX, mNumGroupsY, mNumGroupsZ);
+    }
+
+    @Override
+    public float[][][] readResult() {
+        float[][][] out = new float[mOutShape[2]][mOutShape[1]][mOutShape[0]];
+        DataUtils.readOutput(this, mOut);
+        DataUtils.transform(out, mOut.array(), mOutShape[0], mOutShape[1], mOutShape[2], mBindLayer);
+        return out;
     }
 }

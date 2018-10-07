@@ -5,7 +5,6 @@ import android.util.Log;
 
 import com.example.eglnn.eglenv.GLES31BackEnv;
 import com.example.eglnn.layer.Layer;
-import com.example.eglnn.utils.DataUtils;
 
 import java.util.ArrayList;
 
@@ -32,20 +31,6 @@ public class NnNetwork {
     }
 
     public void initialize() {
-       actualInitialize();
-    }
-
-    public void predict(float[][] input) {
-        actualPredict(input);
-    }
-
-    private void actualPredict(float[][] input) {
-        Log.w(TAG, "actualPredict");
-        runNet(input);
-        actualReadOutput();
-    }
-
-    private void actualInitialize() {
         if (!mIsInit) {
             mIsInit = true;
             for (Layer layer : mLayers) {
@@ -54,9 +39,14 @@ public class NnNetwork {
         }
     }
 
-    private void runNet(float[][] input) {
+    public float[][][] predict(float[][] input) {
+        return runNet(input);
+    }
+
+    private float[][][] runNet(float[][] input) {
         long begin = System.currentTimeMillis();
-        int count = 100;
+        float[][][] result = null;
+        int count = 50;
         int filter = 10;
         for (int ii = 0; ii < count + filter; ii++) {
             long begin1 = System.currentTimeMillis();
@@ -65,16 +55,17 @@ public class NnNetwork {
             }
             int size = mLayers.size();
             for (int i = 0; i < size; i++) {
-                mLayers.get(i).forwardProc(input, i+1 == size);
+                mLayers.get(i).forwardProc(input, i + 1 == size);
             }
-            actualReadOutput();
+            result = actualReadOutput();
             Log.w(TAG, "spent:" + (System.currentTimeMillis() - begin1));
         }
         Log.w(TAG, "ave spent:" + (System.currentTimeMillis() - begin) * 1.0f / count);
+        return result;
     }
 
-    private void actualReadOutput() {
+    private float[][][] actualReadOutput() {
         Layer layer = mLayers.get(mLayers.size() - 1);
-        DataUtils.readOutput(layer);
+        return layer.readResult();
     }
 }

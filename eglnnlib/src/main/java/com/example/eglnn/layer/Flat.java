@@ -3,9 +3,11 @@ package com.example.eglnn.layer;
 import android.content.Context;
 
 import com.example.eglnn.Render;
+import com.example.eglnn.utils.DataUtils;
 import com.example.eglnn.utils.ShaderUtils;
 import com.example.eglnn.utils.Utils;
 
+import java.nio.FloatBuffer;
 import java.util.Locale;
 
 import static com.example.eglnn.Render.initCompPro;
@@ -16,6 +18,9 @@ import static com.example.eglnn.utils.Constants.S_COMMON_SHADER_HEADER;
  * 前接层 shape 为 （1，1，N）
  */
 public class Flat extends Layer {
+
+    private FloatBuffer mOut;       // 每次只能读取一个深度上的数据
+    private int mBindLayer;         // 纹理绑定深度编号
 
     private int mAmount;
     private int mNumGroupX;
@@ -29,6 +34,8 @@ public class Flat extends Layer {
             this.mAmount = mInShape[2];
         }
         this.mOutShape = new int[]{Utils.alignBy4(mAmount) / 4, 1, 4};
+        this.mOut = FloatBuffer.allocate(mOutShape[0] * mOutShape[1] * 4);
+        this.mBindLayer = 0;
     }
 
     public int getAmount() {
@@ -61,12 +68,22 @@ public class Flat extends Layer {
 
     @Override
     protected void bindTextureAndBuffer() {
-        Render.bindTextureArray(mOutTex, mAttachID, 0);
+        Render.bindTextureArray(mOutTex, mAttachID, mBindLayer);
     }
 
     @Override
     protected void actualForwardProc(float[][] input) {
         Render.performComputeWithoutPara(mShaderPro, mPreLayer.getOutTex(), mOutTex, mNumGroupX, 1, 1);
+    }
+
+    @Override
+    public float[][][] readResult() {
+        float[][][] out = new float[1][1][mAmount];
+        DataUtils.readOutput(this, mOut);
+        for (int i = 0; i < mAmount; i++) {
+            out[0][0][i] = mOut.get(i);
+        }
+        return out;
     }
 
 }

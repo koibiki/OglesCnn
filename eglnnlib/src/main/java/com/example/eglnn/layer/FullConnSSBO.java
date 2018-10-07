@@ -3,6 +3,7 @@ package com.example.eglnn.layer;
 import android.content.Context;
 
 import com.example.eglnn.Render;
+import com.example.eglnn.utils.DataUtils;
 import com.example.eglnn.utils.MessagePackUtils;
 import com.example.eglnn.utils.ShaderUtils;
 import com.example.eglnn.utils.TestDataCreator;
@@ -23,6 +24,9 @@ public class FullConnSSBO extends Layer {
 
     private static final String TAG = "FullConnSSBO";
 
+    private FloatBuffer mOut;       // 每次只能读取一个深度上的数据
+    private int mBindLayer;         // 纹理绑定深度编号
+
     private float[][] mKernels;
     private int mShaderPro;
     private int mKernelAmount;
@@ -38,6 +42,9 @@ public class FullConnSSBO extends Layer {
         this.mKernelAmount = kernelAmount;
         this.mType = type;
         this.mOutShape = calculateFullShape(kernelAmount);
+        this.mOut = FloatBuffer.allocate(mOutShape[0] * mOutShape[1] * 4);
+        this.mBindLayer = 0;
+//        this.mBindLayer = Utils.alignBy4(mOutShape[2]) / 4;
     }
 
     private int[] calculateFullShape(int kennelAmount) {
@@ -147,13 +154,22 @@ public class FullConnSSBO extends Layer {
 
     @Override
     protected void bindTextureAndBuffer() {
-        Render.bindTextureArrayAndBuffer(mOutTex, mAttachID, 0, mKernelBuffer[0]);
-//        Render.bindTextureArrayAndBuffer(mOutTex, mAttachID, Utils.alignBy4(mOutShape[2]) / 4 - 1, mKernelBuffer[0]);
+        Render.bindTextureArrayAndBuffer(mOutTex, mAttachID, mBindLayer, mKernelBuffer[0]);
     }
 
     @Override
     protected void actualForwardProc(float[][] input) {
         Render.performFullConnectSSBO(mShaderPro, mParams, mPreLayer.getOutTex(), mOutTex, mKernelBuffer[0], mNumGroupX);
+    }
+
+    @Override
+    public float[][][] readResult() {
+        float[][][] out = new float[1][1][mKernelAmount];
+        DataUtils.readOutput(this, mOut);
+        for (int i = 0; i < mKernelAmount; i++) {
+            out[0][0][i] = mOut.get(i);
+        }
+        return out;
     }
 
 }

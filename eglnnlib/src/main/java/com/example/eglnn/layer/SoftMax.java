@@ -3,8 +3,10 @@ package com.example.eglnn.layer;
 import android.content.Context;
 
 import com.example.eglnn.Render;
+import com.example.eglnn.utils.DataUtils;
 import com.example.eglnn.utils.ShaderUtils;
 
+import java.nio.FloatBuffer;
 import java.util.Locale;
 
 import static com.example.eglnn.Render.initCompPro;
@@ -16,6 +18,9 @@ import static com.example.eglnn.utils.Constants.S_SOFTMAX_SHADER_HEADER;
 public class SoftMax extends Layer {
 
     private static final String TAG = "SoftMax";
+
+    private FloatBuffer mOut;       // 每次只能读取一个深度上的数据
+    private int mBindLayer;         // 纹理绑定深度编号
 
     private int mShaderPro;
     private int mAmount;
@@ -30,6 +35,8 @@ public class SoftMax extends Layer {
         checkShape(mInShape[1], 1);
         checkShape(mInShape[2], 4);
         this.mOutShape = mInShape;
+        this.mOut = FloatBuffer.allocate(mOutShape[0] * mOutShape[1] * 4);
+        this.mBindLayer = 0;
     }
 
     private void checkShape(int shape, int i) {
@@ -69,6 +76,16 @@ public class SoftMax extends Layer {
     @Override
     protected void actualForwardProc(float[][] input) {
         Render.performComputeWithoutPara(mShaderPro, mPreLayer.getOutTex(), mOutTex, 1, 1, 1);
+    }
+
+    @Override
+    public float[][][] readResult() {
+        float[][][] out = new float[1][1][mAmount];
+        DataUtils.readOutput(this, mOut);
+        for (int i = 0; i < mAmount; i++) {
+            out[0][0][i] = mOut.get(i);
+        }
+        return out;
     }
 
 }

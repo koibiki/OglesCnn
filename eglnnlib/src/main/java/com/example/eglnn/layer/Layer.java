@@ -92,6 +92,8 @@ public abstract class Layer {
 
     protected abstract void actualForwardProc(float[][] input);
 
+    public abstract float[][][] readResult();
+
     public void forwardProc(float[][] input, boolean bindBuffer) {
         if (bindBuffer) {
             bindTextureAndBuffer();
