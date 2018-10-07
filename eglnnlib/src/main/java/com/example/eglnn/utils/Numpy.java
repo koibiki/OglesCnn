@@ -21,6 +21,34 @@ public class Numpy {
         return result;
     }
 
+    public static float[] argmax(float[] in) {
+        float[] argmax = new float[2];
+        argmax[0] = 0;
+        argmax[1] = in[0];
+        int len = in.length;
+        for (int i = 1; i < len; i++) {
+            if (in[i] > argmax[1]) {
+                argmax[0] = i;
+                argmax[1] = in[i];
+            }
+        }
+        return argmax;
+    }
+
+    public static float[] argmin(float[] in) {
+        float[] argmin = new float[2];
+        argmin[0] = 0;
+        argmin[1] = in[0];
+        int len = in.length;
+        for (int i = 1; i < len; i++) {
+            if (in[i] < argmin[1]) {
+                argmin[0] = i;
+                argmin[1] = in[i];
+            }
+        }
+        return argmin;
+    }
+
     public static float[][] transpose(float[][] mat) {
         int mat_col = mat[0].length;
         int mat_row = mat.length;
