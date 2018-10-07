@@ -39,11 +39,11 @@ public class NnNetwork {
         }
     }
 
-    public float[][][] predict(float[][] input) {
+    public Result predict(float[][] input) {
         return runNet(input);
     }
 
-    private float[][][] runNet(float[][] input) {
+    private Result runNet(float[][] input) {
         long begin = System.currentTimeMillis();
         float[][][] result = null;
         int count = 50;
@@ -60,12 +60,33 @@ public class NnNetwork {
             result = actualReadOutput();
             Log.w(TAG, "spent:" + (System.currentTimeMillis() - begin1));
         }
-        Log.w(TAG, "ave spent:" + (System.currentTimeMillis() - begin) * 1.0f / count);
-        return result;
+        float aveTime = (System.currentTimeMillis() - begin) * 1.0f / count;
+        Log.w(TAG, "ave spent:" + aveTime);
+        return new Result(aveTime, result);
     }
 
     private float[][][] actualReadOutput() {
         Layer layer = mLayers.get(mLayers.size() - 1);
         return layer.readResult();
     }
+
+    public static class Result {
+        float aveTime;
+        float[][][] result;
+
+        Result(float aveTime, float[][][] result) {
+            this.aveTime = aveTime;
+            this.result = result;
+        }
+
+        public float getAveTime() {
+            return aveTime;
+        }
+
+        public float[][][] getResult() {
+            return result;
+        }
+
+    }
+
 }
