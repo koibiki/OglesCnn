@@ -109,7 +109,7 @@ public class FullConnSSBO extends Layer {
     }
 
     private float[][] loadKernels(int kernelSize) {
-        String kernel_file = "cifar10/" + mName;
+        String kernel_file = mName;
         Object[] objects = MessagePackUtils.unpackParam(mContext, kernel_file, new Class[]{float[].class, float[].class});
         if (objects != null) {
             float[] kernel = (float[]) objects[0];

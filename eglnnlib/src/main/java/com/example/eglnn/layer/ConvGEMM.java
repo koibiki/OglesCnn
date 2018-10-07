@@ -152,7 +152,7 @@ public class ConvGEMM extends Layer {
     }
 
     private float[][][] loadKennels() {
-        String kernel_file = "net/" + mName;
+        String kernel_file = mName;
         Object[] objects = MessagePackUtils.unpackParam(mContext, kernel_file, new Class[]{float[][][][].class, float[].class});
         if (objects != null) {
             float[][][][] kernel = (float[][][][]) objects[0];
