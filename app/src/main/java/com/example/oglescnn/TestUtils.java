@@ -30,16 +30,29 @@ public class TestUtils {
         return inputBatch;
     }
 
+    public static float[][][] getTestImage(Context context) {
+        float[][][] inputBatch = null;
+        try {
+            inputBatch = (float[][][]) MessagePackUtils.unpackParam(context, "in", float[][][].class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return inputBatch;
+    }
+
     public static float[][][] getTestImage(Context context, int width, int height) {
-        float[][][] inputBatch = new float[3][height][width];
-        Bitmap bmp = BitmapFactory.decodeResource(context.getResources(), R.drawable.cat);
+        BitmapFactory.Options bfoOptions = new BitmapFactory.Options();
+        bfoOptions.inScaled = false;
+        Bitmap bmp = BitmapFactory.decodeResource(context.getResources(), R.drawable.cat217);
         Bitmap bmp2 = Bitmap.createScaledBitmap(bmp, width, height, false);
-        for (int j = 0; j < 32; ++j) {
-            for (int k = 0; k < 32; ++k) {
+        float[][][] inputBatch = new float[3][height][width];
+
+        for (int j = 0; j < width; ++j) {
+            for (int k = 0; k < height; ++k) {
                 int color = bmp2.getPixel(j, k);
-                inputBatch[0][k][j] = (float) (android.graphics.Color.blue(color));
-                inputBatch[1][k][j] = (float) (android.graphics.Color.blue(color));
-                inputBatch[2][k][j] = (float) (android.graphics.Color.blue(color));
+                inputBatch[0][k][j] = (float) (android.graphics.Color.blue(color)) - 103.939f;
+                inputBatch[1][k][j] = (float) (android.graphics.Color.green(color)) - 116.77899f;
+                inputBatch[2][k][j] = (float) (android.graphics.Color.red(color)) - 123.68f;
             }
         }
         return inputBatch;
