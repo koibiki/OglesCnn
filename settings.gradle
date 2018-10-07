@@ -1,1 +1,1 @@
-include ':app', ':cnnlib', 'eglnnlib'
+include ':app',  'eglnnlib'
