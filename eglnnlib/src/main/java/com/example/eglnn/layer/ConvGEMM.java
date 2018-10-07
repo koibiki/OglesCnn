@@ -159,7 +159,7 @@ public class ConvGEMM extends Layer {
     }
 
     private float[][][] loadKennels() {
-        String kernel_file = "cifar10/" + mName;
+        String kernel_file = "net/" + mName;
         Object[] objects = MessagePackUtils.unpackParam(mContext, kernel_file, new Class[]{float[][][][].class, float[].class});
         if (objects != null) {
             float[][][][] kernel = (float[][][][]) objects[0];
@@ -183,7 +183,7 @@ public class ConvGEMM extends Layer {
             for (int w = 0; w < k_w; w++) {
                 for (int h = 0; h < k_h; h++) {
                     for (int c = 0; c < k_c; c++) {
-                        new_kernenls[a][c / 4][(w + h * k_w) * 4 + c % 4] = kernels[a][c][w][h];
+                        new_kernenls[a][c / 4][(w + h * k_w) * 4 + c % 4] = kernels[a][c][h][w];
                     }
                 }
             }
