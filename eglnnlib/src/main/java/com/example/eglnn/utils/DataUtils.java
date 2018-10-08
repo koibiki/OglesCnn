@@ -7,8 +7,8 @@ import java.nio.FloatBuffer;
 
 public class DataUtils {
 
-    public static float[] readOutput(Layer layer, FloatBuffer out) {
-        Render.transferFromTexture(out, layer.getAttachID(), 0, 0, 250, 1);
+    public static float[] readOutput(Layer layer, FloatBuffer out, int width, int height) {
+        Render.transferFromTexture(out, layer.getAttachID(), 0, 0, width, height);
         return out.array();
     }
 

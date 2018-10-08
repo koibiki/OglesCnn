@@ -80,7 +80,7 @@ public class Flat extends Layer {
     @Override
     public float[][][] readResult() {
         float[][][] out = new float[1][1][mAmount];
-        DataUtils.readOutput(this, mOut);
+        DataUtils.readOutput(this, mOut, mOutShape[0], mOutShape[1]);
         for (int i = 0; i < mAmount; i++) {
             out[0][0][i] = mOut.get(i);
         }
