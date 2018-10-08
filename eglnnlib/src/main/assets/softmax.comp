@@ -6,15 +6,19 @@ layout(binding = 1, rgba16f) writeonly uniform lowp image2DArray output_image;
 shared float scanline[AMOUNT];
 
 vec2 getExtremum();
-float getSum(vec2 extremun);
+float getSum();
 
 void main(void)
 {
     ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
-    vec4 data0 = imageLoad(input_image, ivec3(4 * pos.x, 0, 0));
-    vec4 data1 = imageLoad(input_image, ivec3(4 * pos.x + 1, 0, 0));
-    vec4 data2 = imageLoad(input_image, ivec3(4 * pos.x + 2, 0, 0));
-    vec4 data3 = imageLoad(input_image, ivec3(4 * pos.x + 3, 0, 0));
+    int index0 = 4 * pos.x;
+    int index1 = index0 + 1;
+    int index2 = index1 + 1;
+    int index3 = index2 + 1;
+    vec4 data0 = imageLoad(input_image, ivec3(index0, 0, 0));
+    vec4 data1 = imageLoad(input_image, ivec3(index1, 0, 0));
+    vec4 data2 = imageLoad(input_image, ivec3(index2, 0, 0));
+    vec4 data3 = imageLoad(input_image, ivec3(index3, 0, 0));
     float data[16] = float[16](data0[0], data0[1], data0[2], data0[3],
                                data1[0], data1[1], data1[2], data1[3],
                                data2[0], data2[1], data2[2], data2[3],
@@ -26,27 +30,19 @@ void main(void)
         }
     }
     barrier();
-    vec2 extremun = getExtremum();
     float softmax = 0.0;
     float result[16];
-    if (extremun[0] != extremun[1]) {
-        float sum = getSum(extremun);
-        for (int i = 0; i < 16; i++) {
-            int index = startIndex + i;
-            if (index < AMOUNT) {
-                float v = (scanline[index] - extremun[1]) * 100.0 / (extremun[0] - extremun[1]) - 50.0;
-                result[i] =  exp(v) / sum;
-            }
+    float sum = getSum();
+    for (int i = 0; i < 16; i++) {
+        int index = startIndex + i;
+        if (index < AMOUNT) {
+            result[i] =  exp(scanline[index]) / sum;
         }
-    } else {
-        softmax = 1.0 / float(AMOUNT);
-        result = float[16](softmax,softmax,softmax,softmax,softmax,softmax,softmax,softmax,
-                            softmax,softmax,softmax,softmax,softmax,softmax,softmax,softmax);
     }
-    imageStore(output_image, ivec3(4 * pos.x, 0, 0), vec4(result[0],result[1],result[2],result[3]));
-    imageStore(output_image, ivec3(4 * pos.x + 1, 0, 0), vec4(result[4],result[5],result[6],result[7]));
-    imageStore(output_image, ivec3(4 * pos.x + 2, 0, 0), vec4(result[8],result[9],result[10],result[11]));
-    imageStore(output_image, ivec3(4 * pos.x + 3, 0, 0), vec4(result[12],result[13],result[14],result[15]));
+    imageStore(output_image, ivec3(index0, 0, 0), vec4(result[0],result[1],result[2],result[3]));
+    imageStore(output_image, ivec3(index1, 0, 0), vec4(result[4],result[5],result[6],result[7]));
+    imageStore(output_image, ivec3(index2, 0, 0), vec4(result[8],result[9],result[10],result[11]));
+    imageStore(output_image, ivec3(index3, 0, 0), vec4(result[12],result[13],result[14],result[15]));
 }
 
 vec2 getExtremum(){
@@ -62,11 +58,10 @@ vec2 getExtremum(){
     return vec2(max_v, min_v);
 }
 
-float getSum(vec2 extremun) {
+float getSum() {
     float sum = 0.0;
     for (int i = 0; i < AMOUNT; i++){
-        float v = (scanline[i] - extremun[1]) * 100.0 / (extremun[0] - extremun[1]) - 50.0;
-        sum += exp(v);
+        sum += exp(scanline[i]);
     }
     return sum;
 }
