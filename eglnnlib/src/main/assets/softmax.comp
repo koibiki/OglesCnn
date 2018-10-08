@@ -1,7 +1,7 @@
 layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = Z_SIZE) in;
 
-layout(binding = 0, rgba32f) readonly uniform  image2DArray input_image;
-layout(binding = 1, rgba32f) writeonly uniform  image2DArray output_image;
+layout(binding = 0, rgba32f) readonly uniform lowp image2DArray input_image;
+layout(binding = 1, rgba32f) writeonly uniform lowp image2DArray output_image;
 
 shared float scanline[AMOUNT];
 float softmax[AMOUNT];

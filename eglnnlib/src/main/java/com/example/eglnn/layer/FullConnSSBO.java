@@ -3,6 +3,7 @@ package com.example.eglnn.layer;
 import android.content.Context;
 
 import com.example.eglnn.Render;
+import com.example.eglnn.eglenv.GLES31BackEnv;
 import com.example.eglnn.utils.DataUtils;
 import com.example.eglnn.utils.MessagePackUtils;
 import com.example.eglnn.utils.ShaderUtils;
@@ -64,12 +65,12 @@ public class FullConnSSBO extends Layer {
         int kennelSize = mInShape[0] * mInShape[1] * Utils.alignBy4(mInShape[2]) + 4;
 
         int xSize;
-        if (Utils.alignBy4(mKernelAmount) / 4 <= 1024) {
+        if (Utils.alignBy4(mKernelAmount) / 4 <= GLES31BackEnv.getMaxWorkGroupSize()) {
             xSize = Utils.alignBy4(mKernelAmount) / 4;
             mNumGroupX = 1;
         } else {
-            xSize = 1024;
-            mNumGroupX = (int) Math.ceil(Utils.alignBy4(mKernelAmount) * 1.0f / 4 / 1024);
+            xSize = GLES31BackEnv.getMaxWorkGroupSize();
+            mNumGroupX = (int) Math.ceil(Utils.alignBy4(mKernelAmount) * 1.0f / 4 / GLES31BackEnv.getMaxWorkGroupSize());
         }
 
         String source = createShaderSource(xSize, kennelSize);

@@ -10,6 +10,7 @@ public class GLES31BackEnv {
     private int mHeight;
     private EGLHelper mEGLHelper;
     private int[] fFrame = new int[1];
+    private static int mMaxWorkGroupSize;
 
     final static String TAG = "GLES31BackEnv";
 
@@ -20,6 +21,11 @@ public class GLES31BackEnv {
         mEGLHelper.eglInit(width, height);
         initFBO();
         Render.getMaxDrawBuffers();
+        mMaxWorkGroupSize = Render.getMaxWorkGroupSize();
+    }
+
+    public static int getMaxWorkGroupSize() {
+        return mMaxWorkGroupSize;
     }
 
     private void initFBO() {

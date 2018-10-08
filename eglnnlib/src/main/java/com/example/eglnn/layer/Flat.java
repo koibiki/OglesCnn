@@ -3,6 +3,7 @@ package com.example.eglnn.layer;
 import android.content.Context;
 
 import com.example.eglnn.Render;
+import com.example.eglnn.eglenv.GLES31BackEnv;
 import com.example.eglnn.utils.DataUtils;
 import com.example.eglnn.utils.ShaderUtils;
 import com.example.eglnn.utils.Utils;
@@ -45,12 +46,12 @@ public class Flat extends Layer {
     @Override
     public void initialize() {
         int xSize;
-        if (mOutShape[0] <= 1024) {
+        if (mOutShape[0] <= GLES31BackEnv.getMaxWorkGroupSize()) {
             xSize = mOutShape[0];
             mNumGroupX = 1;
         } else {
-            xSize = 1024;
-            mNumGroupX = (int) Math.ceil(mOutShape[0] * 1.0f / 1024);
+            xSize = GLES31BackEnv.getMaxWorkGroupSize();
+            mNumGroupX = (int) Math.ceil(mOutShape[0] * 1.0f / GLES31BackEnv.getMaxWorkGroupSize());
         }
 
         String source = createShaderSource(xSize);

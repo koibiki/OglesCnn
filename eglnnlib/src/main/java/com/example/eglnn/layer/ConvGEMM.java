@@ -3,6 +3,7 @@ package com.example.eglnn.layer;
 import android.content.Context;
 
 import com.example.eglnn.Render;
+import com.example.eglnn.eglenv.GLES31BackEnv;
 import com.example.eglnn.utils.DataUtils;
 import com.example.eglnn.utils.MessagePackUtils;
 import com.example.eglnn.utils.ShaderUtils;
@@ -73,15 +74,15 @@ public class ConvGEMM extends Layer {
 
     private int getLocalSizeX(int[] outShape) {
         int outArea = outShape[0] * outShape[1];
-        if (outArea >= 1024 * 4) {
-            return 1024;
+        if (outArea >= GLES31BackEnv.getMaxWorkGroupSize() * 4) {
+            return GLES31BackEnv.getMaxWorkGroupSize();
         } else {
             return (int) Math.ceil(outArea * 1.0f / 4);
         }
     }
 
     private int getLocalSizeZ(int xSize) {
-        int maxZSize = 1024 / xSize >= 64 ? 64 : 1024 / xSize;
+        int maxZSize = GLES31BackEnv.getMaxWorkGroupSize() / xSize >= 64 ? 64 : GLES31BackEnv.getMaxWorkGroupSize() / xSize;
         int zSize = Utils.alignBy4(mOutShape[2]) / 4;
         if (zSize >= maxZSize) {
             return maxZSize;

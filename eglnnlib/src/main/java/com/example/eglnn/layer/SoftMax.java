@@ -3,8 +3,10 @@ package com.example.eglnn.layer;
 import android.content.Context;
 
 import com.example.eglnn.Render;
+import com.example.eglnn.eglenv.GLES31BackEnv;
 import com.example.eglnn.utils.DataUtils;
 import com.example.eglnn.utils.ShaderUtils;
+import com.example.eglnn.utils.Utils;
 
 import java.nio.FloatBuffer;
 import java.util.Locale;
@@ -24,6 +26,7 @@ public class SoftMax extends Layer {
 
     private int mShaderPro;
     private int mAmount;
+    private int mNumGroupsX;
 
     public SoftMax(Context context, String name, Layer preLayer) {
         super(context, name, preLayer);
@@ -49,8 +52,18 @@ public class SoftMax extends Layer {
         }
     }
 
+    private int getLocalSizeX(int[] outShape) {
+        if (outShape[0] >= GLES31BackEnv.getMaxWorkGroupSize()) {
+            return GLES31BackEnv.getMaxWorkGroupSize();
+        } else {
+            return outShape[0];
+        }
+    }
+
     private void initSoftmax() {
-        String source = createShaderSource(mOutShape[0]);
+        int xSize = getLocalSizeX(mOutShape);
+        mNumGroupsX = (int) Math.ceil(mOutShape[0] * 1.0f / xSize);
+        String source = createShaderSource(xSize);
         mShaderPro = initCompPro(source);
 
         mAttachID = Layer.getDataAttachID();
@@ -75,7 +88,7 @@ public class SoftMax extends Layer {
 
     @Override
     protected void actualForwardProc(float[][] input) {
-        Render.performComputeWithoutPara(mShaderPro, mPreLayer.getOutTex(), mOutTex, 1, 1, 1);
+        Render.performComputeWithoutPara(mShaderPro, mPreLayer.getOutTex(), mOutTex, mNumGroupsX, 1, 1);
     }
 
     @Override

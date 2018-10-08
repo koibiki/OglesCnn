@@ -45,6 +45,8 @@ import static android.opengl.GLES30.glReadBuffer;
 import static android.opengl.GLES30.glTexStorage3D;
 import static android.opengl.GLES30.glTexSubImage3D;
 import static android.opengl.GLES31.GL_COMPUTE_SHADER;
+import static android.opengl.GLES31.GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS;
+import static android.opengl.GLES31.GL_MAX_COMPUTE_WORK_GROUP_SIZE;
 import static android.opengl.GLES31.GL_READ_ONLY;
 import static android.opengl.GLES31.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
 import static android.opengl.GLES31.GL_SHADER_STORAGE_BUFFER;
@@ -61,6 +63,12 @@ public class Render {
     public static int getMaxDrawBuffers() {
         int[] maxBuffer = new int[1];
         glGetIntegerv(GL_MAX_DRAW_BUFFERS, maxBuffer, 0);
+        return maxBuffer[0];
+    }
+
+    public static int getMaxWorkGroupSize() {
+        int[] maxBuffer = new int[1];
+        glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, maxBuffer, 0);
         return maxBuffer[0];
     }
 

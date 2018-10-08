@@ -3,6 +3,7 @@ package com.example.eglnn.layer;
 import android.content.Context;
 
 import com.example.eglnn.Render;
+import com.example.eglnn.eglenv.GLES31BackEnv;
 import com.example.eglnn.utils.DataUtils;
 import com.example.eglnn.utils.Numpy;
 import com.example.eglnn.utils.ShaderUtils;
@@ -73,15 +74,15 @@ public class ConvWinogradF23 extends Layer {
     }
 
     private int getLocalSizeX(int[] outShape) {
-        if (outShape[0] / 2 >= 1024) {
-            return 1024;
+        if (outShape[0] / 2 >= GLES31BackEnv.getMaxWorkGroupSize()) {
+            return GLES31BackEnv.getMaxWorkGroupSize();
         } else {
             return outShape[0] / 2;
         }
     }
 
     private int getLocalSizeY(int[] outShape, int xSize) {
-        int maxSize = 1024 / xSize;
+        int maxSize = GLES31BackEnv.getMaxWorkGroupSize() / xSize;
         if (outShape[1] / 2 <= maxSize) {
             return outShape[1] / 2;
         } else {
@@ -90,7 +91,7 @@ public class ConvWinogradF23 extends Layer {
     }
 
     private int getLocalSizeZ(int xSize, int ySize) {
-        int maxZSize = 1024 / (xSize * ySize) >= 64 ? 64 : 1024 / (xSize * ySize);
+        int maxZSize = GLES31BackEnv.getMaxWorkGroupSize() / (xSize * ySize) >= 64 ? 64 : GLES31BackEnv.getMaxWorkGroupSize() / (xSize * ySize);
         int zSize = Utils.alignBy4(mOutShape[2]) / 4;
         if (zSize >= maxZSize) {
             return maxZSize;
