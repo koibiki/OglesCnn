@@ -15,7 +15,7 @@ import static com.example.eglnn.Render.initCompPro;
 import static com.example.eglnn.utils.Constants.S_SOFTMAX_SHADER_HEADER;
 
 /**
- * 前接层维度 (N, 1, 4) , 分类维度不超过4096
+ * 前接层维度 (N, 1, 4) , 分类维度不超过 128 * 4 * 4
  */
 public class SoftMax extends Layer {
 
@@ -26,7 +26,6 @@ public class SoftMax extends Layer {
 
     private int mShaderPro;
     private int mAmount;
-    private int mNumGroupsX;
 
     public SoftMax(Context context, String name, Layer preLayer) {
         super(context, name, preLayer);
@@ -52,18 +51,8 @@ public class SoftMax extends Layer {
         }
     }
 
-    private int getLocalSizeX(int[] outShape) {
-        if (outShape[0] >= GLES31BackEnv.getMaxWorkGroupSize()) {
-            return GLES31BackEnv.getMaxWorkGroupSize();
-        } else {
-            return outShape[0];
-        }
-    }
-
     private void initSoftmax() {
-        int xSize = getLocalSizeX(mOutShape);
-        mNumGroupsX = (int) Math.ceil(mOutShape[0] * 1.0f / xSize);
-        String source = createShaderSource(xSize);
+        String source = createShaderSource((int) Math.ceil(mOutShape[0] * 1.0f / 4));
         mShaderPro = initCompPro(source);
 
         mAttachID = Layer.getDataAttachID();
@@ -88,7 +77,7 @@ public class SoftMax extends Layer {
 
     @Override
     protected void actualForwardProc(float[][] input) {
-        Render.performComputeWithoutPara(mShaderPro, mPreLayer.getOutTex(), mOutTex, mNumGroupsX, 1, 1);
+        Render.performComputeWithoutPara(mShaderPro, mPreLayer.getOutTex(), mOutTex, 1, 1, 1);
     }
 
     @Override

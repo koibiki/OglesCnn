@@ -46,7 +46,7 @@ public class NnNetwork {
     private Result runNet(float[][] input) {
         long begin = System.currentTimeMillis();
         float[][][] result = null;
-        int count = 50;
+        int count = 100;
         int filter = 10;
         for (int ii = 0; ii < count + filter; ii++) {
             long begin1 = System.currentTimeMillis();
