@@ -1,9 +1,9 @@
 layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = Z_SIZE) in;
 
 uniform int params[11];  // input_shape[3] output_shape[3] active_type in_depth out_depth pad_w, pad_h
-layout(binding = 0, rgba32f) readonly uniform lowp image2DArray input_image;
-layout(binding = 1, rgba32f) writeonly uniform lowp image2DArray output_image;
-layout(binding = 2, rgba32f) readonly uniform lowp image2DArray kernel_image;
+layout(binding = 0, rgba16f) readonly uniform lowp image2DArray input_image;
+layout(binding = 1, rgba16f) writeonly uniform lowp image2DArray output_image;
+layout(binding = 2, rgba16f) readonly uniform lowp image2DArray kernel_image;
 
 float sum(vec4 v);
 float relu(float i);

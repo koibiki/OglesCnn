@@ -35,7 +35,7 @@ import static android.opengl.GLES20.glUniform1iv;
 import static android.opengl.GLES20.glUseProgram;
 import static android.opengl.GLES30.GL_DYNAMIC_COPY;
 import static android.opengl.GLES30.GL_MAX_DRAW_BUFFERS;
-import static android.opengl.GLES30.GL_RGBA32F;
+import static android.opengl.GLES30.GL_RGBA16F;
 import static android.opengl.GLES30.GL_RGBA32I;
 import static android.opengl.GLES30.GL_RGBA_INTEGER;
 import static android.opengl.GLES30.GL_TEXTURE_2D_ARRAY;
@@ -46,7 +46,6 @@ import static android.opengl.GLES30.glTexStorage3D;
 import static android.opengl.GLES30.glTexSubImage3D;
 import static android.opengl.GLES31.GL_COMPUTE_SHADER;
 import static android.opengl.GLES31.GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS;
-import static android.opengl.GLES31.GL_MAX_COMPUTE_WORK_GROUP_SIZE;
 import static android.opengl.GLES31.GL_READ_ONLY;
 import static android.opengl.GLES31.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
 import static android.opengl.GLES31.GL_SHADER_STORAGE_BUFFER;
@@ -88,7 +87,7 @@ public class Render {
     }
 
     public static int createFloatTextureArray(int width, int height, int depth) {
-        return createTextureArray(width, height, depth, GL_RGBA32F);
+        return createTextureArray(width, height, depth, GL_RGBA16F);
     }
 
     public static int createIntTextureArray(int width, int height, int depth) {
@@ -134,9 +133,9 @@ public class Render {
         glUseProgram(compProg);
         glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
 
-        glBindImageTexture(0, inTex, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
-        glBindImageTexture(1, outTex, 0, true, 0, GL_WRITE_ONLY, GL_RGBA32F);
-        glBindImageTexture(2, kennelTex, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
+        glBindImageTexture(0, inTex, 0, true, 0, GL_READ_ONLY, GL_RGBA16F);
+        glBindImageTexture(1, outTex, 0, true, 0, GL_WRITE_ONLY, GL_RGBA16F);
+        glBindImageTexture(2, kennelTex, 0, true, 0, GL_READ_ONLY, GL_RGBA16F);
 
         glDispatchCompute(numGroupsX, numGroupsY, numGroupZ);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
@@ -146,9 +145,9 @@ public class Render {
         glUseProgram(compProg);
         glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
 
-        glBindImageTexture(0, inTex, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
-        glBindImageTexture(1, outTex, 0, true, 0, GL_WRITE_ONLY, GL_RGBA32F);
-        glBindImageTexture(2, kennelTex, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
+        glBindImageTexture(0, inTex, 0, true, 0, GL_READ_ONLY, GL_RGBA16F);
+        glBindImageTexture(1, outTex, 0, true, 0, GL_WRITE_ONLY, GL_RGBA16F);
+        glBindImageTexture(2, kennelTex, 0, true, 0, GL_READ_ONLY, GL_RGBA16F);
 
         glDispatchCompute(numGroupsX, 1, numGroupZ);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
@@ -159,8 +158,8 @@ public class Render {
 
         glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
 
-        glBindImageTexture(0, inTex, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
-        glBindImageTexture(1, outTex, 0, true, 0, GL_WRITE_ONLY, GL_RGBA32F);
+        glBindImageTexture(0, inTex, 0, true, 0, GL_READ_ONLY, GL_RGBA16F);
+        glBindImageTexture(1, outTex, 0, true, 0, GL_WRITE_ONLY, GL_RGBA16F);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffer);
 
         glDispatchCompute(numGroupX, 1, 1);
@@ -172,8 +171,8 @@ public class Render {
 
         glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
 
-        glBindImageTexture(0, inTex, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
-        glBindImageTexture(1, outTex, 0, true, 0, GL_WRITE_ONLY, GL_RGBA32F);
+        glBindImageTexture(0, inTex, 0, true, 0, GL_READ_ONLY, GL_RGBA16F);
+        glBindImageTexture(1, outTex, 0, true, 0, GL_WRITE_ONLY, GL_RGBA16F);
 
         glDispatchCompute(numGroupsX, numGroupsY, numGroupZ);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
@@ -182,8 +181,8 @@ public class Render {
     public static void performComputeWithoutPara(int compProg, int inTex, int outTex, int numGroupsX, int numGroupsY, int numGroupZ) {
         glUseProgram(compProg);
 
-        glBindImageTexture(0, inTex, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
-        glBindImageTexture(1, outTex, 0, true, 0, GL_WRITE_ONLY, GL_RGBA32F);
+        glBindImageTexture(0, inTex, 0, true, 0, GL_READ_ONLY, GL_RGBA16F);
+        glBindImageTexture(1, outTex, 0, true, 0, GL_WRITE_ONLY, GL_RGBA16F);
 
         glDispatchCompute(numGroupsX, numGroupsY, numGroupZ);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
@@ -194,9 +193,9 @@ public class Render {
 
         glUniform1iv(glGetUniformLocation(compProg, "params"), params.length, params, 0);
 
-        glBindImageTexture(0, inTex1, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
-        glBindImageTexture(1, inTex2, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
-        glBindImageTexture(2, outTex, 0, true, 0, GL_WRITE_ONLY, GL_RGBA32F);
+        glBindImageTexture(0, inTex1, 0, true, 0, GL_READ_ONLY, GL_RGBA16F);
+        glBindImageTexture(1, inTex2, 0, true, 0, GL_READ_ONLY, GL_RGBA16F);
+        glBindImageTexture(2, outTex, 0, true, 0, GL_WRITE_ONLY, GL_RGBA16F);
 
         glDispatchCompute(numGroupsX, numGroupsY, numGroupZ);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
