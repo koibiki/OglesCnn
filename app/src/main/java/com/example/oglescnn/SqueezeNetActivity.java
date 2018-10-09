@@ -16,6 +16,7 @@ import com.example.eglnn.layer.Layer;
 import com.example.eglnn.layer.Layer.PaddingType;
 import com.example.eglnn.layer.Pooling;
 import com.example.eglnn.layer.SoftMax;
+import com.example.eglnn.layer.SoftMaxCpu;
 import com.example.eglnn.utils.Numpy;
 import com.example.eglnn.utils.Utils;
 
@@ -81,7 +82,7 @@ public class SqueezeNetActivity extends AppCompatActivity {
         Layer conv1 = new ConvGEMM(this, asssetDir + "conv1", in, 64, 3, 3, PaddingType.VALID, 2, 2, Layer.ActiveType.RELU);
         mNnNetwork.addLayer(conv1);
 
-        Pooling pooling1 = new Pooling(this, "pool1", conv1, 3, 3, PaddingType.VALID, 2, 2, Layer.PoolingType.MAX);
+        Layer pooling1 = new Pooling(this, "pool1", conv1, 3, 3, PaddingType.VALID, 2, 2, Layer.PoolingType.MAX);
         mNnNetwork.addLayer(pooling1);
 
         // fire2
@@ -94,7 +95,7 @@ public class SqueezeNetActivity extends AppCompatActivity {
         Layer conv2_2 = new ConvGEMM(this, asssetDir + "fire2_expand3x3", conv2_squeeze, 64, 3, 3, PaddingType.SAME, 1, 1, Layer.ActiveType.RELU);
         mNnNetwork.addLayer(conv2_2);
 
-        Concat concat2 = new Concat(this, "concat2", new Layer[]{conv2_1, conv2_2}, 2);
+        Layer concat2 = new Concat(this, "concat2", new Layer[]{conv2_1, conv2_2}, 2);
         mNnNetwork.addLayer(concat2);
 
         // fire3
@@ -107,10 +108,10 @@ public class SqueezeNetActivity extends AppCompatActivity {
         Layer conv3_2 = new ConvGEMM(this, asssetDir + "fire3_expand3x3", conv3_squeeze, 64, 3, 3, PaddingType.SAME, 1, 1, Layer.ActiveType.RELU);
         mNnNetwork.addLayer(conv3_2);
 
-        Concat concat3 = new Concat(this, "concat3", new Layer[]{conv3_1, conv3_2}, 2);
+        Layer concat3 = new Concat(this, "concat3", new Layer[]{conv3_1, conv3_2}, 2);
         mNnNetwork.addLayer(concat3);
 
-        Pooling pooling3 = new Pooling(this, "pool3", concat3, 3, 3, PaddingType.VALID, 2, 2, Layer.PoolingType.MAX);
+        Layer pooling3 = new Pooling(this, "pool3", concat3, 3, 3, PaddingType.VALID, 2, 2, Layer.PoolingType.MAX);
         mNnNetwork.addLayer(pooling3);
 
         // fire4
@@ -139,7 +140,7 @@ public class SqueezeNetActivity extends AppCompatActivity {
         Concat concat5 = new Concat(this, "concat5", new Layer[]{conv5_1, conv5_2}, 2);
         mNnNetwork.addLayer(concat5);
 
-        Pooling pooling5 = new Pooling(this, "pool5", concat5, 3, 3, PaddingType.VALID, 2, 2, Layer.PoolingType.MAX);
+        Layer pooling5 = new Pooling(this, "pool5", concat5, 3, 3, PaddingType.VALID, 2, 2, Layer.PoolingType.MAX);
         mNnNetwork.addLayer(pooling5);
 
         // fire6
@@ -152,7 +153,7 @@ public class SqueezeNetActivity extends AppCompatActivity {
         Layer conv6_2 = new ConvGEMM(this, asssetDir + "fire6_expand3x3", conv6_squeeze, 192, 3, 3, PaddingType.SAME, 1, 1, Layer.ActiveType.RELU);
         mNnNetwork.addLayer(conv6_2);
 
-        Concat concat6 = new Concat(this, "concat6", new Layer[]{conv6_1, conv6_2}, 2);
+        Layer concat6 = new Concat(this, "concat6", new Layer[]{conv6_1, conv6_2}, 2);
         mNnNetwork.addLayer(concat6);
 
         // fire7
@@ -165,7 +166,7 @@ public class SqueezeNetActivity extends AppCompatActivity {
         Layer conv7_2 = new ConvGEMM(this, asssetDir + "fire7_expand3x3", conv7_squeeze, 192, 3, 3, PaddingType.SAME, 1, 1, Layer.ActiveType.RELU);
         mNnNetwork.addLayer(conv7_2);
 
-        Concat concat7 = new Concat(this, "concat7", new Layer[]{conv7_1, conv7_2}, 2);
+        Layer concat7 = new Concat(this, "concat7", new Layer[]{conv7_1, conv7_2}, 2);
         mNnNetwork.addLayer(concat7);
 
         // fire8
@@ -178,7 +179,7 @@ public class SqueezeNetActivity extends AppCompatActivity {
         Layer conv8_2 = new ConvGEMM(this, asssetDir + "fire8_expand3x3", conv8_squeeze, 256, 3, 3, PaddingType.SAME, 1, 1, Layer.ActiveType.RELU);
         mNnNetwork.addLayer(conv8_2);
 
-        Concat concat8 = new Concat(this, "concat8", new Layer[]{conv8_1, conv8_2}, 2);
+        Layer concat8 = new Concat(this, "concat8", new Layer[]{conv8_1, conv8_2}, 2);
         mNnNetwork.addLayer(concat8);
 
         // fire9
@@ -191,20 +192,20 @@ public class SqueezeNetActivity extends AppCompatActivity {
         Layer conv9_2 = new ConvGEMM(this, asssetDir + "fire9_expand3x3", conv9_squeeze, 256, 3, 3, PaddingType.SAME, 1, 1, Layer.ActiveType.RELU);
         mNnNetwork.addLayer(conv9_2);
 
-        Concat concat9 = new Concat(this, "concat9", new Layer[]{conv9_1, conv9_2}, 2);
+        Layer concat9 = new Concat(this, "concat9", new Layer[]{conv9_1, conv9_2}, 2);
         mNnNetwork.addLayer(concat9);
 
         // fire10
         Layer conv10 = new ConvGEMM(this, asssetDir + "conv10", concat9, 1000, 1, 1, PaddingType.SAME, 1, 1, Layer.ActiveType.NONE);
         mNnNetwork.addLayer(conv10);
 
-        Pooling pooling11 = new GlobalAvePooling(this, "pool11", conv10);
+        Layer pooling11 = new GlobalAvePooling(this, "pool11", conv10);
         mNnNetwork.addLayer(pooling11);
 
-        Flat flat = new Flat(this, "flat", pooling11);
+        Layer flat = new Flat(this, "flat", pooling11);
         mNnNetwork.addLayer(flat);
 
-        SoftMax softmax = new SoftMax(this, "softmax", flat);
+        Layer softmax = new SoftMaxCpu(this, "softmax", flat);
         mNnNetwork.addLayer(softmax);
 
         mNnNetwork.initialize();
