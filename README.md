@@ -4,6 +4,11 @@
 ### benchmark (均运行Squeeze net)
 | cpu        | ncnn(4线程)   |  OglesCnn  |
 | --------   | -----:  | :----:  |
-| 高通660     | 60ms |   84ms     |
-| 麒麟970        |  57ms   |   77ms   |
+| 高通660     | 60ms |   78ms     |
+| 麒麟970        |  57ms   |   -   |
 | 高通835       |   - |  -  |  
+TO DO LIST:
+1.目前在ARM MAIL GPU上仍有bug，待修复
+2.winograd conv 加载kernel的逻辑还未添加
+3.通用的python 模型转换工具待添加
+4.模型文件解析工具待添加
