@@ -7,6 +7,7 @@
 | 高通660     | 60ms |   78ms     |
 | 麒麟970        |  57ms   |   -   |
 | 高通835       |   - |  -  |  
+
 TO DO LIST:
 1.目前在ARM MAIL GPU上仍有bug，待修复
 2.winograd conv 加载kernel的逻辑还未添加
