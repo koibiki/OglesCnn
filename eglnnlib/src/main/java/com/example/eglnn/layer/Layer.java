@@ -74,6 +74,10 @@ public abstract class Layer {
         this.mPreLayers = preLayers;
     }
 
+    public String getName() {
+        return mName;
+    }
+
     public int getAttachID() {
         return mAttachID;
     }

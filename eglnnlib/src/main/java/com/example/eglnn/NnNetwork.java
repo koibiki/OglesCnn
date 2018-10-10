@@ -1,6 +1,7 @@
 package com.example.eglnn;
 
 import android.content.Context;
+import android.opengl.GLES31;
 import android.util.Log;
 
 import com.example.eglnn.eglenv.GLES31BackEnv;
@@ -35,6 +36,7 @@ public class NnNetwork {
             mIsInit = true;
             for (Layer layer : mLayers) {
                 layer.initialize();
+                Log.w(TAG, layer.getName() + ":initialize");
             }
         }
     }
@@ -56,6 +58,7 @@ public class NnNetwork {
             int size = mLayers.size();
             for (int i = 0; i < size; i++) {
                 mLayers.get(i).forwardProc(input, i + 1 == size);
+                GLES31.glFlush();
             }
             result = actualReadOutput();
             Log.w(TAG, "spent:" + (System.currentTimeMillis() - begin1));
