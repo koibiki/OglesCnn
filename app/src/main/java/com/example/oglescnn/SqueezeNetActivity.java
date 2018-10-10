@@ -37,6 +37,7 @@ public class SqueezeNetActivity extends AppCompatActivity {
     private TextView tvPb;
     private View pb;
     private Handler mHandler;
+    private View run;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +48,7 @@ public class SqueezeNetActivity extends AppCompatActivity {
         tv = findViewById(R.id.tv);
         pb = findViewById(R.id.pb);
         tvPb = findViewById(R.id.tv_pb);
+        run = findViewById(R.id.run);
         iv.setImageResource(R.drawable.cat217);
         mLabels = readLabel();
 
@@ -222,10 +224,12 @@ public class SqueezeNetActivity extends AppCompatActivity {
         mNnNetwork.initialize();
 
         pb.setVisibility(View.INVISIBLE);
-
+        run.setEnabled(true);
     }
 
     public void runNn(View view) {
+        run.setEnabled(false);
+
         pb.setVisibility(View.VISIBLE);
         tvPb.setText("识别中");
         tv.setText("识别中");
@@ -243,6 +247,7 @@ public class SqueezeNetActivity extends AppCompatActivity {
             float[] result = Numpy.argmax(predict.getResult());
             String label = mLabels[(int) result[0]];
             runOnUiThread(() -> {
+                run.setEnabled(true);
                 pb.setVisibility(View.INVISIBLE);
                 tv.setText("label:" + label + "\n" + "accuracy :" + result[1] + "\n" + "avetime:" + predict.getAveTime());
             });

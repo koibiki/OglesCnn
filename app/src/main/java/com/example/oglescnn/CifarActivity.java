@@ -33,8 +33,10 @@ public class CifarActivity extends AppCompatActivity {
     private String[] mLabels;
     private ImageView iv;
     private TextView tv;
-    private ProgressBar pb;
+    private View pb;
+    private TextView tvPb;
     private Handler mHandler;
+    private View run;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +45,8 @@ public class CifarActivity extends AppCompatActivity {
         iv = findViewById(R.id.iv);
         tv = findViewById(R.id.tv);
         pb = findViewById(R.id.pb);
+        tvPb = findViewById(R.id.tv_pb);
+        run = findViewById(R.id.run);
         iv.setImageResource(R.drawable.airplane);
         mLabels = readLabel();
 
@@ -118,10 +122,15 @@ public class CifarActivity extends AppCompatActivity {
         mNnNetwork.addLayer(softmax);
 
         mNnNetwork.initialize();
+        pb.setVisibility(View.INVISIBLE);
+        run.setEnabled(true);
     }
 
     public void runNn(View view) {
+        run.setEnabled(false);
+
         pb.setVisibility(View.VISIBLE);
+        tvPb.setText("识别中");
         tv.setText("识别中");
         mHandler.post(() -> {
             float[][][] input = TestUtils.getTestCifarImage(this);
@@ -137,9 +146,16 @@ public class CifarActivity extends AppCompatActivity {
             float[] result = Numpy.argmax(predict.getResult());
             String label = mLabels[(int) result[0]];
             runOnUiThread(() -> {
+                run.setEnabled(true);
                 pb.setVisibility(View.GONE);
                 tv.setText("label:" + label + "\n" + "accuracy :" + result[1] + "\n" + "avetime:" + predict.getAveTime());
             });
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mNnNetwork.destory();
     }
 }
