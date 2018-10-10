@@ -92,7 +92,6 @@ void main(void)
         ivec2 conv_index_on_tex3 = ivec2(x_offset + strides[0] * x_3, y_offset + strides[1] * y_3);
 
         for (int c = 0; c < in_depth; c++) {
-
             vec4 kernel0 = imageLoad(kernel_image, ivec3(i, z_index0, c));
             vec4 kernel1 = imageLoad(kernel_image, ivec3(i, z_index1, c));
             vec4 kernel2 = imageLoad(kernel_image, ivec3(i, z_index2, c));
@@ -102,7 +101,6 @@ void main(void)
                             kernel0[1], kernel1[1], kernel2[1], kernel3[1],
                             kernel0[2], kernel1[2], kernel2[2], kernel3[2],
                             kernel0[3], kernel1[3], kernel2[3], kernel3[3]);
-//            kernel = transpose(kernel);
 
             data_mat0[0] = imageLoad(input_image, ivec3(conv_index_on_tex0, c));
             data_mat0[1] = imageLoad(input_image, ivec3(conv_index_on_tex1, c));
