@@ -21,11 +21,11 @@ import static com.example.eglnn.utils.Constants.S_COMMON_SHADER_HEADER;
 public class Flat extends Layer {
 
     private FloatBuffer mOut;       // 每次只能读取一个深度上的数据
+    private int mShaderPro;
     private int mBindLayer;         // 纹理绑定深度编号
 
     private int mAmount;
     private int mNumGroupX;
-    private int mShaderPro;
 
     public Flat(Context context, String name, Layer preLayer) {
         super(context, name, preLayer);
@@ -78,13 +78,9 @@ public class Flat extends Layer {
     }
 
     @Override
-    public float[][][] readResult() {
-        float[][][] out = new float[1][1][mAmount];
+    public float[] readResult() {
         DataUtils.readOutput(this, mOut, mOutShape[0], mOutShape[1]);
-        for (int i = 0; i < mAmount; i++) {
-            out[0][0][i] = mOut.get(i);
-        }
-        return out;
+        return  mOut.array();
     }
 
 }

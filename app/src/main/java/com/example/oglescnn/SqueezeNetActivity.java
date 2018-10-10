@@ -18,6 +18,7 @@ import com.example.eglnn.layer.Input;
 import com.example.eglnn.layer.Layer;
 import com.example.eglnn.layer.Layer.PaddingType;
 import com.example.eglnn.layer.Pooling;
+import com.example.eglnn.layer.SoftMax;
 import com.example.eglnn.layer.SoftMaxCpu;
 import com.example.eglnn.utils.Numpy;
 import com.example.eglnn.utils.Utils;
@@ -33,7 +34,8 @@ public class SqueezeNetActivity extends AppCompatActivity {
     private String[] mLabels;
     private ImageView iv;
     private TextView tv;
-    private ProgressBar pb;
+    private TextView tvPb;
+    private View pb;
     private Handler mHandler;
 
     @Override
@@ -44,6 +46,7 @@ public class SqueezeNetActivity extends AppCompatActivity {
         iv = findViewById(R.id.iv);
         tv = findViewById(R.id.tv);
         pb = findViewById(R.id.pb);
+        tvPb = findViewById(R.id.tv_pb);
         iv.setImageResource(R.drawable.cat217);
         mLabels = readLabel();
 
@@ -213,17 +216,20 @@ public class SqueezeNetActivity extends AppCompatActivity {
         Layer flat = new Flat(this, "flat", pooling11);
         mNnNetwork.addLayer(flat);
 
-        Layer softmax = new SoftMaxCpu(this, "softmax", flat);
+        Layer softmax = new SoftMax(this, "softmax", flat);
         mNnNetwork.addLayer(softmax);
 
         mNnNetwork.initialize();
+
+        pb.setVisibility(View.INVISIBLE);
 
     }
 
     public void runNn(View view) {
         pb.setVisibility(View.VISIBLE);
+        tvPb.setText("识别中");
         tv.setText("识别中");
-        mHandler.post(()->{
+        mHandler.post(() -> {
             float[][][] input = TestUtils.getTestImage(this, 227, 227);
             float[][] localInput = new float[Utils.alignBy4(3) / 4][227 * 227 * 4];
             for (int w = 0; w < 227; w++) {
@@ -234,14 +240,19 @@ public class SqueezeNetActivity extends AppCompatActivity {
                 }
             }
             NnNetwork.Result predict = mNnNetwork.predict(localInput);
-            float[] result = Numpy.argmax(predict.getResult()[0][0]);
+            float[] result = Numpy.argmax(predict.getResult());
             String label = mLabels[(int) result[0]];
             runOnUiThread(() -> {
-                pb.setVisibility(View.GONE);
+                pb.setVisibility(View.INVISIBLE);
                 tv.setText("label:" + label + "\n" + "accuracy :" + result[1] + "\n" + "avetime:" + predict.getAveTime());
             });
         });
 
+    }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mNnNetwork.destory();
     }
 }

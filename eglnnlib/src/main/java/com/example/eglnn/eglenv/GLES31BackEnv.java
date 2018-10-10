@@ -33,4 +33,8 @@ public class GLES31BackEnv {
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, fFrame[0]);
     }
 
+    public void destroy() {
+        mEGLHelper.destroy();
+    }
+
 }

@@ -134,7 +134,7 @@ public class CifarActivity extends AppCompatActivity {
                 }
             }
             NnNetwork.Result predict = mNnNetwork.predict(localInput);
-            float[] result = Numpy.argmax(predict.getResult()[0][0]);
+            float[] result = Numpy.argmax(predict.getResult());
             String label = mLabels[(int) result[0]];
             runOnUiThread(() -> {
                 pb.setVisibility(View.GONE);

@@ -45,7 +45,7 @@ public class NnNetwork {
 
     private Result runNet(float[][] input) {
         long begin = System.currentTimeMillis();
-        float[][][] result = null;
+        float[] result = null;
         int count = 100;
         int filter = 10;
         for (int ii = 0; ii < count + filter; ii++) {
@@ -55,7 +55,7 @@ public class NnNetwork {
             }
             int size = mLayers.size();
             for (int i = 0; i < size; i++) {
-                mLayers.get(i).forwardProc(input, i > size - 3);
+                mLayers.get(i).forwardProc(input, i + 1 == size);
             }
             result = actualReadOutput();
             Log.w(TAG, "spent:" + (System.currentTimeMillis() - begin1));
@@ -65,16 +65,16 @@ public class NnNetwork {
         return new Result(aveTime, result);
     }
 
-    private float[][][] actualReadOutput() {
+    private float[] actualReadOutput() {
         Layer layer = mLayers.get(mLayers.size() - 1);
         return layer.readResult();
     }
 
     public static class Result {
         float aveTime;
-        float[][][] result;
+        float[] result;
 
-        Result(float aveTime, float[][][] result) {
+        Result(float aveTime, float[] result) {
             this.aveTime = aveTime;
             this.result = result;
         }
@@ -83,10 +83,14 @@ public class NnNetwork {
             return aveTime;
         }
 
-        public float[][][] getResult() {
+        public float[] getResult() {
             return result;
         }
 
+    }
+
+    public void destory() {
+        mGLes31BackEnv.destroy();
     }
 
 }

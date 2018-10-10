@@ -215,11 +215,11 @@ public class ConvWinogradF23 extends Layer {
     }
 
     @Override
-    public float[][][] readResult() {
+    public float[] readResult() {
         float[][][] out = new float[mOutShape[2]][mOutShape[1]][mOutShape[0]];
         DataUtils.readOutput(this, mOut,mOutShape[0], mOutShape[1]);
         DataUtils.transform(out, mOut.array(), mOutShape[0], mOutShape[1], mOutShape[2], mBindLayer);
-        return out;
+        return mOut.array();
     }
 
 }

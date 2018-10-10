@@ -21,7 +21,7 @@ public class SoftMaxCpu extends Layer {
 
     private FloatBuffer mOut;       // 每次只能读取一个深度上的数据
     private int mBindLayer;         // 纹理绑定深度编号
-    private float[][][] mOutArray;
+    private float[] mOutArray;
 
     private int mShaderPro;
     private int mAmount;
@@ -67,21 +67,21 @@ public class SoftMaxCpu extends Layer {
 
     @Override
     protected void actualForwardProc(float[][] input) {
-        mOutArray = new float[1][1][mAmount];
+        mOutArray = new float[mAmount];
         DataUtils.readOutput(mPreLayer, mOut, mOutShape[0], mOutShape[1]);
         float sum = 0f;
         for (int i = 0; i < mAmount; i++) {
             float v = (float) Math.exp(mOut.get(i));
-            mOutArray[0][0][i] = v;
+            mOutArray[i] = v;
             sum += v;
         }
         for (int i=0; i < mAmount; i++) {
-            mOutArray[0][0][i] = mOutArray[0][0][i]  / sum;
+            mOutArray[i] = mOutArray[i]  / sum;
         }
     }
 
     @Override
-    public float[][][] readResult() {
+    public float[] readResult() {
         return mOutArray;
     }
 

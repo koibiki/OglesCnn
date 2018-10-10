@@ -93,12 +93,16 @@ void main(void)
 
         for (int c = 0; c < in_depth; c++) {
 
-            kernel[0] = imageLoad(kernel_image, ivec3(i, z_index0, c));
-            kernel[1] = imageLoad(kernel_image, ivec3(i, z_index1, c));
-            kernel[2] = imageLoad(kernel_image, ivec3(i, z_index2, c));
-            kernel[3] = imageLoad(kernel_image, ivec3(i, z_index3, c));
+            vec4 kernel0 = imageLoad(kernel_image, ivec3(i, z_index0, c));
+            vec4 kernel1 = imageLoad(kernel_image, ivec3(i, z_index1, c));
+            vec4 kernel2 = imageLoad(kernel_image, ivec3(i, z_index2, c));
+            vec4 kernel3 = imageLoad(kernel_image, ivec3(i, z_index3, c));
 
-            kernel = transpose(kernel);
+            kernel = mat4(kernel0[0], kernel1[0], kernel2[0], kernel3[0],
+                            kernel0[1], kernel1[1], kernel2[1], kernel3[1],
+                            kernel0[2], kernel1[2], kernel2[2], kernel3[2],
+                            kernel0[3], kernel1[3], kernel2[3], kernel3[3]);
+//            kernel = transpose(kernel);
 
             data_mat0[0] = imageLoad(input_image, ivec3(conv_index_on_tex0, c));
             data_mat0[1] = imageLoad(input_image, ivec3(conv_index_on_tex1, c));
