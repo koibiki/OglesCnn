@@ -122,8 +122,11 @@ public class CifarActivity extends AppCompatActivity {
         mNnNetwork.addLayer(softmax);
 
         mNnNetwork.initialize();
-        pb.setVisibility(View.INVISIBLE);
-        run.setEnabled(true);
+
+        runOnUiThread(()->{
+            pb.setVisibility(View.INVISIBLE);
+            run.setEnabled(true);
+        });
     }
 
     public void runNn(View view) {
