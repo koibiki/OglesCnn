@@ -4,9 +4,8 @@
 ### benchmark (均运行Squeeze net)
 | cpu        | ncnn(4线程)   |  OglesCnn  |
 | --------   | -----:  | :----:  |
-| 高通660     | 60ms |   74ms     |
-| 麒麟970        |  57ms   |   -   |
-| 高通835       |   - |  -  |  
+| 高通660     | 60ms |   70ms     |
+| 高通710       |   - |  35ms  |  
 
 TO DO LIST:
 
