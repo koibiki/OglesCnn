@@ -1,0 +1,22 @@
+layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = Z_SIZE) in;
+
+uniform int params[2]; // x y
+layout(binding = 0, rgba16f) readonly uniform lowp image2DArray input_image;
+layout(binding = 1, rgba16f) writeonly uniform lowp image2DArray output_image;
+
+void main(void)
+{
+    int x_up_sample = params[0];
+    int y_up_sample = params[1];
+    ivec3 pos = ivec3(gl_GlobalInvocationID.xyz);
+    vec4 data = imageLoad(input_image, pos);
+    int start_x = x_up_sample * pos.x;
+    int end_x = start_x + x_up_sample;
+    int start_y = y_up_sample * pos.y;
+    int end_y = start_y + y_up_sample;
+    for (int x = start_x; x < end_x; x++) {
+        for (int y = start_y; y < end_y; y++) {
+            imageStore(output_image, ivec3(x, y, pos.z), data);
+        }
+    }
+}
