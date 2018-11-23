@@ -8,7 +8,6 @@ layout(binding = 2, rgba16f) readonly uniform lowp image2DArray kernel_image;
 float relu(float i);
 float sigmoid(float i);
 vec4 activeVector(int type, vec4 v);
-ivec2 real_index(ivec2 index, int in_width, int in_height);
 
 ivec2 getRelativeRestoreIndex(int pos, int out_width);
 
@@ -120,14 +119,6 @@ void main(void)
     imageStore(output_image, ivec3(restore_index1.xy, pos.z), activeVector(active_type, result[1]));
     imageStore(output_image, ivec3(restore_index2.xy, pos.z), activeVector(active_type, result[2]));
     imageStore(output_image, ivec3(restore_index3.xy, pos.z), activeVector(active_type, result[3]));
-}
-
-ivec2 real_index(ivec2 index, int in_width, int in_height) {
-    if (index[0] < 0 || index[0] >= in_width || index[1] < 0 || index[1] >= in_height) {
-        return ivec2(1023, 1023);
-    } else {
-        return index;
-    }
 }
 
 int alignBy4(int channel) {
