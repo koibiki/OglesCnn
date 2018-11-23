@@ -23,6 +23,13 @@ public class Constants {
                     "#define Y_SIZE %d\n" +
                     "#define Z_SIZE %d\n";
 
+    public static final String S_DEPTH_WISE_CONV_SHADER_HEADER =
+            "#version 310 es\n" +
+                    "#define CHANNEL_MULTIPLIER_ONE_SHADER %d" +
+                    "#define X_SIZE %d\n" +
+                    "#define Y_SIZE %d\n" +
+                    "#define Z_SIZE %d\n";
+
     public static final int S_TEXTURE_SIZE = 1024;
 
 }

@@ -13,7 +13,7 @@ public class TestDataCreator {
         for (int c = 0; c < channel; c++) {
             for (int w = 0; w < width; w++) {
                 for (int h = 0; h < height; h++) {
-                    input[c][h][w] =  w;
+                    input[c][h][w] = w;
                 }
             }
         }
@@ -23,13 +23,13 @@ public class TestDataCreator {
     /**
      * 测试用 conv kennel
      */
-    public static float[][][] createConvKennels(int[] mKennelShape, int mKennelAmount) {
-        int k_w = mKennelShape[0];
-        int k_h = mKennelShape[1];
-        int k_c = mKennelShape[2];
+    public static float[][][] createConvKennels(int[] kennelShape, int kennelAmount) {
+        int k_w = kennelShape[0];
+        int k_h = kennelShape[1];
+        int k_c = kennelShape[2];
         int align_c = Utils.alignBy4(k_c);
-        float[][][] kennenls = new float[mKennelAmount][align_c / 4][(k_w * k_h + 1) * 4];
-        for (int a = 0; a < mKennelAmount; a++) {
+        float[][][] kennenls = new float[kennelAmount][align_c / 4][(k_w * k_h + 1) * 4];
+        for (int a = 0; a < kennelAmount; a++) {
             for (int w = 0; w < k_w; w++) {
                 for (int h = 0; h < k_h; h++) {
                     for (int c = 0; c < k_c; c++) {
@@ -43,14 +43,22 @@ public class TestDataCreator {
     }
 
     /**
+     * 测试用 depth wise conv kennel
+     */
+    public static float[][][] createDepthWiseConvKennels(int[] kennelShape, int kernelMultiplier) {
+
+        return null;
+    }
+
+    /**
      * 测试用 conv kennel Winograd 专用
      */
-    public static float[][][][] createConvKennels2(int[] mKennelShape, int mKennelAmount) {
-        int k_w = mKennelShape[0];
-        int k_h = mKennelShape[1];
-        int k_c = mKennelShape[2];
-        float[][][][] kennenls = new float[mKennelAmount][k_c][k_h][k_w];
-        for (int a = 0; a < mKennelAmount; a++) {
+    public static float[][][][] createConvKennels2(int[] kennelShape, int kennelAmount) {
+        int k_w = kennelShape[0];
+        int k_h = kennelShape[1];
+        int k_c = kennelShape[2];
+        float[][][][] kennenls = new float[kennelAmount][k_c][k_h][k_w];
+        for (int a = 0; a < kennelAmount; a++) {
             for (int w = 0; w < k_w; w++) {
                 for (int h = 0; h < k_h; h++) {
                     for (int c = 0; c < k_c; c++) {
@@ -63,11 +71,6 @@ public class TestDataCreator {
     }
 
     /**
-     * 测试用 conv kennel bias
-     * */
-
-
-    /**
      * 测试用全连接 kennel
      */
     public static float[][] createFullConnKennel(int kernelSize, int kernelAmount, int[] inShape) {
@@ -76,7 +79,7 @@ public class TestDataCreator {
         for (int a = 0; a < kernelAmount; a++) {
             for (int i = 0; i < input_area; i++) {
                 for (int c = 0; c < inShape[2]; c++) {
-                    kennels[a][input_area * c +  i] = i;
+                    kennels[a][input_area * c + i] = i;
                 }
             }
             kennels[a][kernelSize - 4] = 0.01f * a;

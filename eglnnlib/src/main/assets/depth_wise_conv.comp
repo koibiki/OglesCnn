@@ -1,0 +1,116 @@
+layout (local_size_x = X_SIZE, local_size_y = Y_SIZE, local_size_z = Z_SIZE) in;
+
+uniform int params[16];  // kennel_shape[3] input_shape[3] output_shape[3] strides[2] active_type pad_w, pad_h
+layout(binding = 0, rgba16f) readonly uniform lowp image2DArray input_image;
+layout(binding = 1, rgba16f) writeonly uniform lowp image2DArray output_image;
+layout(binding = 2, rgba16f) readonly uniform lowp image2DArray kernel_image;
+
+float relu(float i);
+float sigmoid(float i);
+vec4 activeVector(int type, vec4 v);
+
+// 每个shader负责计算输入4个通道,输出 4 * channel_multiplier 个通道的数据
+// kernel存储的方式为 in_channel * channel_multiplier 个通道
+// 输出也为 in_channel * channel_multiplier 个通道
+void main(void)
+{
+    // 分解参数
+    int kernel_width = params[0];
+    int kernel_height = params[1];
+    int kernel_channel = params[2];
+    int kernel_channel_multiplier = params[3];
+
+    int in_width = params[4];
+    int in_height = params[5];
+    int in_channel = params[6];
+
+    int out_width = params[7];
+    int out_height = params[8];
+    int out_channel = params[9];
+
+    int strides[2] = int[2](params[10], params[11]);
+
+    int active_type = params[12];
+    int align_channel = params[13];
+
+    int pad_w = params[14];
+    int pad_h = params[15];
+
+    ivec3 pos = ivec3(gl_GlobalInvocationID.xyz);
+
+    int count = align_channel / 4;
+    if (pos.x >= out_width || pos.y >= out_height || pos.z > count) {
+        return;
+    }
+
+    int output_area = out_width * out_height;
+    int kernel_area = kernel_width * kernel_height;
+
+    int start_z_index = pos.z * 4;
+
+    int z_index0 = start_z_index;
+    int z_index1 = z_index0 + 1;
+    int z_index2 = z_index1 + 1;
+    int z_index3 = z_index2 + 1;
+
+    float[CHANNEL_MULTIPLIER_ONE_SHADER] results;
+
+    int kernel_channel_index = m * count + pos.z;
+    for (int y = 0; y < kernel_height; y++){
+        for (int x = 0;x < kernel_width; x++){
+            int conv_x = pad_w + x + strides[0] * pos.x;
+            int conv_y = pad_h + y + strides[1] * pos.y;
+            int k_index = y * kernel_width + x;
+
+            vec4 data = imageLoad(input_image, ivec3(conv_x, conv_y, pos.z));
+            for (int m = 0; m < kernel_channel_multiplier; m++) {
+                int kernel_channel_index = m * count + pos.z;
+
+                vec4 kernel = imageLoad(kernel_image, ivec3(k_index, 0, kernel_channel_index));
+                int result_index0 = m * 4;
+                int result_index1 = result_index0 + 1;
+                int result_index2 = result_index1 + 1;
+                int result_index3 = result_index2 + 1;
+
+                results[result_index0] += data[0] * kernel[0];
+                results[result_index0] += data[1] * kernel[1];
+                results[result_index0] += data[2] * kernel[2];
+                results[result_index0] += data[3] * kernel[3];
+            }
+        }
+    }
+
+    for (int m = 0; m < kernel_channel_multiplier; m++) {
+        int index0 = m * 4;
+        int index1 = index0 + 1;
+        int index2 = index1 + 1;
+        int index3 = index2 + 1;
+
+        vec4 result = vec4(results[index0], results[index1], results[index2], results[index3]);
+        imageStore(output_image, ivec3(pos.x, pos.y, count * m + pos.z), activeVector(active_type, result));
+    }
+}
+
+float relu(float i){
+    if (i > 0.0){
+        return i;
+    } else {
+        return 0.0;
+    }
+}
+
+float sigmoid(float i){
+    return 1.0 / (1.0 + exp(-i));
+}
+
+vec4 activeVector(int type, vec4 v) {
+    if (type == 0) {
+        return vec4(relu(v[0]), relu(v[1]), relu(v[2]), relu(v[3]));
+    } else if (type == 1) {
+        return vec4(sigmoid(v[0]), sigmoid(v[1]), sigmoid(v[2]), sigmoid(v[3]));
+    } else if (type == 2){
+        return vec4(tanh(v[0]), tanh(v[1]), tanh(v[2]), tanh(v[3]));
+    } else {
+        return v;
+    }
+}
